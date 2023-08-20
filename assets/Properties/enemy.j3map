@@ -1,0 +1,29 @@
+tank: {
+    speed: 9f;
+    rps: .5f;
+    maxBullets: 1;
+    maxBounces: 0;
+    maxMines: 2;
+    bulletSpeed: 27f;
+}
+bulletAlert: {
+    alert: 10f;
+}
+defensivePoints: {
+    pointAngle: .25f;
+}
+directShot: {
+    exposureThreshold: .5f;
+}
+randomPoints: {
+    maxPointDistance: 10f;
+}
+sniper: {
+    barrelSpeed: .05f;
+}
+wander: {
+    previousTurnBias: 2.0f;
+    turnSpeed: 0.05f;
+    wander: 1f;
+    directional: 1f;
+}
