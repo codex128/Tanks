@@ -4,7 +4,7 @@
  */
 package codex.tanks;
 
-import codex.jmeutil.scene.SceneGraphIterator;
+import codex.boost.scene.SceneGraphIterator;
 import com.jme3.asset.AssetManager;
 import com.jme3.collision.Collidable;
 import com.jme3.collision.CollisionResult;
