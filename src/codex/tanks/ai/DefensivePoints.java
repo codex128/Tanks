@@ -42,7 +42,7 @@ public class DefensivePoints extends RandomPoints {
         if (stack.size() > stacksize) {
             stack.removeFirst();
         }
-        update.getTank().move(stack.getLast().subtract(position).normalizeLocal(), update.getTpf());
+        update.getTank().move(stack.getLast().subtract(position).normalizeLocal());
         CollisionShape shape = GameUtils.target(update.getGame().getCollisionShapes(), update.getTank().getAimRay(), update.getTank(), 0);
         if (shape == update.getPlayerTank() && stack.size() >= 2) {
             stack.removeLast();

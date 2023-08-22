@@ -66,7 +66,7 @@ public class PlayerAppState extends BaseAppState implements
         if (!tank.isAlive()) return;
         tank.update(tpf);
         if (!inputdirection.equals(Vector3f.ZERO)) {
-            tank.move(inputdirection.normalize(), tpf);
+            tank.move(inputdirection.normalize());
         }
         else {
             tank.stop();

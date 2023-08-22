@@ -41,7 +41,7 @@ public class BulletAlert implements TankAlgorithm {
             Vector3f left = q.getRotationColumn(0);
             int turn = threat.getBulletInfo().getDirection().dot(left) < 0 ? 1 : -1;
             final float diagonalFactor = .25f;
-            update.getTank().move(FastMath.interpolateLinear(diagonalFactor, away, left.multLocal(turn)).normalizeLocal(), update.getTpf());
+            update.getTank().move(FastMath.interpolateLinear(diagonalFactor, away, left.multLocal(turn)).normalizeLocal());
             //tank.aimAt(threat.getPosition());
             update.consume();
         }

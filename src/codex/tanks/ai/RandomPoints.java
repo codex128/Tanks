@@ -48,7 +48,7 @@ public class RandomPoints implements TankAlgorithm {
         if (stack.size() > stacksize) {
             stack.removeFirst();
         }
-        update.getTank().move(stack.getLast().subtract(position).normalizeLocal(), update.getTpf());
+        update.getTank().move(stack.getLast().subtract(position).normalizeLocal());
         update.consume();
     }
     @Override

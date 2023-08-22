@@ -7,6 +7,7 @@ package codex.tanks.ai;
 import codex.tanks.GameState;
 import codex.tanks.Tank;
 import codex.tanks.TankModel;
+import com.jme3.material.Material;
 import com.jme3.scene.Node;
 import java.util.LinkedList;
 import java.util.function.BiConsumer;
@@ -20,8 +21,8 @@ public class AITank extends Tank {
     private GameState game;
     private LinkedList<TankAlgorithm> algorithms = new LinkedList<>();
     
-    public AITank(Node root, TankModel model, int team, GameState game) {
-        super(root, model, team);
+    public AITank(Node root, Material material, TankModel model, int team, GameState game) {
+        super(root, material, model, team);
         this.game = game;
     }
     

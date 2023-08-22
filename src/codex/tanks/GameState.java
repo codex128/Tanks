@@ -4,7 +4,6 @@
  */
 package codex.tanks;
 
-import codex.boost.scene.SceneGraphIterator;
 import codex.j3map.J3map;
 import codex.tanks.ai.AITank;
 import codex.tanks.ai.BulletAlert;
@@ -15,6 +14,7 @@ import codex.tanks.effects.BasicEmitterControl;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
+import com.jme3.asset.TextureKey;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.control.RigidBodyControl;
@@ -29,7 +29,6 @@ import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
@@ -49,6 +48,7 @@ public class GameState extends BaseAppState {
     private LinkedList<Tank> tanks = new LinkedList<>();
     private LinkedList<Bullet> bullets = new LinkedList<>();
     private LinkedList<CollisionShape> collisionShapes = new LinkedList<>();
+    private DirectionalLight light;
     
     @Override
     protected void initialize(Application app) {
@@ -69,16 +69,16 @@ public class GameState extends BaseAppState {
         getPhysicsSpace().add(floorPhys);
         
         Node tank = (Node)app.getAssetManager().loadModel("Models/tank.j3o");
+        Material pmat = new Material(app.getAssetManager(), "Materials/tank.j3md");
+        pmat.setTexture("DiffuseMap", app.getAssetManager().loadTexture(new TextureKey("Models/tankTexture.png", false)));
+        pmat.setColor("MainColor", ColorRGBA.Blue);
+        pmat.setColor("SecondaryColor", new ColorRGBA(.3f, .5f, 1f, 1f));
+        tank.setMaterial(pmat);
         tank.setShadowMode(RenderQueue.ShadowMode.Cast);
         tank.setLocalTranslation(0f, 0f, -7f);
-        for (Spatial s : new SceneGraphIterator(tank)) {
-            if (s instanceof Geometry) {
-                ((Geometry)s).getMaterial().setTexture("BaseColorMap", app.getAssetManager().loadTexture("Models/playerTexture.png"));
-            }
-        }
         scene.attachChild(tank);
         TankModel pmodel = new TankModel((J3map)app.getAssetManager().loadAsset("Properties/player.j3map"));
-        Tank ptank = new Tank(tank, pmodel, 0);
+        Tank ptank = new Tank(tank, pmat, pmodel, 0);
         addTank(ptank);
         RigidBodyControl rigidbody = ptank.initPhysics();
         getState(BulletAppState.class).getPhysicsSpace().add(rigidbody);
@@ -89,10 +89,14 @@ public class GameState extends BaseAppState {
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < 1; j++) {
                 Node enemyTankSpatial = (Node)app.getAssetManager().loadModel("Models/tank.j3o");
+                Material emat = pmat.clone();
+                emat.setColor("MainColor", new ColorRGBA(.03f, .03f, .03f, 03f));
+                emat.setColor("SecondaryColor", new ColorRGBA(.2f, .2f, .2f, 1f));
+                enemyTankSpatial.setMaterial(emat);
                 enemyTankSpatial.setShadowMode(RenderQueue.ShadowMode.Cast);
                 enemyTankSpatial.setLocalTranslation(-10f+i*3, 0f, 7f);
                 scene.attachChild(enemyTankSpatial);
-                AITank enemy = new AITank(enemyTankSpatial, new TankModel(esource.getJ3map("tank")), 1, this);
+                AITank enemy = new AITank(enemyTankSpatial, emat, new TankModel(esource.getJ3map("tank")), 1, this);
                 enemy.addAlgorithm(new GameStartWait(1f));
                 enemy.addAlgorithm(new BulletAlert(esource.getJ3map("bulletAlert")));
                 enemy.addAlgorithm(new DefensivePoints(esource.getJ3map("defensivePoints")));
@@ -103,7 +107,7 @@ public class GameState extends BaseAppState {
             }
         }
         
-        var light = new DirectionalLight(new Vector3f(1f, -1f, 1f));
+        light = new DirectionalLight(new Vector3f(1f, -1f, 1f));
         scene.addLight(light);
         var drsr = new DirectionalLightShadowRenderer(app.getAssetManager(), 4096, 2);
         drsr.setLight(light);
@@ -119,7 +123,8 @@ public class GameState extends BaseAppState {
         makeWall(new Vector3f(12f, 0f, 0f), new Vector3f(4f, 1f, 1f));
         
         var fpp = new FilterPostProcessor(app.getAssetManager());
-        var ssao = new SSAOFilter(.2f, 43.92f, 0.33f, 0.61f);
+        var ssao = new SSAOFilter();
+        ssao.setIntensity(5f);
         fpp.addFilter(ssao);
         var bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
         fpp.addFilter(bloom);
@@ -141,6 +146,7 @@ public class GameState extends BaseAppState {
     }
     @Override
     public void update(float tpf) {
+        //light.setDirection(getApplication().getCamera().getDirection());
         for (Iterator<Tank> i = tanks.iterator(); i.hasNext();) {
             Tank t = i.next();
             t.update(tpf);

@@ -10,9 +10,11 @@ import com.jme3.collision.CollisionResult;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
 import com.jme3.export.Savable;
+import com.jme3.material.Material;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -29,20 +31,27 @@ public class Tank implements CollisionShape, Savable {
 
     private Node root;
     private Spatial base, turret, muzzle, hitbox, pointer, probe;
+    private Spatial[] wheels = new Spatial[4];
+    private Material material;
     private RigidBodyControl physics;
     private LinkedList<BulletInfo> bullets = new LinkedList<>();
     private final TankModel model;
     private final int team;
+    private Vector2f treadOffset = new Vector2f();
+    private Vector2f nextTreadMove = new Vector2f();
+    private float treadSpeed = -0.002f;
+    private float wheelSpeedRatio = -15f;
     
     private float reload = 0f;
     private boolean alive = true;
     private int lastDir = 1;
     
-    public Tank(Node root, TankModel model, int team) {
+    public Tank(Node root, Material material, TankModel model, int team) {
         this.root = root;
-        fetchComponents();
+        this.material = material;
         this.model = model;
         this.team = team;
+        fetchComponents();
     }
     
     private void fetchComponents() {
@@ -52,6 +61,10 @@ public class Tank implements CollisionShape, Savable {
         hitbox = root.getChild("hitbox");
         pointer = root.getChild("pointer");
         probe = root.getChild("probe");
+        wheels[0] = root.getChild("wheel.FL");
+        wheels[1] = root.getChild("wheel.BL");
+        wheels[2] = root.getChild("wheel.FR");
+        wheels[3] = root.getChild("wheel.BR");
         hitbox.setCullHint(Spatial.CullHint.Always);
         pointer.setCullHint(Spatial.CullHint.Always);
     }
@@ -71,17 +84,27 @@ public class Tank implements CollisionShape, Savable {
             BulletInfo b = i.next();
             if (!b.isAlive()) i.remove();
         }
+        if (!nextTreadMove.equals(Vector2f.ZERO)) {
+            moveRightTread(nextTreadMove.y);
+            moveLeftTread(nextTreadMove.x);
+            nextTreadMove.set(0f, 0f);
+        }
     }
-    public void move(Vector3f move, float tpf) {
+    public void move(Vector3f move) {
         if (rotateTo(move)) {
             setLinearVelocity(move.mult(model.getSpeed()));
+            final float treadMovement = model.getSpeed()*lastDir*treadSpeed;
+            nextTreadMove.addLocal(treadMovement, treadMovement);
         }
         else {
             stop();
         }
     }
     public void move(int direction) {
+        direction = FastMath.sign(direction);
+        final float treadMovement = model.getSpeed()*direction*treadSpeed;
         setLinearVelocity(getMoveDirection().mult(model.getSpeed()*direction));
+        nextTreadMove.addLocal(treadMovement, treadMovement);
         lastDir = direction;
     }
     private void setLinearVelocity(Vector3f vel) {
@@ -90,7 +113,10 @@ public class Tank implements CollisionShape, Savable {
         physics.activate();
     }
     public void rotate(float angle) {
+        final float treadMoveMovement = angle*treadSpeed;
+        final float isRight = FastMath.sign(angle);
         base.rotate(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y));
+        nextTreadMove.addLocal(treadMoveMovement*isRight, -treadMoveMovement*isRight);
     }
     public boolean rotateTo(Vector3f direction) {
         final float bias = .1f;
@@ -98,6 +124,7 @@ public class Tank implements CollisionShape, Savable {
         final float threshold = FastMath.PI*.3f;
         direction.setY(0f).normalizeLocal();
         Quaternion q = base.getLocalRotation().clone();
+        int isLeft = q.getRotationColumn(0).dot(direction) > 0f ? 1 : -1;
         Quaternion t1 = new Quaternion().lookAt(direction, Vector3f.UNIT_Y);
         Quaternion t2 = new Quaternion().lookAt(direction.negate(), Vector3f.UNIT_Y);
         if (q.dot(t1)+bias*lastDir >= q.dot(t2)) {
@@ -109,6 +136,7 @@ public class Tank implements CollisionShape, Savable {
             lastDir = -1;
         }
         base.setLocalRotation(q);
+        nextTreadMove.addLocal(-treadSpeed*isLeft, treadSpeed*isLeft);
         float angle = direction.angleBetween(getMoveDirection());
         return angle < threshold || angle > FastMath.PI-threshold;
     }
@@ -137,6 +165,21 @@ public class Tank implements CollisionShape, Savable {
     }
     public Ray getAimRay() {
         return new Ray(muzzle.getWorldTranslation(), getAimDirection());
+    }
+    
+    public void moveRightTread(float amount) {
+        treadOffset.y += amount;
+        material.setFloat("TreadOffset2", treadOffset.y);
+        Quaternion q = new Quaternion().fromAngleAxis(amount*wheelSpeedRatio, Vector3f.UNIT_X);
+        wheels[2].rotate(q);
+        wheels[3].rotate(q);
+    }
+    public void moveLeftTread(float amount) {
+        treadOffset.x += amount;
+        material.setFloat("TreadOffset1", treadOffset.x);
+        Quaternion q = new Quaternion().fromAngleAxis(amount*wheelSpeedRatio, Vector3f.UNIT_X);
+        wheels[0].rotate(q);
+        wheels[1].rotate(q);
     }
     
     public Vector3f getPosition() {

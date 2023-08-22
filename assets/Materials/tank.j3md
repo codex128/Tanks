@@ -1,0 +1,27 @@
+MaterialDef Simple {
+    MaterialParameters {
+        Texture2D DiffuseMap
+        Color MainColor
+        Color SecondaryColor
+        Color MainPlaceholder      : 1.0 0.0 0.0 1.0
+        Color SecondaryPlaceholder : 0.0 0.0 1.0 1.0
+        Float Similarity : 0.001
+        Float TreadOffset1 : 0.0
+        Float TreadOffset2 : 0.0
+        Float TreadCoord1  : 0.1
+        Float TreadCoord2  : 0.2
+    }
+    Technique {
+        LightMode SinglePassAndImageBased
+        VertexShader GLSL120: Materials/tank.vert
+        FragmentShader GLSL120: Materials/tank.frag
+        WorldParameters {
+            WorldViewProjectionMatrix
+            CameraPosition
+            WorldMatrix
+            WorldNormalMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+    }
+}
