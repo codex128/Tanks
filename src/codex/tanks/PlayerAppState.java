@@ -37,8 +37,8 @@ public class PlayerAppState extends BaseAppState implements
     protected void initialize(Application app) {
         
         cam = app.getCamera();
-        cam.setParallelProjection(true);
-        cam.setFrustum(20f, 100f, -30f, 30f, 20f, -20f);
+        //cam.setParallelProjection(true);
+        //cam.setFrustum(20f, 100f, -30f, 30f, 20f, -20f);
         //cam.setFrustumLeft(100f);
         //cam.setFrustumRight(100f);
         pointer = new PointerManager(tank.getPointerMesh());

@@ -23,8 +23,8 @@ import java.util.Collection;
  */
 public class Bullet implements CollisionShape, Savable {
     
-    private Node root;
-    private Spatial bullet, hitbox, emitter;
+    private Node root, emitter;
+    private Spatial bullet, hitbox;
     private BulletInfo info;
     private int bouncesMade = 0;
     
@@ -37,7 +37,7 @@ public class Bullet implements CollisionShape, Savable {
     private void fetchComponents() {
         bullet = root.getChild("bullet");
         hitbox = root.getChild("hitbox");
-        emitter = root.getChild("emitter");
+        emitter = (Node)root.getChild("emitter");
         hitbox.setCullHint(Spatial.CullHint.Always);
     }
     
@@ -68,6 +68,9 @@ public class Bullet implements CollisionShape, Savable {
     
     public Node getRoot() {
         return root;
+    }
+    public Node getEmitterNode() {
+        return emitter;
     }
     public Vector3f getPosition() {
         return root.getWorldTranslation();

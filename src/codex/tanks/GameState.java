@@ -4,12 +4,14 @@
  */
 package codex.tanks;
 
+import codex.boost.scene.SceneGraphIterator;
 import codex.j3map.J3map;
 import codex.tanks.ai.AITank;
 import codex.tanks.ai.BulletAlert;
 import codex.tanks.ai.DefensivePoints;
 import codex.tanks.ai.DirectShot;
 import codex.tanks.ai.GameStartWait;
+import codex.tanks.effects.BasicEmitterControl;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
@@ -17,12 +19,20 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.collision.CollisionResult;
+import com.jme3.effect.ParticleEmitter;
+import com.jme3.effect.ParticleMesh;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.BloomFilter;
+import com.jme3.post.ssao.SSAOFilter;
+import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.shadow.DirectionalLightShadowRenderer;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -48,6 +58,7 @@ public class GameState extends BaseAppState {
         
         Spatial floor = app.getAssetManager().loadModel("Models/floor.j3o");
         floor.setLocalTranslation(0f, -1f, 0f);
+        floor.setShadowMode(RenderQueue.ShadowMode.Receive);
         Material floorMat = new Material(app.getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
         floorMat.setBoolean("UseMaterialColors", true);
         floorMat.setColor("Diffuse", ColorRGBA.Green);
@@ -58,7 +69,13 @@ public class GameState extends BaseAppState {
         getPhysicsSpace().add(floorPhys);
         
         Node tank = (Node)app.getAssetManager().loadModel("Models/tank.j3o");
+        tank.setShadowMode(RenderQueue.ShadowMode.Cast);
         tank.setLocalTranslation(0f, 0f, -7f);
+        for (Spatial s : new SceneGraphIterator(tank)) {
+            if (s instanceof Geometry) {
+                ((Geometry)s).getMaterial().setTexture("BaseColorMap", app.getAssetManager().loadTexture("Models/playerTexture.png"));
+            }
+        }
         scene.attachChild(tank);
         TankModel pmodel = new TankModel((J3map)app.getAssetManager().loadAsset("Properties/player.j3map"));
         Tank ptank = new Tank(tank, pmodel, 0);
@@ -72,6 +89,7 @@ public class GameState extends BaseAppState {
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < 1; j++) {
                 Node enemyTankSpatial = (Node)app.getAssetManager().loadModel("Models/tank.j3o");
+                enemyTankSpatial.setShadowMode(RenderQueue.ShadowMode.Cast);
                 enemyTankSpatial.setLocalTranslation(-10f+i*3, 0f, 7f);
                 scene.attachChild(enemyTankSpatial);
                 AITank enemy = new AITank(enemyTankSpatial, new TankModel(esource.getJ3map("tank")), 1, this);
@@ -85,17 +103,27 @@ public class GameState extends BaseAppState {
             }
         }
         
-        DirectionalLight light = new DirectionalLight(new Vector3f(1f, -1f, 1f));
+        var light = new DirectionalLight(new Vector3f(1f, -1f, 1f));
         scene.addLight(light);
+        var drsr = new DirectionalLightShadowRenderer(app.getAssetManager(), 4096, 2);
+        drsr.setLight(light);
+        app.getViewPort().addProcessor(drsr);
         
         float s = 20f;
-        makeWall(new Vector3f(-s, 0f, 0f), new Vector3f(1f, 1f, s));
+        makeWall(new Vector3f(-s, -.1f, 0f), new Vector3f(1f, 1f, s));
         makeWall(new Vector3f(s, 0f, 0f), new Vector3f(1f, 1f, s));
         makeWall(new Vector3f(0f, 0f, -s), new Vector3f(s, 1f, 1f));
         makeWall(new Vector3f(0f, 0f, s), new Vector3f(s, 1f, 1f));
         makeWall(new Vector3f(), new Vector3f(2f, 1f, 1f));
         makeWall(new Vector3f(-12f, 0f, 0f), new Vector3f(4f, 1f, 1f));
         makeWall(new Vector3f(12f, 0f, 0f), new Vector3f(4f, 1f, 1f));
+        
+        var fpp = new FilterPostProcessor(app.getAssetManager());
+        var ssao = new SSAOFilter(.2f, 43.92f, 0.33f, 0.61f);
+        fpp.addFilter(ssao);
+        var bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
+        fpp.addFilter(bloom);
+        app.getViewPort().addProcessor(fpp);
         
     }
     @Override
@@ -152,11 +180,12 @@ public class GameState extends BaseAppState {
     }
     private void makeWall(Vector3f center, Vector3f size) {
         Spatial wall = getApplication().getAssetManager().loadModel("Models/wall.j3o");
+        wall.setShadowMode(RenderQueue.ShadowMode.Cast);
         wall.setLocalTranslation(center);
         wall.setLocalScale(size);
         Material mat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
         mat.setBoolean("UseMaterialColors", true);
-        mat.setColor("Diffuse", ColorRGBA.Blue);
+        mat.setColor("Diffuse", new ColorRGBA(.6f, .6f, .1f, 1f));
         wall.setMaterial(mat);
         Wall w = new Wall(wall);
         addCollisionShape(w);
@@ -173,23 +202,29 @@ public class GameState extends BaseAppState {
     public void addBullet(BulletInfo info) {
         if (info == null) return;
         Node spatial = (Node)getApplication().getAssetManager().loadModel("Models/bullet.j3o");
+        spatial.setShadowMode(RenderQueue.ShadowMode.Off);
         spatial.setLocalTranslation(info.start);
         spatial.setLocalScale(.2f);
-//        ParticleEmitter debrisEffect = new ParticleEmitter("Debris", ParticleMesh.Type.Triangle, 10);
-//        Material smoke = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Particle.j3md");
-//        smoke.setTexture("Texture", getApplication().getAssetManager().loadTexture("Effects/Explosion/Debris.png"));
-//        debrisEffect.setMaterial(smoke);
-//        debrisEffect.setImagesX(3); debrisEffect.setImagesY(3); // 3x3 texture animation
-//        debrisEffect.setRotateSpeed(4);
-//        debrisEffect.setSelectRandomImage(true);
-//        debrisEffect.getParticleInfluencer().setInitialVelocity(new Vector3f(0, 4, 0));
-//        debrisEffect.setStartColor(new ColorRGBA(1f, 1f, 1f, 1f));
-//        debrisEffect.setGravity(0f,6f,0f);
-//        debrisEffect.getParticleInfluencer().setVelocityVariation(.60f);
-//        ((Node)spatial.getChild("emitter")).attachChild(debrisEffect);
-//        debrisEffect.emitAllParticles();
         Bullet b = new Bullet(spatial, info);
         scene.attachChild(spatial);
+        var smoke = new ParticleEmitter("bullet-smoke", ParticleMesh.Type.Triangle, 10);
+        var mat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Particle.j3md");
+        mat.setTexture("Texture", getApplication().getAssetManager().loadTexture("Effects/Smoke.png"));
+        smoke.setMaterial(mat);
+        smoke.setImagesX(15); smoke.setImagesY(1);
+        smoke.setSelectRandomImage(true);
+        smoke.setHighLife(.5f);
+        smoke.setLowLife(smoke.getHighLife());
+        smoke.setStartSize(.2f);
+        smoke.setEndSize(.7f);
+        smoke.setStartColor(new ColorRGBA(.1f, .1f, .1f, 1f));
+        smoke.setEndColor(new ColorRGBA(.1f, .1f, .1f, 0f));
+        smoke.setGravity(0f, 0f, 0f);
+        smoke.setParticlesPerSec(b.getBulletInfo().getSpeed()*2);
+        smoke.setNumParticles(10);
+        var control = new BasicEmitterControl(scene, b.getEmitterNode());
+        smoke.addControl(control);
+        scene.attachChild(smoke);
         bullets.add(b);
         addCollisionShape(b);
     }

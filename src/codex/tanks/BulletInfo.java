@@ -35,5 +35,8 @@ public class BulletInfo {
     public Vector3f getDirection() {
         return velocity.normalize();
     }
+    public float getSpeed() {
+        return velocity.length();
+    }
     
 }
