@@ -4,6 +4,8 @@ import codex.j3map.J3mapFactory;
 import codex.j3map.processors.FloatProcessor;
 import codex.j3map.processors.IntegerProcessor;
 import codex.j3map.processors.StringProcessor;
+import codex.tanks.systems.*;
+import codex.tanks.util.ColorProcessor;
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.renderer.RenderManager;
@@ -29,13 +31,31 @@ public class Main extends SimpleApplication {
         //GuiGlobals.getInstance().setCursorEventsEnabled(false);
         
         assetManager.registerLoader(J3mapFactory.class, "j3map");
-        J3mapFactory.registerAllProcessors(StringProcessor.class, IntegerProcessor.class, FloatProcessor.class);
+        J3mapFactory.registerAllProcessors(
+                StringProcessor.class,
+                IntegerProcessor.class,
+                FloatProcessor.class,
+                ColorProcessor.class);
         
         flyCam.setMoveSpeed(20f);
         
         BulletAppState bulletapp = new BulletAppState();
         //bulletapp.setDebugEnabled(true);
-        stateManager.attach(bulletapp);
+        
+        stateManager.attachAll(
+                new EntityState(),
+                bulletapp,
+                new VisualState(),
+                new PhysicsRegistry(),
+                new TransformUpdateState(),
+                new CollisionState(),
+                new AIManager(),
+                new MovementState(),
+                new BulletState(),
+                new TankState(),
+                new FaceVelocityState(),
+                new DecayState(),
+                new LifeState());
         
         stateManager.attach(new GameState());
         

@@ -22,4 +22,8 @@ public abstract class ESAppState extends GameAppState {
         ed = getState(EntityState.class, true).getEntityData();
     }
     
+    public EntityData getEntityData() {
+        return ed;
+    }
+    
 }

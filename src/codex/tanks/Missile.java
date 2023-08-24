@@ -6,9 +6,12 @@ package codex.tanks;
 
 import codex.boost.Timer;
 import codex.boost.TimerListener;
+import codex.tanks.systems.CollisionState;
+import codex.tanks.util.GameUtils;
 import com.jme3.material.Material;
 import com.jme3.math.FastMath;
-import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
+import com.simsilica.es.Entity;
 
 /**
  *
@@ -16,25 +19,29 @@ import com.jme3.scene.Node;
  */
 public class Missile extends Bullet implements TimerListener {
     
-    private final Material material;
+    private Material material;
     private final Timer timer = new Timer(0.03f);
     
-    public Missile(Node root, Material material, BulletInfo info) {
-        super(root, info);
-        this.material = material;
+    public Missile(Spatial spatial, Entity entity) {
+        super(spatial, entity);
+        initialize();
+    }
+    
+    private void initialize() {
+        material = GameUtils.fetchMaterial(getSpatial());
         timer.setCycleMode(Timer.CycleMode.INFINITE);
         timer.addListener(this);
         timer.start();
     }
     
     @Override
-    public void update(float tpf) {
-        super.update(tpf);
+    public void update(CollisionState collision, float tpf) {
+        super.update(collision, tpf);
         timer.update(tpf);
     }
     @Override
     public void onTimerFinish(Timer timer) {
-        material.setFloat("Seed", FastMath.nextRandomFloat()*340.324f);        
+        material.setFloat("Seed", FastMath.nextRandomFloat()*340.324f);  
     }
     
 }

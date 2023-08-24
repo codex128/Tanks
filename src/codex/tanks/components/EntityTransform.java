@@ -6,6 +6,7 @@ package codex.tanks.components;
 
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Spatial;
 import com.simsilica.es.EntityComponent;
 
 /**
@@ -14,18 +15,31 @@ import com.simsilica.es.EntityComponent;
  */
 public class EntityTransform implements EntityComponent {
     
-    private Vector3f location = new Vector3f();
-    private Quaternion rotation = new Quaternion();
-    private Vector3f scale = new Vector3f(1f, 1f, 1f);
+    private final Vector3f translation = new Vector3f();
+    private final Quaternion rotation = new Quaternion();
+    private final Vector3f scale = new Vector3f(1f, 1f, 1f);
     
     public EntityTransform() {}
+    public EntityTransform(EntityTransform transform) {
+        translation.set(transform.translation);
+        rotation.set(transform.rotation);
+        scale.set(transform.scale);
+    }
     
-    public EntityTransform setLocation(Vector3f location) {
-        this.location.set(location);
+    public EntityTransform setTranslation(Vector3f location) {
+        this.translation.set(location);
+        return this;
+    }
+    public EntityTransform setTranslation(float x, float y, float z) {
+        translation.set(x, y, z);
         return this;
     }
     public EntityTransform setRotation(Quaternion rotation) {
         this.rotation.set(rotation);
+        return this;
+    }
+    public EntityTransform setRotation(Vector3f lookAt, Vector3f up) {
+        rotation.lookAt(lookAt, up);
         return this;
     }
     public EntityTransform setScale(Vector3f scale) {
@@ -36,9 +50,18 @@ public class EntityTransform implements EntityComponent {
         this.scale.set(scalar, scalar, scalar);
         return this;
     }
+    
+    public EntityTransform move(Vector3f move) {
+        translation.addLocal(move);
+        return this;
+    }
+    public EntityTransform rotate(Quaternion rotate) {
+        rotation.mult(rotate);
+        return this;
+    }
 
-    public Vector3f getLocation() {
-        return location;
+    public Vector3f getTranslation() {
+        return translation;
     }
     public Quaternion getRotation() {
         return rotation;
@@ -46,10 +69,16 @@ public class EntityTransform implements EntityComponent {
     public Vector3f getScale() {
         return scale;
     }
+    
+    public void applyToSpatial(Spatial spatial) {
+        spatial.setLocalTranslation(translation);
+        spatial.setLocalRotation(rotation);
+        spatial.setLocalScale(scale);
+    }
 
     @Override
     public String toString() {
-        return "EntityTransform{" + "location=" + location + ", rotation=" + rotation + ", scale=" + scale + '}';
+        return "EntityTransform{" + "location=" + translation + ", rotation=" + rotation + ", scale=" + scale + '}';
     }
     
 }

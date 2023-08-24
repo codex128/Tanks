@@ -13,8 +13,6 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import java.util.HashMap;
-import java.util.function.Function;
 
 /**
  *
@@ -75,7 +73,7 @@ public class ModelFactory {
         flame.setLocalScale(3f, 3f, 4f);
         flame.setQueueBucket(RenderQueue.Bucket.Transparent);
         flame.setMaterial(mat);
-        GameUtils.getNodeNamed(missile, "emitter").attachChild(flame);
+        GameUtils.getChildNode(missile, "emitter").attachChild(flame);
         return missile;
     }
     

@@ -4,50 +4,51 @@
  */
 package codex.tanks.ai;
 
-import codex.j3map.J3map;
-import codex.tanks.CollisionShape;
-import codex.tanks.util.GameUtils;
+import codex.tanks.components.Bounces;
 
 /**
  *
  * @author gary
  */
-public class DirectShot implements TankAlgorithm {
+public class DirectShot implements Algorithm {
 
-    private final J3map source;
-    private float exposureThreshold;
+    private final float exposureThreshold;
     private float exposure = 0f;
     
-    public DirectShot(J3map source) {
-        this.source = source;
-        fetchComponents();
-    }
-    
-    private void fetchComponents() {
-        exposureThreshold = source.getFloat("exposureThreshold", .5f);
+    public DirectShot(float exposureThreshold) {
+        this.exposureThreshold = exposureThreshold;
     }
     
     @Override
-    public void updateTank(AlgorithmUpdate update) {}
+    public void initialize(AlgorithmUpdate update) {}
     @Override
-    public void moveTank(AlgorithmUpdate update) {}
+    public boolean move(AlgorithmUpdate update) {
+        return false;
+    }
     @Override
-    public void aimTank(AlgorithmUpdate update) {
-        if (update.isConsumed()) return;
-        update.getTank().aimAt(update.getGame().getPlayerState().getTank().getPosition());
-        CollisionShape shape = GameUtils.target(update.getGame().getCollisionShapes(), update.getTank().getAimRay(), update.getTank(), update.getTank().getModel().getMaxBounces());
-        if (shape == update.getGame().getPlayerState().getTank()) {
+    public boolean aim(AlgorithmUpdate update) {
+        update.getTank().aimAt(update.getPlayerTank().getPosition());
+        var id = update.getCollisionState().raycast(update.getTank().getAimRay(), update.getTank().getEntity().getId(), update.getTank().getEntity().get(Bounces.class).getRemaining());
+        if (id == update.getPlayerTank().getEntity().getId()) {
             if ((exposure += update.getTpf()) > exposureThreshold) {
-                update.getGame().addMissile(update.getTank().shoot());
+                update.getTank().shoot(update.getManager().getEntityData());
                 exposure = exposureThreshold;
             }
         }
         else {
             exposure = Math.max(exposure-update.getTpf(), 0f);
         }
-        update.consume();
+        return true;
     }
     @Override
-    public void mineTank(AlgorithmUpdate update) {}
+    public boolean shoot(AlgorithmUpdate update) {
+        return false;
+    }
+    @Override
+    public boolean mine(AlgorithmUpdate update) {
+        return false;
+    }
+    @Override
+    public void cleanup(AlgorithmUpdate update) {}
     
 }

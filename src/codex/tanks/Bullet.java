@@ -33,7 +33,7 @@ public class Bullet {
     }
     
     private void initialize() {
-        GameUtils.getSpatialNamed(spatial, "hitbox").setCullHint(Spatial.CullHint.Always);
+        GameUtils.getChild(spatial, "hitbox").setCullHint(Spatial.CullHint.Always);
     }
     
     public void update(CollisionState collision, float tpf) {
@@ -62,11 +62,17 @@ public class Bullet {
         }
     }
     
+    public Spatial getSpatial() {
+        return spatial;
+    }
     public Entity getEntity() {
         return entity;
     }
+    public Vector3f getPosition() {
+        return entity.get(EntityTransform.class).getTranslation();
+    }
     public Ray getMovementRay() {
-        return new Ray(entity.get(EntityTransform.class).getLocation(), entity.get(Velocity.class).getDirection());
+        return new Ray(getPosition(), entity.get(Velocity.class).getDirection());
     }
     public int getBouncesMade() {
         return bouncesMade;

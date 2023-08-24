@@ -111,7 +111,7 @@ public class CollisionState extends ESAppState implements Iterable<Spatial> {
             while (delegate.hasNext()) {
                 var e = delegate.next();
                 if (e.getId().equals(ignore)) continue;
-                next = GameUtils.getSpatialNamed(visuals.getSpatial(e.getId()), e.get(CollisionShape.class).getShape());
+                next = GameUtils.getChild(visuals.getSpatial(e.getId()), e.get(CollisionShape.class).getShape());
                 if (next != null) return true;
             }
             return false;

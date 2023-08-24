@@ -4,12 +4,11 @@
  */
 package codex.tanks.ai;
 
-import codex.j3map.J3map;
-import codex.tanks.CollisionShape;
 import codex.tanks.util.GameUtils;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.simsilica.es.EntityId;
 
 /**
  *
@@ -17,37 +16,29 @@ import com.jme3.math.Vector3f;
  */
 public class DefensivePoints extends RandomPoints {
     
-    private float pointAngle;
+    private final float pointAngle;
     
-    public DefensivePoints(J3map source) {
-        super(source);
-        fetchComponents();
-    }
-    
-    private void fetchComponents() {
-        pointAngle = source.getFloat("pointAngle", .25f);
+    public DefensivePoints(float maxPointDist, float pointAngle) {
+        super(maxPointDist);
+        this.pointAngle = pointAngle;
     }
     
     @Override
-    public void moveTank(AlgorithmUpdate update) {
-        if (update.isConsumed()) {
-            stack.clear();
-            return;
-        }
+    public boolean move(AlgorithmUpdate update) {
         Vector3f position = update.getTank().getPosition().setY(0f);
         if (stack.isEmpty() || position.distanceSquared(stack.getLast()) < radius*radius) {
-            stack.addLast(getNextPoint(update, getNextDirection(getDirectionToTarget(update)), .1f, maxPointDistance, radius, 5));
+            stack.addLast(getNextPoint(update, getNextDirection(update.getDirectionToPlayer()), .1f, maxPointDistance, radius, 5));
             stack.getLast().setY(0f);
         }
         if (stack.size() > stacksize) {
             stack.removeFirst();
         }
         update.getTank().move(stack.getLast().subtract(position).normalizeLocal());
-        CollisionShape shape = GameUtils.target(update.getGame().getCollisionShapes(), update.getTank().getAimRay(), update.getTank(), 0);
-        if (shape == update.getPlayerTank() && stack.size() >= 2) {
+        EntityId id = update.getCollisionState().raycast(update.getTank().getAimRay(), update.getTank().getEntity().getId(), 0);
+        if (id == update.getPlayerTank().getEntity().getId() && stack.size() >= 2) {
             stack.removeLast();
         }
-        update.consume();
+        return true;
     }
     @Override
     protected Vector3f getNextDirection(Vector3f dirToTarget) {

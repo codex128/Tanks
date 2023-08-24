@@ -6,49 +6,69 @@ package codex.tanks.ai;
 
 import codex.j3map.J3map;
 import codex.tanks.Bullet;
+import codex.tanks.Tank;
+import codex.tanks.components.Velocity;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import java.util.Collection;
 
 /**
  *
  * @author gary
  */
-public class BulletAlert implements TankAlgorithm {
+public class BulletAlert implements Algorithm {
     
-    private J3map source;
     private float alert;
     
-    public BulletAlert(J3map source) {
-        this.source = source;
-        fetchComponents();
-    }
-    
-    private void fetchComponents() {
-        alert = source.getFloat("alert", 10f);
+    public BulletAlert(float alert) {
+        this.alert = alert;
     }
 
     @Override
-    public void updateTank(AlgorithmUpdate update) {}
+    public void initialize(AlgorithmUpdate update) {}
     @Override
-    public void moveTank(AlgorithmUpdate update) {
-        if (update.isConsumed()) return;
+    public boolean move(AlgorithmUpdate update) {
         Vector3f location = update.getTank().getPosition();
-        Bullet threat = getThreateningBullet(update.getGame().getBullets(), update.getTank(), alert);
+        var threat = getThreateningBullet(update.getBullets(), update.getTank(), alert);
         if (threat != null) {
             Vector3f away = location.subtract(threat.getPosition()).normalizeLocal();
             Quaternion q = new Quaternion().lookAt(away, Vector3f.UNIT_Y);
             Vector3f left = q.getRotationColumn(0);
-            int turn = threat.getBulletInfo().getDirection().dot(left) < 0 ? 1 : -1;
+            int turn = threat.getEntity().get(Velocity.class).getDirection().dot(left) < 0 ? 1 : -1;
             final float diagonalFactor = .25f;
             update.getTank().move(FastMath.interpolateLinear(diagonalFactor, away, left.multLocal(turn)).normalizeLocal());
-            //tank.aimAt(threat.getPosition());
-            update.consume();
+            return true;
         }
+        return false;
     }
     @Override
-    public void aimTank(AlgorithmUpdate update) {}
+    public boolean aim(AlgorithmUpdate update) {
+        return false;
+    }
     @Override
-    public void mineTank(AlgorithmUpdate update) {}
+    public boolean shoot(AlgorithmUpdate update) {
+        return false;
+    }
+    @Override
+    public boolean mine(AlgorithmUpdate update) {
+        return false;
+    }    
+    @Override
+    public void cleanup(AlgorithmUpdate update) {}
+    
+    
+    public static Bullet getThreateningBullet(Collection<Bullet> bullets, Tank tank, float distance) {
+        float minDist = -1f;
+        Bullet bullet = null;
+        for (var b : bullets) {
+            float dist = b.getPosition().distanceSquared(tank.getPosition());
+            if (dist < distance*distance && (minDist < 0 || dist < minDist)) {
+                minDist = dist;
+                bullet = b;
+            }
+        }
+        return bullet;
+    }
     
 }

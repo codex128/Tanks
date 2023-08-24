@@ -4,86 +4,100 @@
  */
 package codex.tanks;
 
+import codex.j3map.J3map;
+import codex.tanks.components.Alive;
+import codex.tanks.components.Bounces;
+import codex.tanks.components.EntityTransform;
+import codex.tanks.components.Firerate;
+import codex.tanks.components.BulletCapacity;
+import codex.tanks.components.ColorScheme;
+import codex.tanks.components.FaceVelocity;
+import codex.tanks.components.MineCapacity;
+import codex.tanks.components.Owner;
+import codex.tanks.components.ShootForce;
+import codex.tanks.components.Speed;
+import codex.tanks.components.TransformMode;
+import codex.tanks.components.Velocity;
+import codex.tanks.factory.ModelFactory;
+import codex.tanks.systems.CollisionState;
+import codex.tanks.systems.Visual;
+import codex.tanks.util.FunctionFilter;
 import codex.tanks.util.GameUtils;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
-import com.jme3.collision.CollisionResult;
-import com.jme3.export.JmeExporter;
-import com.jme3.export.JmeImporter;
 import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
 
 /**
  *
  * @author gary
  */
-public class Tank implements CollisionShape {
+public class Tank {
 
-    private Node root;
+    private final Spatial spatial;
+    private final Entity entity;
     private Spatial base, turret, muzzle, hitbox, pointer, probe;
-    private Spatial[] wheels = new Spatial[4];
+    private final Spatial[] wheels = new Spatial[4];
     private Material material;
     private RigidBodyControl physics;
-    private LinkedList<BulletInfo> bullets = new LinkedList<>();
-    private final TankModel model;
-    private final int team;
+    private EntitySet bullets;
     private final Vector2f treadOffset = new Vector2f();
     private final Vector2f nextTreadMove = new Vector2f();
     private final float treadSpeed = -0.002f;
     private final float wheelSpeedRatio = -15f;
     
     private float reload = 0f;
-    private boolean alive = true;
     private int lastDir = 1;
     
-    public Tank(Node root, Material material, TankModel model, int team) {
-        this.root = root;
-        this.material = material;
-        this.model = model;
-        this.team = team;
-        fetchComponents();
+    public Tank(Spatial spatial, Entity entity, EntityData ed) {
+        this.spatial = spatial;
+        this.entity = entity;
+        initialize(ed);
     }
     
-    private void fetchComponents() {
-        base = root.getChild("base");
-        turret = root.getChild("turret");
-        muzzle = root.getChild("muzzle");
-        hitbox = root.getChild("hitbox");
-        pointer = root.getChild("pointer");
-        probe = root.getChild("probe");
-        wheels[0] = root.getChild("wheel.FL");
-        wheels[1] = root.getChild("wheel.BL");
-        wheels[2] = root.getChild("wheel.FR");
-        wheels[3] = root.getChild("wheel.BR");
+    private void initialize(EntityData ed) {
+        base = GameUtils.getChild(spatial, "base");
+        turret = GameUtils.getChild(spatial, "turret");
+        muzzle = GameUtils.getChild(spatial, "muzzle");
+        hitbox = GameUtils.getChild(spatial, "hitbox");
+        pointer = GameUtils.getChild(spatial, "pointer");
+        probe = GameUtils.getChild(spatial, "probe");
+        wheels[0] = GameUtils.getChild(spatial, "wheel.FL");
+        wheels[1] = GameUtils.getChild(spatial, "wheel.BL");
+        wheels[2] = GameUtils.getChild(spatial, "wheel.FR");
+        wheels[3] = GameUtils.getChild(spatial, "wheel.BR");
         hitbox.setCullHint(Spatial.CullHint.Always);
         pointer.setCullHint(Spatial.CullHint.Always);
+        var scheme = entity.get(ColorScheme.class);
+        scheme.verifySize(2);
+        material = GameUtils.fetchMaterial(spatial);
+        material.setColor("MainColor", scheme.getPallete()[0]);
+        material.setColor("SecondaryColor", scheme.getPallete()[1]);
+        bullets = ed.getEntities(new FunctionFilter<>(Owner.class, c -> c.isOwner(entity.getId())), Owner.class);
+        initPhysics();
     }
-    public RigidBodyControl initPhysics() {
-        //CollisionShape shape = ;
+    private void initPhysics() {
         physics = new RigidBodyControl(CollisionShapeFactory.createMergedHullShape(hitbox), 2000f);
         physics.setAngularFactor(0f);
-        //rbc.setFriction(0f);
-        root.addControl(physics);
-        //rbc.setCollisionShape();
-        return physics;
+        spatial.addControl(physics);
+    }
+    public void cleanup() {
+        bullets.release();
     }
     
     public void update(float tpf) {
         if ((reload -= tpf) < 0f) reload = 0f;
-        for (Iterator<BulletInfo> i = bullets.iterator(); i.hasNext();) {
-            BulletInfo b = i.next();
-            if (!b.isAlive()) i.remove();
-        }
+        bullets.applyChanges();
         if (!nextTreadMove.equals(Vector2f.ZERO)) {
             moveRightTread(nextTreadMove.y);
             moveLeftTread(nextTreadMove.x);
@@ -92,8 +106,9 @@ public class Tank implements CollisionShape {
     }
     public void move(Vector3f move) {
         if (rotateTo(move)) {
-            setLinearVelocity(move.mult(model.getSpeed()));
-            final float treadMovement = model.getSpeed()*lastDir*treadSpeed;
+            var s = entity.get(Speed.class).getSpeed();
+            setLinearVelocity(move.mult(s));
+            final float treadMovement = s*lastDir*treadSpeed;
             nextTreadMove.addLocal(treadMovement, treadMovement);
         }
         else {
@@ -102,8 +117,9 @@ public class Tank implements CollisionShape {
     }
     public void move(int direction) {
         direction = FastMath.sign(direction);
-        final float treadMovement = model.getSpeed()*direction*treadSpeed;
-        setLinearVelocity(getMoveDirection().mult(model.getSpeed()*direction));
+        final float speed = entity.get(Speed.class).getSpeed();
+        final float treadMovement = speed*direction*treadSpeed;
+        setLinearVelocity(getMoveDirection().mult(speed*direction));
         nextTreadMove.addLocal(treadMovement, treadMovement);
         lastDir = direction;
     }
@@ -144,12 +160,20 @@ public class Tank implements CollisionShape {
         setLinearVelocity(Vector3f.ZERO.clone());
     }
     
-    public BulletInfo shoot() {
+    public EntityId shoot(EntityData ed) {
         if (!bulletAvailable()) return null;
-        BulletInfo b = new BulletInfo(this, BulletInfo.Type.valueOf(BulletInfo.Type.class, "Basic"), muzzle.getWorldTranslation(), getAimDirection().multLocal(model.getBulletSpeed()), model.getMaxBounces(), 10f);
-        bullets.add(b);
-        reload = model.getRps();
-        return b;
+        var id = ed.createEntity();
+        ed.setComponents(id,
+                new Visual(ModelFactory.BULLET),
+                new EntityTransform().setTranslation(muzzle.getWorldTranslation()).setScale(.2f),
+                new TransformMode(),
+                new Velocity(getAimDirection().multLocal(10f)),
+                new FaceVelocity(),
+                new Bounces(entity.get(Bounces.class).getRemaining()),
+                new Owner(entity.getId()),
+                new Alive());
+        reload = entity.get(Firerate.class).getRate();
+        return id;
     }
     public void rotateAim(float angle) {
         turret.rotate(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y));
@@ -159,22 +183,23 @@ public class Tank implements CollisionShape {
         Quaternion q = new Quaternion().lookAt(dir, Vector3f.UNIT_Y);
         turret.setLocalRotation(q);
     }
-    public CollisionShape probeAim(Collection<CollisionShape> shapes, int maxBounces) {
-        return GameUtils.target(shapes, getAimRay(), this,
-                (maxBounces >= 0 ? Math.min(model.getMaxBounces(), maxBounces) : model.getMaxBounces()));
+    public EntityId probeAim(CollisionState collision, int maxBounces) {
+        int bounces = entity.get(Bounces.class).getRemaining();
+        return collision.raycast(getAimRay(), entity.getId(),
+                (maxBounces >= 0 ? Math.min(bounces, maxBounces) : bounces));
     }
     public Ray getAimRay() {
         return new Ray(muzzle.getWorldTranslation(), getAimDirection());
     }
     
-    public void moveRightTread(float amount) {
+    private void moveRightTread(float amount) {
         treadOffset.y += amount;
         material.setFloat("TreadOffset2", treadOffset.y);
         Quaternion q = new Quaternion().fromAngleAxis(amount*wheelSpeedRatio, Vector3f.UNIT_X);
         wheels[2].rotate(q);
         wheels[3].rotate(q);
     }
-    public void moveLeftTread(float amount) {
+    private void moveLeftTread(float amount) {
         treadOffset.x += amount;
         material.setFloat("TreadOffset1", treadOffset.x);
         Quaternion q = new Quaternion().fromAngleAxis(amount*wheelSpeedRatio, Vector3f.UNIT_X);
@@ -194,8 +219,8 @@ public class Tank implements CollisionShape {
     public Vector3f getProbeLocation() {
         return probe.getWorldTranslation();
     }
-    public Node getRootSpatial() {
-        return root;
+    public Spatial getSpatial() {
+        return spatial;
     }
     public Spatial getPointerMesh() {
         return pointer;
@@ -203,32 +228,26 @@ public class Tank implements CollisionShape {
     public RigidBodyControl getPhysics() {
         return physics;
     }
-    public TankModel getModel() {
-        return model;
-    }
-    public int getTeam() {
-        return team;
+    public Entity getEntity() {
+        return entity;
     }
     
     public boolean bulletAvailable() {
-        return reload <= 0 && (model.getMaxBullets() < 0 || bullets.size() < model.getMaxBullets());
+        int max = entity.get(BulletCapacity.class).getMax();
+        return reload <= 0 && (max < 0 || bullets.size() < max);
     }
-    public boolean isAlive() {
-        return alive;
+    
+    public static void applyProperties(EntityData ed, EntityId id, J3map source) {
+        ed.setComponents(id,
+                new Speed(source.getFloat("speed", 6f)),
+                new Firerate(source.getFloat("rps", 1f)),
+                new BulletCapacity(source.getInteger("maxBullets", 5)),
+                new Bounces(source.getInteger("maxBounces", 1)),
+                new ShootForce(source.getFloat("bulletSpeed", 10f)),
+                new MineCapacity(source.getInteger("maxMines", 2)),
+                new ColorScheme(
+                        source.getProperty(ColorRGBA.class, "color1", ColorRGBA.Blue),
+                        source.getProperty(ColorRGBA.class, "color2", ColorRGBA.DarkGray)));
     }
-
-    @Override
-    public void onHit(Bullet bullet, CollisionResult collision) {
-        alive = false;
-        bullet.getBulletInfo().kill();
-    }
-    @Override
-    public Spatial getCollisionShape() {
-        return hitbox;
-    }
-    @Override
-    public void write(JmeExporter ex) throws IOException {}
-    @Override
-    public void read(JmeImporter im) throws IOException {}
     
 }

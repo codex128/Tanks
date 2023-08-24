@@ -61,25 +61,34 @@ public class GameUtils {
     }
     public static Material fetchMaterial(Spatial spatial) {
         for (Spatial s : new SceneGraphIterator(spatial)) {
-            if (spatial instanceof Geometry) {
+            if (s instanceof Geometry) {
                 return ((Geometry)s).getMaterial();
             }
         }
         return null;
     }
-    public static Spatial getSpatialNamed(Spatial parent, String name) {
+    public static Spatial getChild(Spatial parent, String name) {
         for (Spatial s : new SceneGraphIterator(parent)) {
             if (s.getName().equals(name)) return s;
         }
         return null;
     }
-    public static Node getNodeNamed(Spatial parent, String name) {
+    public static Node getChildNode(Spatial parent, String name) {
         for (Spatial s : new SceneGraphIterator(parent)) {
             if (s.getName().equals(name) && s instanceof Node) {
                 return (Node)s;
             }
         }
         return null;
+    }
+    
+    public static void setWorldTranslation(Spatial spatial, Vector3f translation) {
+        if (spatial.getParent() == null) {
+            spatial.setLocalTranslation(translation);
+        }
+        else {
+            spatial.setLocalTranslation(translation.subtract(spatial.getParent().getWorldTranslation()));
+        }
     }
     
 }

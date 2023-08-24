@@ -4,6 +4,7 @@
  */
 package codex.tanks.systems;
 
+import codex.tanks.components.EntityTransform;
 import codex.tanks.factory.ModelFactory;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
@@ -62,7 +63,12 @@ public class VisualState extends ESAppState {
             if (v.getScene() != null) {
                 getScene(v.getScene()).attachChild(spatial);
             }
+            var transform = ed.getComponent(e.getId(), EntityTransform.class);
+            if (transform != null) {
+                transform.applyToSpatial(spatial);
+            }
             link(e.getId(), spatial);
+            rootNode.attachChild(spatial);
         }
     }
     private void destroyModel(Entity e) {

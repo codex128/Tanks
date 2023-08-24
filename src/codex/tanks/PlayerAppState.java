@@ -4,10 +4,13 @@
  */
 package codex.tanks;
 
+import codex.tanks.components.Alive;
+import codex.tanks.systems.TankState;
+import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
-import com.jme3.app.state.BaseAppState;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
+import com.simsilica.es.EntityId;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.AnalogFunctionListener;
 import com.simsilica.lemur.input.FunctionId;
@@ -19,22 +22,25 @@ import com.simsilica.lemur.input.StateFunctionListener;
  *
  * @author gary
  */
-public class PlayerAppState extends BaseAppState implements
+public class PlayerAppState extends ESAppState implements
         AnalogFunctionListener, StateFunctionListener {
     
+    private final EntityId player;
     private GameState game;
     private Camera cam;
     private Tank tank;
     private PointerManager pointer;
     private Vector3f inputdirection = new Vector3f();
     
-    public PlayerAppState(GameState game, Tank tank) {
-        this.game = game;
-        this.tank = tank;
+    public PlayerAppState(EntityId player) {
+        this.player = player;
     }
     
     @Override
-    protected void initialize(Application app) {
+    protected void init(Application app) {
+        super.init(app);
+        
+        tank = getState(TankState.class).getTank(player);
         
         cam = app.getCamera();
         //cam.setParallelProjection(true);
@@ -43,27 +49,31 @@ public class PlayerAppState extends BaseAppState implements
         //cam.setFrustumRight(100f);
         pointer = new PointerManager(tank.getPointerMesh());
         
-        InputMapper im = GuiGlobals.getInstance().getInputMapper();
-        im.addAnalogListener(this, Functions.F_VERTICAL, Functions.F_HORIZONTAL);
-        im.addStateListener(this, Functions.F_SHOOT);
-        im.activateGroup(Functions.MAIN_GROUP);
-        
     }
     @Override
     protected void cleanup(Application app) {
         pointer.exit();
+    }
+    @Override
+    protected void onEnable() {
+        InputMapper im = GuiGlobals.getInstance().getInputMapper();
+        im.addAnalogListener(this, Functions.F_VERTICAL, Functions.F_HORIZONTAL);
+        im.addStateListener(this, Functions.F_SHOOT);
+        im.activateGroup(Functions.MAIN_GROUP);
+    }
+    @Override
+    protected void onDisable() {
         InputMapper im = GuiGlobals.getInstance().getInputMapper();
         im.removeAnalogListener(this, Functions.F_VERTICAL, Functions.F_HORIZONTAL);
         im.removeStateListener(this, Functions.F_SHOOT);
         im.deactivateGroup(Functions.MAIN_GROUP);
     }
     @Override
-    protected void onEnable() {}
-    @Override
-    protected void onDisable() {}
-    @Override
     public void update(float tpf) {
-        if (!tank.isAlive()) return;
+        if (!tank.getEntity().get(Alive.class).isAlive()) {
+            setEnabled(false);
+            return;
+        }
         tank.update(tpf);
         if (!inputdirection.equals(Vector3f.ZERO)) {
             tank.move(inputdirection.normalize());
@@ -88,9 +98,8 @@ public class PlayerAppState extends BaseAppState implements
     }
     @Override
     public void valueChanged(FunctionId func, InputState value, double tpf) {
-        if (!tank.isAlive()) return;
         if (func == Functions.F_SHOOT && value != InputState.Off) {
-            game.addBullet(tank.shoot());
+            tank.shoot(ed);
         }
     }
     

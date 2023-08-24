@@ -8,7 +8,7 @@ package codex.tanks.ai;
  *
  * @author gary
  */
-public class GameStartWait implements TankAlgorithm {
+public class GameStartWait implements Algorithm {
     
     private final float duration;
     private float time = 0f;
@@ -18,19 +18,27 @@ public class GameStartWait implements TankAlgorithm {
     }
     
     @Override
-    public void updateTank(AlgorithmUpdate update) {
+    public void initialize(AlgorithmUpdate update) {
         time += update.getTpf();
         if (time > duration) time = duration+1;
     }
     @Override
-    public void moveTank(AlgorithmUpdate update) {}
-    @Override
-    public void aimTank(AlgorithmUpdate update) {
-        if (time < duration) update.consume();
+    public boolean move(AlgorithmUpdate update) {
+        return false;
     }
     @Override
-    public void mineTank(AlgorithmUpdate update) {        
-        if (time < duration) update.consume();
+    public boolean aim(AlgorithmUpdate update) {
+        return time < duration;
     }
+    @Override
+    public boolean shoot(AlgorithmUpdate update) {
+        return time < duration;
+    }
+    @Override
+    public boolean mine(AlgorithmUpdate update) {        
+        return time < duration;
+    }
+    @Override
+    public void cleanup(AlgorithmUpdate update) {}
     
 }

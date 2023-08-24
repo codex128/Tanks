@@ -4,8 +4,14 @@
  */
 package codex.tanks.ai;
 
-import codex.tanks.GameState;
+import codex.tanks.Bullet;
+import codex.tanks.PlayerAppState;
 import codex.tanks.Tank;
+import codex.tanks.systems.AIManager;
+import codex.tanks.systems.BulletState;
+import codex.tanks.systems.CollisionState;
+import com.jme3.math.Vector3f;
+import java.util.Collection;
 
 /**
  *
@@ -13,36 +19,37 @@ import codex.tanks.Tank;
  */
 public class AlgorithmUpdate {
     
-    private GameState game;
-    private AITank tank;
+    private AIManager manager;
+    private Tank tank;
     private float tpf;
-    private boolean consumed = false;
     
-    public AlgorithmUpdate(GameState game, AITank tank, float tpf) {
-        this.game = game;
+    public AlgorithmUpdate(AIManager manager, Tank tank, float tpf) {
+        this.manager = manager;
         this.tank = tank;
         this.tpf = tpf;
     }
     
-    public void consume() {
-        consumed = true;
+    public AIManager getManager() {
+        return manager;
     }
-    
-    public GameState getGame() {
-        return game;
-    }
-    public AITank getTank() {
+    public Tank getTank() {
         return tank;
     }
     public float getTpf() {
         return tpf;
     }
-    public boolean isConsumed() {
-        return consumed;
-    }
     
+    public CollisionState getCollisionState() {
+        return manager.getState(CollisionState.class);
+    }
     public Tank getPlayerTank() {
-        return game.getPlayerState().getTank();
+        return manager.getState(PlayerAppState.class).getTank();
+    }
+    public Collection<Bullet> getBullets() {
+        return manager.getState(BulletState.class).getBullets();
+    }
+    public Vector3f getDirectionToPlayer() {
+        return getPlayerTank().getPosition().subtract(tank.getPosition()).normalizeLocal();
     }
         
 }

@@ -4,8 +4,7 @@
  */
 package codex.tanks.ai;
 
-import codex.j3map.J3map;
-import codex.tanks.CollisionShape;
+import codex.tanks.components.Bounces;
 import codex.tanks.util.GameUtils;
 import com.jme3.math.FastMath;
 
@@ -13,41 +12,44 @@ import com.jme3.math.FastMath;
  *
  * @author gary
  */
-public class Sniper implements TankAlgorithm {
+public class Sniper implements Algorithm {
     
-    private final J3map source;
-    private float barrelSpeed;
+    private final float barrelSpeed;
     private float distance = 0f;
     
-    public Sniper(J3map source) {
-        this.source = source;
-        fetchComponents();
-    }
-    
-    private void fetchComponents() {
-        barrelSpeed = source.getFloat("barrelSpeed", FastMath.PI*0.01f);
+    public Sniper(float barrelSpeed) {
+        this.barrelSpeed = barrelSpeed;
     }
     
     @Override
-    public void updateTank(AlgorithmUpdate update) {}
+    public void initialize(AlgorithmUpdate update) {}
     @Override
-    public void moveTank(AlgorithmUpdate update) {}
+    public boolean move(AlgorithmUpdate update) {
+        return false;
+    }
     @Override
-    public void aimTank(AlgorithmUpdate update) {
-        if (update.isConsumed()) return;
+    public boolean aim(AlgorithmUpdate update) {
         if (FastMath.abs(distance) < barrelSpeed) {
             distance = GameUtils.random(-FastMath.TWO_PI, FastMath.TWO_PI);
         }
         float angle = barrelSpeed*FastMath.sign(distance);
         update.getTank().rotateAim(angle);
         distance -= angle;
-        CollisionShape shape = GameUtils.target(update.getGame().getCollisionShapes(), update.getTank().getAimRay(), update.getTank(), update.getTank().getModel().getMaxBounces());
-        if (shape != null && shape == update.getGame().getPlayerState().getTank()) {
-            update.getGame().addBullet(update.getTank().shoot());
+        var id = update.getCollisionState().raycast(update.getTank().getAimRay(), update.getTank().getEntity().getId(), update.getTank().getEntity().get(Bounces.class).getRemaining());
+        if (id == update.getPlayerTank().getEntity().getId()) {
+            update.getTank().shoot(update.getManager().getEntityData());
         }
-        update.consume();
+        return true;
     }
     @Override
-    public void mineTank(AlgorithmUpdate update) {}
+    public boolean shoot(AlgorithmUpdate update) {
+        return false;
+    }
+    @Override
+    public boolean mine(AlgorithmUpdate update) {
+        return false;
+    }
+    @Override
+    public void cleanup(AlgorithmUpdate update) {}
     
 }

@@ -14,6 +14,7 @@ import com.jme3.app.Application;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import java.util.Collection;
 import java.util.HashMap;
 
 /**
@@ -60,11 +61,14 @@ public class BulletState extends ESAppState {
     }
     private void destroyBullet(Entity e) {
         bullets.remove(e.getId());
-    }
-    
+    }    
     private void update(Entity e, float tpf) {
         var bullet = bullets.get(e.getId());
         bullet.update(collision, tpf);
+    }
+    
+    public Collection<Bullet> getBullets() {
+        return bullets.values();
     }
     
 }

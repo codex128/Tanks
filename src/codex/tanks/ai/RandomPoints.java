@@ -4,8 +4,6 @@
  */
 package codex.tanks.ai;
 
-import codex.j3map.J3map;
-import codex.tanks.util.GameUtils;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.FastMath;
@@ -18,52 +16,64 @@ import java.util.LinkedList;
  *
  * @author gary
  */
-public class RandomPoints implements TankAlgorithm {
+public class RandomPoints implements Algorithm {
     
-    protected final J3map source;
     protected final LinkedList<Vector3f> stack = new LinkedList<>();
     protected final float radius = 1.5f;
     protected int stacksize = 1;
     protected float maxPointDistance;
+    protected boolean updateOccured = false;
     
-    public RandomPoints(J3map source) {
-        this.source = source;
-        fetchComponents();
-    }
-    
-    private void fetchComponents() {
-        maxPointDistance = source.getFloat("maxPointDistance", 10f);
+    public RandomPoints(float maxPointDistance) {
+        this.maxPointDistance = maxPointDistance;
     }
     
     @Override
-    public void updateTank(AlgorithmUpdate update) {}    
+    public void initialize(AlgorithmUpdate update) {
+        updateOccured = false;
+    }    
     @Override
-    public void moveTank(AlgorithmUpdate update) {
-        if (update.isConsumed()) return;
+    public boolean move(AlgorithmUpdate update) {
         Vector3f position = update.getTank().getPosition().setY(0f);
         if (stack.isEmpty() || position.distanceSquared(stack.getLast()) < radius*radius) {
-            stack.addLast(getNextPoint(update, getNextDirection(getDirectionToTarget(update)), .1f, maxPointDistance, radius, 5));
+            stack.addLast(getNextPoint(update, getNextDirection(update.getDirectionToPlayer()), .1f, maxPointDistance, radius, 5));
             stack.getLast().setY(0f);
         }
         if (stack.size() > stacksize) {
             stack.removeFirst();
         }
         update.getTank().move(stack.getLast().subtract(position).normalizeLocal());
-        update.consume();
+        updateOccured = true;
+        return true;
     }
     @Override
-    public void aimTank(AlgorithmUpdate update) {}
+    public boolean aim(AlgorithmUpdate update) {
+        return false;
+    }
     @Override
-    public void mineTank(AlgorithmUpdate update) {}
+    public boolean shoot(AlgorithmUpdate update) {
+        return false;
+    }
+    @Override
+    public boolean mine(AlgorithmUpdate update) {
+        return false;
+    }    
+    @Override
+    public void cleanup(AlgorithmUpdate update) {
+        if (!updateOccured) {
+            stack.clear();
+        }
+    }
     
     protected Vector3f getNextDirection(Vector3f dirToTarget) {
         Quaternion q = new Quaternion().fromAngleAxis(FastMath.rand.nextFloat()*FastMath.TWO_PI, Vector3f.UNIT_Y);
         return q.mult(Vector3f.UNIT_Z);
     }
-    protected Vector3f getNextPoint(AlgorithmUpdate update, Vector3f direction, float minDist, float maxDist, float radius, int attempts) {
+    protected Vector3f getNextPoint(AlgorithmUpdate update, Vector3f direction,
+            float minDist, float maxDist, float radius, int attempts) {
         while (attempts-- > 0) {
             Ray ray = new Ray(update.getTank().getProbeLocation(), direction);
-            CollisionResults results = GameUtils.raycast(update.getGame().getCollisionShapes(), ray, update.getTank());
+            CollisionResults results = update.getCollisionState().raycast(ray, update.getTank().getEntity().getId());
             if (results.size() > 0) {
                 CollisionResult closest = results.getClosestCollision();
                 if (closest.getDistance()-radius < minDist) {
