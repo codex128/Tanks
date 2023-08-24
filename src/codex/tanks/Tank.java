@@ -4,12 +4,12 @@
  */
 package codex.tanks;
 
+import codex.tanks.util.GameUtils;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.collision.CollisionResult;
 import com.jme3.export.JmeExporter;
 import com.jme3.export.JmeImporter;
-import com.jme3.export.Savable;
 import com.jme3.material.Material;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -27,7 +27,7 @@ import java.util.LinkedList;
  *
  * @author gary
  */
-public class Tank implements CollisionShape, Savable {
+public class Tank implements CollisionShape {
 
     private Node root;
     private Spatial base, turret, muzzle, hitbox, pointer, probe;
@@ -37,10 +37,10 @@ public class Tank implements CollisionShape, Savable {
     private LinkedList<BulletInfo> bullets = new LinkedList<>();
     private final TankModel model;
     private final int team;
-    private Vector2f treadOffset = new Vector2f();
-    private Vector2f nextTreadMove = new Vector2f();
-    private float treadSpeed = -0.002f;
-    private float wheelSpeedRatio = -15f;
+    private final Vector2f treadOffset = new Vector2f();
+    private final Vector2f nextTreadMove = new Vector2f();
+    private final float treadSpeed = -0.002f;
+    private final float wheelSpeedRatio = -15f;
     
     private float reload = 0f;
     private boolean alive = true;
@@ -146,7 +146,7 @@ public class Tank implements CollisionShape, Savable {
     
     public BulletInfo shoot() {
         if (!bulletAvailable()) return null;
-        BulletInfo b = new BulletInfo(this, muzzle.getWorldTranslation(), getAimDirection().multLocal(model.getBulletSpeed()), model.getMaxBounces(), 10f);
+        BulletInfo b = new BulletInfo(this, BulletInfo.Type.valueOf(BulletInfo.Type.class, "Basic"), muzzle.getWorldTranslation(), getAimDirection().multLocal(model.getBulletSpeed()), model.getMaxBounces(), 10f);
         bullets.add(b);
         reload = model.getRps();
         return b;

@@ -1,4 +1,4 @@
-MaterialDef Simple {
+MaterialDef Tank {
     MaterialParameters {
         Texture2D DiffuseMap
         Color MainColor
@@ -13,7 +13,7 @@ MaterialDef Simple {
     }
     Technique {
         LightMode SinglePassAndImageBased
-        VertexShader GLSL120: Materials/tank.vert
+        VertexShader GLSL120: Materials/basicVert.vert
         FragmentShader GLSL120: Materials/tank.frag
         WorldParameters {
             WorldViewProjectionMatrix

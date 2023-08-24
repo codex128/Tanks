@@ -6,7 +6,7 @@ package codex.tanks.ai;
 
 import codex.j3map.J3map;
 import codex.tanks.CollisionShape;
-import codex.tanks.GameUtils;
+import codex.tanks.util.GameUtils;
 import com.jme3.math.FastMath;
 
 /**

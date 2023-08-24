@@ -6,7 +6,7 @@ package codex.tanks.ai;
 
 import codex.j3map.J3map;
 import codex.tanks.CollisionShape;
-import codex.tanks.GameUtils;
+import codex.tanks.util.GameUtils;
 
 /**
  *
@@ -38,7 +38,7 @@ public class DirectShot implements TankAlgorithm {
         CollisionShape shape = GameUtils.target(update.getGame().getCollisionShapes(), update.getTank().getAimRay(), update.getTank(), update.getTank().getModel().getMaxBounces());
         if (shape == update.getGame().getPlayerState().getTank()) {
             if ((exposure += update.getTpf()) > exposureThreshold) {
-                update.getGame().addBullet(update.getTank().shoot());
+                update.getGame().addMissile(update.getTank().shoot());
                 exposure = exposureThreshold;
             }
         }

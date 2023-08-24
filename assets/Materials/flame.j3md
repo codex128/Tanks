@@ -1,0 +1,30 @@
+MaterialDef Flame {
+    MaterialParameters {
+        Texture2D ColorMap
+        Float Seed : 102.34
+    }
+    Technique {
+        VertexShader GLSL120: Materials/basicVert.vert
+        FragmentShader GLSL120: Materials/flame.frag
+        WorldParameters {
+            WorldViewProjectionMatrix
+            CameraPosition
+            WorldMatrix
+            WorldNormalMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+    }
+    Technique Glow {
+        VertexShader GLSL120: Materials/basicVert.vert
+        FragmentShader GLSL120: Materials/flame.frag
+        WorldParameters {
+            WorldViewProjectionMatrix
+            CameraPosition
+            WorldMatrix
+            WorldNormalMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }        
+    }
+}

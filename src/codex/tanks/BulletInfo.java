@@ -12,14 +12,32 @@ import com.jme3.math.Vector3f;
  */
 public class BulletInfo {
     
+    public enum Type {
+        
+        Basic("Basic"), Missile("Missile");
+        
+        private final String name;
+        private Type(String name) {
+            this.name = name;
+        }
+        
+        @Override
+        public String toString() {
+            return name;
+        }
+        
+    }
+    
     public Tank owner;
+    public Type type;
     public Vector3f start;
     public Vector3f velocity;
     public int bounces;
     public float life;
     
-    public BulletInfo(Tank owner, Vector3f start, Vector3f velocity, int bounces, float life) {
+    public BulletInfo(Tank owner, Type type, Vector3f start, Vector3f velocity, int bounces, float life) {
         this.owner = owner;
+        this.type = type;
         this.start = start;
         this.velocity = velocity;
         this.bounces = bounces;

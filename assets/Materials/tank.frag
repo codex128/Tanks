@@ -45,7 +45,7 @@ void main() {
     spec.a = 1.0;
     
     // pbr
-    vec4 pbr = physicallyBasedRender(wPosition, color, 1.0, spec, 0.5, wNormal);
+    vec4 pbr = physicallyBasedRender(wPosition, color, 1.0, spec, 0.0, wNormal);
     gl_FragColor = pbr;
     
 }

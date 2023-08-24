@@ -4,96 +4,72 @@
  */
 package codex.tanks;
 
-import com.jme3.collision.CollisionResult;
-import com.jme3.collision.CollisionResults;
-import com.jme3.export.JmeExporter;
-import com.jme3.export.JmeImporter;
-import com.jme3.export.Savable;
-import com.jme3.math.Quaternion;
+import codex.tanks.components.Alive;
+import codex.tanks.components.Bounces;
+import codex.tanks.components.EntityTransform;
+import codex.tanks.components.Velocity;
+import codex.tanks.systems.CollisionState;
+import codex.tanks.systems.VisualState;
+import codex.tanks.util.GameUtils;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import java.io.IOException;
-import java.util.Collection;
+import com.simsilica.es.Entity;
 
 /**
  *
  * @author gary
  */
-public class Bullet implements CollisionShape, Savable {
+public class Bullet {
     
-    private Node root, emitter;
-    private Spatial bullet, hitbox;
-    private BulletInfo info;
+    private final Spatial spatial;
+    private final Entity entity;
     private int bouncesMade = 0;
     
-    public Bullet(Node root, BulletInfo info) {
-        this.root = root;
-        this.info = info;
-        fetchComponents();
+    public Bullet(Spatial spatial, Entity entity) {
+        this.spatial = spatial;
+        this.entity = entity;
+        initialize();
     }
     
-    private void fetchComponents() {
-        bullet = root.getChild("bullet");
-        hitbox = root.getChild("hitbox");
-        emitter = (Node)root.getChild("emitter");
-        hitbox.setCullHint(Spatial.CullHint.Always);
+    private void initialize() {
+        GameUtils.getSpatialNamed(spatial, "hitbox").setCullHint(Spatial.CullHint.Always);
     }
     
-    public void update(float tpf) {
-        info.life -= tpf;
-        root.setLocalRotation(new Quaternion().lookAt(info.velocity.negate(), Vector3f.UNIT_Y));
-    }
-    public CollisionResult raycast(Collection<CollisionShape> shapes, float tpf) {
-        CollisionResults res = GameUtils.raycast(shapes, new Ray(getPosition(), info.getDirection()), this);
-        if (res.size() > 0) {
-            CollisionResult closest = res.getClosestCollision();
-            if (closest.getDistance() < info.velocity.length()*tpf*2) {
-                return closest;
+    public void update(CollisionState collision, float tpf) {
+        var results = collision.raycast(getMovementRay(), entity.getId());
+        if (results.size() > 0) {
+            var closest = results.getClosestCollision();
+            if (closest.getDistance() < entity.get(Velocity.class).getSpeed()*tpf) {
+                var id = VisualState.fetchId(spatial, -1);
+                if (id != null) {
+                    collision.bulletCollision(id, this, closest);
+                }
             }
         }
-        return null;
-    }
-    public void move(float tpf) {
-        root.move(info.velocity.mult(tpf));
     }
     public void ricochet(Vector3f normal) {
-        if (info.bounces-- > 0) {
-            Vector3f dir = info.getDirection();
-            info.velocity.set(GameUtils.ricochet(dir, normal).multLocal(info.velocity.length()));
+        // bullet state
+        var b = entity.get(Bounces.class);
+        if (!b.isExhausted()) {
+            var v = entity.get(Velocity.class);
+            entity.set(new Velocity(GameUtils.ricochet(v.getDirection(), normal).multLocal(v.getSpeed())));
+            entity.set(b.increment());
             bouncesMade++;
+        }
+        else {
+            entity.set(new Alive(false));
         }
     }
     
-    public Node getRoot() {
-        return root;
+    public Entity getEntity() {
+        return entity;
     }
-    public Node getEmitterNode() {
-        return emitter;
-    }
-    public Vector3f getPosition() {
-        return root.getWorldTranslation();
-    }
-    public BulletInfo getBulletInfo() {
-        return info;
+    public Ray getMovementRay() {
+        return new Ray(entity.get(EntityTransform.class).getLocation(), entity.get(Velocity.class).getDirection());
     }
     public int getBouncesMade() {
         return bouncesMade;
     }
-
-    @Override
-    public void onHit(Bullet bullet, CollisionResult collision) {
-        bullet.getBulletInfo().kill();
-        info.kill();
-    }
-    @Override
-    public Spatial getCollisionShape() {
-        return hitbox;
-    }
-    @Override
-    public void write(JmeExporter ex) throws IOException {}
-    @Override
-    public void read(JmeImporter im) throws IOException {}
     
 }

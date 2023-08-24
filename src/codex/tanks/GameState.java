@@ -4,6 +4,8 @@
  */
 package codex.tanks;
 
+import codex.tanks.util.GameUtils;
+import codex.boost.GameAppState;
 import codex.j3map.J3map;
 import codex.tanks.ai.AITank;
 import codex.tanks.ai.BulletAlert;
@@ -11,9 +13,9 @@ import codex.tanks.ai.DefensivePoints;
 import codex.tanks.ai.DirectShot;
 import codex.tanks.ai.GameStartWait;
 import codex.tanks.effects.BasicEmitterControl;
+import codex.tanks.util.PointLightNode;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
-import com.jme3.app.state.BaseAppState;
 import com.jme3.asset.TextureKey;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
@@ -22,7 +24,9 @@ import com.jme3.collision.CollisionResult;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
 import com.jme3.light.DirectionalLight;
+import com.jme3.light.PointLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
@@ -40,7 +44,7 @@ import java.util.LinkedList;
  *
  * @author gary
  */
-public class GameState extends BaseAppState {
+public class GameState extends GameAppState {
     
     private Node scene;
     private BulletAppState bulletapp;
@@ -51,7 +55,7 @@ public class GameState extends BaseAppState {
     private DirectionalLight light;
     
     @Override
-    protected void initialize(Application app) {
+    protected void init(Application app) {
         
         scene = new Node("level-scene");
         bulletapp = getState(BulletAppState.class, true);
@@ -86,7 +90,7 @@ public class GameState extends BaseAppState {
         getStateManager().attach(player);
         
         J3map esource = (J3map)app.getAssetManager().loadAsset("Properties/enemy.j3map");
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 1; j++) {
                 Node enemyTankSpatial = (Node)app.getAssetManager().loadModel("Models/tank.j3o");
                 Material emat = pmat.clone();
@@ -94,7 +98,7 @@ public class GameState extends BaseAppState {
                 emat.setColor("SecondaryColor", new ColorRGBA(.2f, .2f, .2f, 1f));
                 enemyTankSpatial.setMaterial(emat);
                 enemyTankSpatial.setShadowMode(RenderQueue.ShadowMode.Cast);
-                enemyTankSpatial.setLocalTranslation(-10f+i*3, 0f, 7f);
+                enemyTankSpatial.setLocalTranslation(-10f+i*3, 0f, 7f+j*3);
                 scene.attachChild(enemyTankSpatial);
                 AITank enemy = new AITank(enemyTankSpatial, emat, new TankModel(esource.getJ3map("tank")), 1, this);
                 enemy.addAlgorithm(new GameStartWait(1f));
@@ -207,12 +211,35 @@ public class GameState extends BaseAppState {
     }
     public void addBullet(BulletInfo info) {
         if (info == null) return;
+        Node spatial = createBulletSpatial(info);
+        Bullet b = new Bullet(spatial, info);
+        scene.attachChild(spatial);        
+        scene.attachChild(createBulletSmoke(b));
+        bullets.add(b);
+        addCollisionShape(b);
+    }
+    public void addMissile(BulletInfo info) {
+        if (info == null) return;
+        Node spatial = createBulletSpatial(info);
+        Missile m = createMissile(spatial, info);
+        scene.attachChild(spatial);
+        scene.attachChild(createBulletSmoke(m));
+        bullets.add(m);
+        addCollisionShape(m);
+    }
+    public void addCollisionShape(CollisionShape h) {
+        collisionShapes.add(h);
+        GameUtils.assignGeometryOwner(h.getCollisionShape(), h);
+    }
+    
+    private Node createBulletSpatial(BulletInfo info) {
         Node spatial = (Node)getApplication().getAssetManager().loadModel("Models/bullet.j3o");
         spatial.setShadowMode(RenderQueue.ShadowMode.Off);
         spatial.setLocalTranslation(info.start);
         spatial.setLocalScale(.2f);
-        Bullet b = new Bullet(spatial, info);
-        scene.attachChild(spatial);
+        return spatial;
+    }
+    private ParticleEmitter createBulletSmoke(Bullet b) {
         var smoke = new ParticleEmitter("bullet-smoke", ParticleMesh.Type.Triangle, 10);
         var mat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Particle.j3md");
         mat.setTexture("Texture", getApplication().getAssetManager().loadTexture("Effects/Smoke.png"));
@@ -230,13 +257,27 @@ public class GameState extends BaseAppState {
         smoke.setNumParticles(10);
         var control = new BasicEmitterControl(scene, b.getEmitterNode());
         smoke.addControl(control);
-        scene.attachChild(smoke);
-        bullets.add(b);
-        addCollisionShape(b);
+        return smoke;
     }
-    public void addCollisionShape(CollisionShape h) {
-        collisionShapes.add(h);
-        GameUtils.assignGeometryOwner(h.getCollisionShape(), h);
+    private Missile createMissile(Node spatial, BulletInfo info) {
+        var flameMat = new Material(assetManager, "Materials/flame.j3md");
+        flameMat.setTexture("ColorMap", assetManager.loadTexture(new TextureKey("Effects/flame.png", false)));
+        flameMat.setFloat("Seed", 53.234f);
+        flameMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        flameMat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        flameMat.setTransparent(true);
+        var flame = assetManager.loadModel("Effects/flame.j3o");
+        flame.setLocalScale(3f, 3f, 4f);
+        flame.setQueueBucket(RenderQueue.Bucket.Transparent);
+        flame.setMaterial(flameMat);
+        var pl = new PointLight();
+        pl.setRadius(100f);
+        pl.setColor(ColorRGBA.Orange);
+        var light = new PointLightNode(pl, scene);
+        var missile = new Missile(spatial, flameMat, info);
+        missile.getEmitterNode().attachChild(flame);
+        //missile.getEmitterNode().attachChild(light);
+        return missile;
     }
     
     public Collection<Tank> getTanks() {
