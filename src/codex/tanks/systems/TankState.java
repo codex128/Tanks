@@ -10,6 +10,7 @@ import codex.tanks.components.Bounces;
 import codex.tanks.components.Firerate;
 import codex.tanks.components.BulletCapacity;
 import codex.tanks.components.ColorScheme;
+import codex.tanks.components.GameObject;
 import codex.tanks.components.MineCapacity;
 import codex.tanks.components.Physics;
 import codex.tanks.components.ShootForce;
@@ -37,10 +38,11 @@ public class TankState extends ESAppState {
     protected void init(Application app) {
         super.init(app);
         entities = ed.getEntities(
-                Visual.class, Physics.class, Speed.class,
-                Firerate.class, BulletCapacity.class, Bounces.class,
-                ShootForce.class, MineCapacity.class, ColorScheme.class,
-                Alive.class);
+                GameObject.filter("tank"),
+                GameObject.class, Visual.class, Physics.class,
+                Speed.class, Firerate.class, BulletCapacity.class,
+                Bounces.class, ShootForce.class, MineCapacity.class,
+                ColorScheme.class, Alive.class);
         visuals = getState(VisualState.class, true);
         physics = getState(PhysicsState.class, true);
     }

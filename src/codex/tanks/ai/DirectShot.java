@@ -4,45 +4,50 @@
  */
 package codex.tanks.ai;
 
-import codex.tanks.components.Bounces;
-
 /**
  *
  * @author gary
  */
 public class DirectShot implements Algorithm {
-
-    private final float exposureThreshold;
+    
+    private final float minExposure;
+    private final float maxBarrelOffset;
     private float exposure = 0f;
     
-    public DirectShot(float exposureThreshold) {
-        this.exposureThreshold = exposureThreshold;
+    public DirectShot(float minExposure, float maxBarrelOffset) {
+        this.minExposure = minExposure;
+        this.maxBarrelOffset = maxBarrelOffset;
     }
     
     @Override
-    public void initialize(AlgorithmUpdate update) {}
+    public void initialize(AlgorithmUpdate update) {
+        if (update.isPlayerInView()) {
+            exposure = Math.min(exposure+update.getTpf(), minExposure);
+        }
+        else {
+            exposure = Math.max(exposure-update.getTpf(), 0f);
+        }
+    }
     @Override
     public boolean move(AlgorithmUpdate update) {
         return false;
     }
     @Override
     public boolean aim(AlgorithmUpdate update) {
-        update.getTank().aimAt(update.getPlayerTank().getPosition());
-        return true;
+        return false;
     }
     @Override
     public boolean shoot(AlgorithmUpdate update) {
-        var id = update.getCollisionState().raycast(update.getTank().getAimRay(), update.getTank().getEntity().getId(), update.getTank().getEntity().get(Bounces.class).getRemaining());
-        if (id == update.getPlayerTank().getEntity().getId()) {
-            if ((exposure += update.getTpf()) > exposureThreshold) {
-                update.getTank().shoot(update.getManager().getEntityData());
-                exposure = exposureThreshold;
+        if (update.isPlayerInView()) {
+            if (exposure >= minExposure-0.01f) {
+                if (update.getDirectionToPlayer().dot(update.getTank().getAimDirection()) <= maxBarrelOffset) {
+                    update.getTank().shoot(update.getManager().getEntityData());
+                    return true;
+                }
+                exposure = minExposure;
             }
         }
-        else {
-            exposure = Math.max(exposure-update.getTpf(), 0f);
-        }
-        return true;
+        return false;
     }
     @Override
     public boolean mine(AlgorithmUpdate update) {

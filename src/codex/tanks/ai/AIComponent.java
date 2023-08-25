@@ -4,16 +4,15 @@
  */
 package codex.tanks.ai;
 
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityComponent;
+
 /**
  *
  * @author codex
  */
-public class BlackModel extends AIModel {
+public interface AIComponent extends EntityComponent {
     
-    public BlackModel() {
-        initialize();
-    }
-    
-    private void initialize() {}
+    public Algorithm createAlgorithm(Entity entity);
     
 }

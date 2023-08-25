@@ -4,9 +4,8 @@
  */
 package codex.tanks.components;
 
+import codex.tanks.ai.Algorithm;
 import com.simsilica.es.EntityComponent;
-import static groovyjarjarantlr4.v4.runtime.misc.MurmurHash.update;
-import java.util.Arrays;
 
 /**
  *
@@ -14,18 +13,20 @@ import java.util.Arrays;
  */
 public class Brain implements EntityComponent {
     
-    private final String model;
+    private final Algorithm[] algorithms;
 
-    public Brain(String model) {
-        this.model = model;
+    public Brain(Algorithm... algorithms) {
+        this.algorithms = algorithms;
+    }
+    
+    public Algorithm[] getAlgorithms() {
+        return algorithms;
     }
 
-    public String getModel() {
-        return model;
-    }
     @Override
     public String toString() {
-        return "Brain{" + "model=" + model + '}';
+        return "Brain{" + "algorithms=" + algorithms.length + '}';
     }
+    
     
 }

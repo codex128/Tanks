@@ -5,16 +5,10 @@
 package codex.tanks;
 
 import codex.j3map.J3map;
-import codex.tanks.components.Alive;
-import codex.tanks.components.Brain;
-import codex.tanks.components.ContactReaction;
-import codex.tanks.components.CollisionShape;
-import codex.tanks.components.EntityTransform;
-import codex.tanks.components.Physics;
-import codex.tanks.components.Team;
-import codex.tanks.components.TransformMode;
-import codex.tanks.components.Visual;
-import codex.tanks.factory.AIFactory;
+import codex.tanks.ai.DirectShot;
+import codex.tanks.ai.Lookout;
+import codex.tanks.ai.Wander;
+import codex.tanks.components.*;
 import codex.tanks.factory.ModelFactory;
 import codex.tanks.systems.VisualState;
 import codex.tanks.util.ESAppState;
@@ -88,31 +82,40 @@ public class GameState extends ESAppState {
         
         var plr = ed.createEntity();
         ed.setComponents(plr,
-                new Visual(ModelFactory.TANK),
-                new Physics(),
-                new EntityTransform().setTranslation(0f, 0f, -7f),
-                new TransformMode(-1, 0, 0),
-                new CollisionShape("hitbox"),
-                new ContactReaction(ContactReaction.DIE),
-                new Team(0),
-                new Alive());
+            new GameObject("tank"),
+            new Visual(ModelFactory.TANK),
+            new Physics(),
+            new EntityTransform().setTranslation(0f, 0f, -7f),
+            new TransformMode(-1, 0, 0),
+            new CollisionShape("hitbox"),
+            new ContactReaction(ContactReaction.DIE),
+            new Team(0),
+            new Alive()
+        );
         Tank.applyProperties(ed, plr, playerSource);
         player = new PlayerAppState(plr);
         getStateManager().attach(player);
         
+        J3map enemySource = (J3map)assetManager.loadAsset("Properties/enemy.j3map");
         for (int i = 0; i < 1; i++) {
             var enemy = ed.createEntity();
             ed.setComponents(enemy,
-                    new Visual(ModelFactory.TANK),
-                    new Physics(),
-                    new EntityTransform().setTranslation(i*3, 0f, 7f),
-                    new TransformMode(-1, 0, 0),
-                    new CollisionShape("hitbox"),
-                    new ContactReaction(ContactReaction.RICOCHET),
-                    new Team(1),
-                    new Alive(),
-                    new Brain(AIFactory.BLACK));
-            Tank.applyProperties(ed, enemy, playerSource);
+                new GameObject("tank"),
+                new Visual(ModelFactory.TANK),
+                new Physics(),
+                new EntityTransform().setTranslation(i*3, 0f, 7f),
+                new TransformMode(-1, 0, 0),
+                new CollisionShape("hitbox"),
+                new ContactReaction(ContactReaction.RICOCHET),
+                new Team(1),
+                new Alive(),
+                new Brain(
+                    new Lookout(FastMath.PI*0.01f),
+                    new DirectShot(0f, .01f),
+                    new Wander(2.0f, 0.02f, 2f, .3f)
+                )
+            );
+            Tank.applyProperties(ed, enemy, enemySource.getJ3map("tank"));
         }
         
         float r = 20f;

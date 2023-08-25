@@ -19,6 +19,7 @@ public class Wander implements Algorithm {
     private final float previousTurnBias;
     private final float directional;
     private int pturn = 0;
+    private float turnfactor = 0f;
     private float skew = 0f;
     
     public Wander(float previousTurnBias, float turnSpeed, float wander, float directional) {
@@ -40,7 +41,8 @@ public class Wander implements Algorithm {
         float similarity = left.dot(update.getDirectionToPlayer())*directional;
         float bias = previousTurnBias*pturn;
         pturn = (int)FastMath.sign(similarity+bias+(float)FastMath.rand.nextGaussian());
-        update.getTank().rotate(turnSpeed*wander*pturn);
+        turnfactor = FastMath.interpolateLinear(.1f, turnfactor, pturn);
+        update.getTank().rotate(turnSpeed*wander*turnfactor);
         update.getTank().move(1);
         return true;
     }

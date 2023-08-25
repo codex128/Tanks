@@ -12,12 +12,12 @@ import com.jme3.math.FastMath;
  *
  * @author gary
  */
-public class Sniper implements Algorithm {
+public class Lookout implements Algorithm {
     
     private final float barrelSpeed;
     private float distance = 0f;
     
-    public Sniper(float barrelSpeed) {
+    public Lookout(float barrelSpeed) {
         this.barrelSpeed = barrelSpeed;
     }
     

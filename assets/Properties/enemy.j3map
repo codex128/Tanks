@@ -1,7 +1,7 @@
 tank: {
     color: "black";
     class: "defensive";
-    speed: 9f;
+    speed: 4f;
     rps: 3f;
     maxBullets: 1;
     maxBounces: 0;
