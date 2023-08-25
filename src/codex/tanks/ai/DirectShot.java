@@ -28,6 +28,10 @@ public class DirectShot implements Algorithm {
     @Override
     public boolean aim(AlgorithmUpdate update) {
         update.getTank().aimAt(update.getPlayerTank().getPosition());
+        return true;
+    }
+    @Override
+    public boolean shoot(AlgorithmUpdate update) {
         var id = update.getCollisionState().raycast(update.getTank().getAimRay(), update.getTank().getEntity().getId(), update.getTank().getEntity().get(Bounces.class).getRemaining());
         if (id == update.getPlayerTank().getEntity().getId()) {
             if ((exposure += update.getTpf()) > exposureThreshold) {
@@ -39,10 +43,6 @@ public class DirectShot implements Algorithm {
             exposure = Math.max(exposure-update.getTpf(), 0f);
         }
         return true;
-    }
-    @Override
-    public boolean shoot(AlgorithmUpdate update) {
-        return false;
     }
     @Override
     public boolean mine(AlgorithmUpdate update) {

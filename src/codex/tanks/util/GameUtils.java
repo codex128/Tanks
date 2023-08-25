@@ -52,12 +52,15 @@ public class GameUtils {
         return (float)FastMath.rand.nextGaussian()*radius+mean;
     }
     
-    public static Geometry createDebugGeometry(AssetManager assetManager, ColorRGBA color, float radius) {
-        Geometry g = new Geometry("debug", new Box(radius, radius, radius));
+    public static Geometry createDebugGeometry(AssetManager assetManager, ColorRGBA color, Vector3f size) {
+        Geometry g = new Geometry("debug", new Box(size.x, size.y, size.z));
         Material m = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         m.setColor("Color", color);
         g.setMaterial(m);
         return g;
+    }
+    public static Geometry createDebugGeometry(AssetManager assetManager, ColorRGBA color, float radius) {
+        return createDebugGeometry(assetManager, color, new Vector3f(radius, radius, radius));
     }
     public static Material fetchMaterial(Spatial spatial) {
         for (Spatial s : new SceneGraphIterator(spatial)) {
@@ -80,6 +83,12 @@ public class GameUtils {
             }
         }
         return null;
+    }
+    public static void visualizeHierarchy(Spatial spatial) {
+        System.out.println("children of "+spatial.getName()+":");
+        for (var s : new SceneGraphIterator(spatial)) {
+            System.out.println("   "+s);
+        }
     }
     
     public static void setWorldTranslation(Spatial spatial, Vector3f translation) {

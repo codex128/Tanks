@@ -41,7 +41,7 @@ public class Bullet {
         if (results.size() > 0) {
             var closest = results.getClosestCollision();
             if (closest.getDistance() < entity.get(Velocity.class).getSpeed()*tpf) {
-                var id = VisualState.fetchId(spatial, -1);
+                var id = VisualState.fetchId(closest.getGeometry(), -1);
                 if (id != null) {
                     collision.bulletCollision(id, this, closest);
                 }

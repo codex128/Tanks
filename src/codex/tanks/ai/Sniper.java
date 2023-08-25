@@ -36,7 +36,7 @@ public class Sniper implements Algorithm {
         update.getTank().rotateAim(angle);
         distance -= angle;
         var id = update.getCollisionState().raycast(update.getTank().getAimRay(), update.getTank().getEntity().getId(), update.getTank().getEntity().get(Bounces.class).getRemaining());
-        if (id == update.getPlayerTank().getEntity().getId()) {
+        if (id != null && id.equals(update.getPlayerTank().getEntity().getId())) {
             update.getTank().shoot(update.getManager().getEntityData());
         }
         return true;

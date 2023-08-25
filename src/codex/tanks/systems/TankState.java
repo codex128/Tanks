@@ -14,6 +14,7 @@ import codex.tanks.components.MineCapacity;
 import codex.tanks.components.Physics;
 import codex.tanks.components.ShootForce;
 import codex.tanks.components.Speed;
+import codex.tanks.components.Visual;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.Entity;
@@ -30,7 +31,7 @@ public class TankState extends ESAppState {
     private EntitySet entities;
     private final HashMap<EntityId, Tank> tanks = new HashMap<>();
     private VisualState visuals;
-    private PhysicsRegistry physics;
+    private PhysicsState physics;
     
     @Override
     protected void init(Application app) {
@@ -41,7 +42,7 @@ public class TankState extends ESAppState {
                 ShootForce.class, MineCapacity.class, ColorScheme.class,
                 Alive.class);
         visuals = getState(VisualState.class, true);
-        physics = getState(PhysicsRegistry.class, true);
+        physics = getState(PhysicsState.class, true);
     }
     @Override
     protected void cleanup(Application app) {

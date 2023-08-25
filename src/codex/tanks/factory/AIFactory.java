@@ -5,6 +5,9 @@
 package codex.tanks.factory;
 
 import codex.tanks.ai.AIModel;
+import codex.tanks.ai.BulletAlert;
+import codex.tanks.ai.DirectShot;
+import codex.tanks.ai.RandomPoints;
 import codex.tanks.ai.Sniper;
 import com.jme3.math.FastMath;
 
@@ -69,7 +72,11 @@ public class AIFactory {
         return createBrown();
     }
     private AIModel createBlack() {
-        return createBrown();
+        var model = new AIModel();
+        model.add(new BulletAlert(10f));
+        model.add(new DirectShot(.1f));
+        model.add(new RandomPoints(10f));
+        return model;
     }
     
 }

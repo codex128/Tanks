@@ -43,19 +43,20 @@ public class Main extends SimpleApplication {
         //bulletapp.setDebugEnabled(true);
         
         stateManager.attachAll(
-                new EntityState(),
-                bulletapp,
-                new VisualState(),
-                new PhysicsRegistry(),
-                new TransformUpdateState(),
-                new CollisionState(),
-                new AIManager(),
-                new MovementState(),
-                new BulletState(),
-                new TankState(),
-                new FaceVelocityState(),
-                new DecayState(),
-                new LifeState());
+            new EntityState()
+            ,bulletapp
+            ,new VisualState()
+            ,new TransformUpdateState()
+            ,new PhysicsState()
+            ,new CollisionState()
+            ,new MovementState()
+            ,new BulletState()
+            ,new TankState()
+            ,new FaceVelocityState()
+            ,new DecayState()
+            ,new LifeState()
+            ,new AIManager()
+        );
         
         stateManager.attach(new GameState());
         

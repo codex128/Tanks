@@ -14,22 +14,39 @@ import com.simsilica.es.EntityId;
  *
  * @author codex
  */
-public abstract class BulletReaction implements EntityComponent {
+public class ContactReaction implements EntityComponent {
     
-    public static final BulletReaction
-    SIMPLE = new BulletReaction() {
+    /**
+     * Kills projectiles.
+     */
+    public static final ContactReaction
+    SIMPLE = new ContactReaction() {
         @Override
         public void react(EntityData ed, EntityId target, Bullet bullet, CollisionResult collision) {
             bullet.getEntity().set(new Alive(false));
         }
-    },
-    RICOCHET = new BulletReaction() {
+    };
+    
+    /**
+     * Ricochets projectiles.
+     */
+    public static final ContactReaction
+    RICOCHET = new ContactReaction() {
         @Override
         public void react(EntityData ed, EntityId target, Bullet bullet, CollisionResult collision) {
             bullet.ricochet(collision.getContactNormal());
         }
-    },
-    DIE = new BulletReaction() {
+        @Override
+        public boolean ricochet() {
+            return true;
+        }
+    };
+    
+    /**
+     * Kills this entity and the projectile entity.
+     */
+    public static final ContactReaction
+    DIE = new ContactReaction() {
         @Override
         public void react(EntityData ed, EntityId target, Bullet bullet, CollisionResult collision) {
             bullet.getEntity().set(new Alive(false));
@@ -37,12 +54,25 @@ public abstract class BulletReaction implements EntityComponent {
         }
     };
     
-    public BulletReaction() {}
+    private ContactReaction delegate;
     
-    public abstract void react(EntityData ed, EntityId target, Bullet bullet, CollisionResult collision);
+    public ContactReaction() {}
+    public ContactReaction(ContactReaction delegate) {
+        this.delegate = delegate;
+    }
+    
+    public void react(EntityData ed, EntityId target, Bullet bullet, CollisionResult collision) {
+        if (delegate != null) {
+            delegate.react(ed, target, bullet, collision);
+        }
+    }
+    public boolean ricochet() {
+        if (delegate == null) return false;
+        else return delegate.ricochet();
+    }
     @Override
     public String toString() {
-        return "BulletReaction{" + '}';
+        return "ContactReaction{" + "delegate=" + delegate + '}';
     }
     
 }

@@ -9,6 +9,9 @@ import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
+import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.scene.control.Control;
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import java.util.HashMap;
@@ -17,17 +20,19 @@ import java.util.HashMap;
  *
  * @author codex
  */
-public class PhysicsRegistry extends ESAppState {
+public class PhysicsState extends ESAppState {
     
     private EntitySet entities;
     private HashMap<EntityId, Object> physics = new HashMap<>();
     private BulletAppState bulletapp;
+    private VisualState visuals;
     
     @Override
     protected void init(Application app) {
         super.init(app);
         entities = ed.getEntities(Physics.class);
         bulletapp = getState(BulletAppState.class, true);
+        visuals = getState(VisualState.class, true);
     }
     @Override
     protected void cleanup(Application app) {}
@@ -37,14 +42,40 @@ public class PhysicsRegistry extends ESAppState {
     protected void onDisable() {}
     @Override
     public void update(float tpf) {
-        if (entities.applyChanges()) for (var e : entities.getRemovedEntities()) {
-            unlink(e.getId());
+        if (entities.applyChanges()) {
+            entities.getAddedEntities().forEach(e -> create(e));
+            entities.getRemovedEntities().forEach(e -> destroy(e));
+        }
+    }
+    
+    private void create(Entity e) {
+        float mass = e.get(Physics.class).getMass();
+        if (mass >= 0f) {
+            var spatial = visuals.getSpatial(e.getId());
+            if (spatial != null) {
+                var rigidbody = new RigidBodyControl(mass);
+                spatial.addControl(rigidbody);
+                link(e.getId(), rigidbody);
+            }
+        }
+    }
+    private void destroy(Entity e) {
+        var object = unlink(e.getId());
+        if (object instanceof Control) {
+            var spatial = visuals.getSpatial(e.getId());
+            if (spatial != null) {
+                spatial.removeControl((Control)object);
+            }
         }
     }
     
     public boolean link(EntityId id, Object object) {
-        if (ed.getComponent(id, Physics.class) == null) return false;
+        System.out.println("link");
+        if (ed.getComponent(id, Physics.class) == null) {
+            return false;
+        }
         if (physics.putIfAbsent(id, object) == null) {
+            System.out.println("  link successful");
             getPhysicsSpace().add(object);
             return true;
         }

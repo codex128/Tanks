@@ -5,8 +5,9 @@
 package codex.tanks.systems;
 
 import codex.tanks.Bullet;
-import codex.tanks.components.BulletReaction;
+import codex.tanks.components.ContactReaction;
 import codex.tanks.components.CollisionShape;
+import codex.tanks.components.Visual;
 import codex.tanks.util.ESAppState;
 import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
@@ -49,10 +50,10 @@ public class CollisionState extends ESAppState implements Iterable<Spatial> {
     
     @Override
     public Iterator<Spatial> iterator() {
-        return new ShapeIterator();
+        return new RawShapeIterator();
     }
     public Iterator<Spatial> iterator(EntityId ignore) {
-        return new ShapeIterator(ignore);
+        return new RawShapeIterator(ignore);
     }
     
     public void raycast(Ray ray, EntityId ignore, CollisionResults results) {
@@ -73,15 +74,15 @@ public class CollisionState extends ESAppState implements Iterable<Spatial> {
             if (results.size() > 0) {
                 var closest = results.getClosestCollision();
                 var id = VisualState.fetchId(closest.getGeometry(), -1);
-                var shape = ed.getComponent(id, CollisionShape.class);
-                if (shape != null) {
-                    if (maxBounces > 0 && shape.ricochet()) {
-                        ray = new Ray(closest.getContactPoint(), GameUtils.ricochet(ray.getDirection(), closest.getContactNormal()));
-                        ignore = id;
-                    }
-                    else return id;
+                var r = ed.getComponent(id, ContactReaction.class);
+                if (r == null) {
+                    return id;
                 }
-                else break;
+                if (maxBounces > 0 && r.ricochet()) {
+                    ray = new Ray(closest.getContactPoint(), GameUtils.ricochet(ray.getDirection(), closest.getContactNormal()));
+                    ignore = id;
+                }
+                else return id;
                 results.clear();
             }
             else break;
@@ -90,18 +91,18 @@ public class CollisionState extends ESAppState implements Iterable<Spatial> {
     }
     
     public void bulletCollision(EntityId target, Bullet bullet, CollisionResult collision) {
-        var r = ed.getComponent(target, BulletReaction.class);
+        var r = ed.getComponent(target, ContactReaction.class);
         if (r != null) r.react(ed, target, bullet, collision);
     }
     
-    private class ShapeIterator implements Iterator<Spatial> {
+    private class RawShapeIterator implements Iterator<Spatial> {
         
         EntityId ignore;
         Iterator<Entity> delegate = shapes.iterator();
         Spatial next;
         
-        ShapeIterator() {}
-        ShapeIterator(EntityId ignore) {
+        RawShapeIterator() {}
+        RawShapeIterator(EntityId ignore) {
             this.ignore = ignore;
         }
         
@@ -110,9 +111,19 @@ public class CollisionState extends ESAppState implements Iterable<Spatial> {
             if (next != null) return true;
             while (delegate.hasNext()) {
                 var e = delegate.next();
-                if (e.getId().equals(ignore)) continue;
-                next = GameUtils.getChild(visuals.getSpatial(e.getId()), e.get(CollisionShape.class).getShape());
-                if (next != null) return true;
+                if (ignore != null && e.getId().equals(ignore)) {
+                    continue;
+                }
+                var shape = e.get(CollisionShape.class).getShape();
+                if (shape == null) {
+                    next = visuals.getSpatial(e.getId());
+                }
+                else {
+                    next = GameUtils.getChild(visuals.getSpatial(e.getId()), shape);
+                }
+                if (next != null) {
+                    return true;
+                }
             }
             return false;
         }

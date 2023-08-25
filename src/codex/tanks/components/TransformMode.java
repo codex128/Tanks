@@ -67,6 +67,15 @@ public class TransformMode implements EntityComponent {
     public boolean useWorldScale() {
         return Math.abs(scale) == 2;
     }
+    public boolean useTranslation() {
+        return translation != 0;
+    }
+    public boolean useRotation() {
+        return rotation != 0;
+    }
+    public boolean useScale() {
+        return scale != 0;
+    }
     
     @Override
     public String toString() {

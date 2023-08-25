@@ -5,6 +5,7 @@
 package codex.tanks.systems;
 
 import codex.tanks.components.EntityTransform;
+import codex.tanks.components.Visual;
 import codex.tanks.factory.ModelFactory;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
@@ -58,17 +59,13 @@ public class VisualState extends ESAppState {
     
     private void createModel(Entity e) {
         var v = e.get(Visual.class);
-        if (!v.isCustom()) {
+        if (v.getModel() != null) {
             Spatial spatial = factory.create(v.getModel());
-            if (v.getScene() != null) {
-                getScene(v.getScene()).attachChild(spatial);
-            }
             var transform = ed.getComponent(e.getId(), EntityTransform.class);
             if (transform != null) {
                 transform.applyToSpatial(spatial);
             }
-            link(e.getId(), spatial);
-            rootNode.attachChild(spatial);
+            link(e.getId(), spatial, true);
         }
     }
     private void destroyModel(Entity e) {
@@ -82,8 +79,14 @@ public class VisualState extends ESAppState {
         return spatials.get(id);
     }
     public boolean link(EntityId id, Spatial spatial) {
+        return link(id, spatial, false);
+    }
+    public boolean link(EntityId id, Spatial spatial, boolean attach) {
         if (spatials.putIfAbsent(id, spatial) == null) {
             assignId(spatial, id);
+            if (attach) {
+                rootNode.attachChild(spatial);
+            }
             return true;
         }
         return false;

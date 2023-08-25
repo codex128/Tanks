@@ -62,7 +62,9 @@ public class AIManager extends ESAppState {
                 shoot = true,
                 mine = true;
         var update = new AlgorithmUpdate(this, tanks.getTank(e.getId()), tpf);
-        if (update.getTank() == null) return;
+        if (update.getTank() == null || update.getPlayerTank() == null) {
+            return;
+        }
         for (var alg : models.get(e.getId()).getCommandStack()) {
             alg.initialize(update);
             if (move)  move  = !alg.move  (update);

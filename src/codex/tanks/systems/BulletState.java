@@ -9,6 +9,7 @@ import codex.tanks.components.Alive;
 import codex.tanks.components.Bounces;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Velocity;
+import codex.tanks.components.Visual;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.Entity;

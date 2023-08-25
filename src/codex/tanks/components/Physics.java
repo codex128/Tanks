@@ -12,11 +12,19 @@ import com.simsilica.es.EntityComponent;
  */
 public class Physics implements EntityComponent {
     
+    private float mass = -1;
+    
     public Physics() {}
+    public Physics(float mass) {
+        this.mass = mass;
+    }
 
+    public float getMass() {
+        return mass;
+    }
     @Override
     public String toString() {
-        return "Physics{" + '}';
+        return "Physics{" + "mass=" + mass + '}';
     }
     
 }

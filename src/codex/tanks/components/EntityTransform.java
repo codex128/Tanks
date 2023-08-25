@@ -42,6 +42,10 @@ public class EntityTransform implements EntityComponent {
         rotation.lookAt(lookAt, up);
         return this;
     }
+    public EntityTransform setRotation(float angle, Vector3f axis) {
+        rotation.fromAngleAxis(angle, axis);
+        return this;
+    }
     public EntityTransform setScale(Vector3f scale) {
         this.scale.set(scale);
         return this;

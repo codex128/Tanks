@@ -10,6 +10,8 @@ import codex.tanks.components.Bounces;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Firerate;
 import codex.tanks.components.BulletCapacity;
+import codex.tanks.components.ContactReaction;
+import codex.tanks.components.CollisionShape;
 import codex.tanks.components.ColorScheme;
 import codex.tanks.components.FaceVelocity;
 import codex.tanks.components.MineCapacity;
@@ -18,9 +20,9 @@ import codex.tanks.components.ShootForce;
 import codex.tanks.components.Speed;
 import codex.tanks.components.TransformMode;
 import codex.tanks.components.Velocity;
+import codex.tanks.components.Visual;
 import codex.tanks.factory.ModelFactory;
 import codex.tanks.systems.CollisionState;
-import codex.tanks.systems.Visual;
 import codex.tanks.util.FunctionFilter;
 import codex.tanks.util.GameUtils;
 import com.jme3.bullet.control.RigidBodyControl;
@@ -105,7 +107,9 @@ public class Tank {
         }
     }
     public void move(Vector3f move) {
-        if (rotateTo(move)) {
+        int d = rotateTo(move);
+        if (d != 0) {
+            lastDir = d;
             var s = entity.get(Speed.class).getSpeed();
             setLinearVelocity(move.mult(s));
             final float treadMovement = s*lastDir*treadSpeed;
@@ -134,10 +138,11 @@ public class Tank {
         base.rotate(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y));
         nextTreadMove.addLocal(treadMoveMovement*isRight, -treadMoveMovement*isRight);
     }
-    public boolean rotateTo(Vector3f direction) {
+    public int rotateTo(Vector3f direction) {
         final float bias = .1f;
         final float blend = .2f;
         final float threshold = FastMath.PI*.3f;
+        int dir = 0;
         direction.setY(0f).normalizeLocal();
         Quaternion q = base.getLocalRotation().clone();
         int isLeft = q.getRotationColumn(0).dot(direction) > 0f ? 1 : -1;
@@ -145,16 +150,19 @@ public class Tank {
         Quaternion t2 = new Quaternion().lookAt(direction.negate(), Vector3f.UNIT_Y);
         if (q.dot(t1)+bias*lastDir >= q.dot(t2)) {
             q.nlerp(t1, blend);
-            lastDir = 1;
+            dir = 1;
         }
         else {
             q.nlerp(t2, blend);
-            lastDir = -1;
+            dir = -1;
         }
         base.setLocalRotation(q);
         nextTreadMove.addLocal(-treadSpeed*isLeft, treadSpeed*isLeft);
         float angle = direction.angleBetween(getMoveDirection());
-        return angle < threshold || angle > FastMath.PI-threshold;
+        if (angle < threshold || angle > FastMath.PI-threshold) {
+            return dir;
+        }
+        else return 0;
     }
     public void stop() {
         setLinearVelocity(Vector3f.ZERO.clone());
@@ -166,10 +174,12 @@ public class Tank {
         ed.setComponents(id,
                 new Visual(ModelFactory.BULLET),
                 new EntityTransform().setTranslation(muzzle.getWorldTranslation()).setScale(.2f),
-                new TransformMode(),
+                new TransformMode(1, 1, 0),
                 new Velocity(getAimDirection().multLocal(10f)),
                 new FaceVelocity(),
                 new Bounces(entity.get(Bounces.class).getRemaining()),
+                new CollisionShape("hitbox"),
+                new ContactReaction(ContactReaction.DIE),
                 new Owner(entity.getId()),
                 new Alive());
         reload = entity.get(Firerate.class).getRate();

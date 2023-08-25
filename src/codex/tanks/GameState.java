@@ -7,19 +7,19 @@ package codex.tanks;
 import codex.j3map.J3map;
 import codex.tanks.components.Alive;
 import codex.tanks.components.Brain;
-import codex.tanks.components.BulletReaction;
+import codex.tanks.components.ContactReaction;
 import codex.tanks.components.CollisionShape;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Physics;
 import codex.tanks.components.Team;
 import codex.tanks.components.TransformMode;
+import codex.tanks.components.Visual;
 import codex.tanks.factory.AIFactory;
 import codex.tanks.factory.ModelFactory;
-import codex.tanks.systems.Visual;
 import codex.tanks.systems.VisualState;
 import codex.tanks.util.ESAppState;
+import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
-import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.control.RigidBodyControl;
@@ -28,12 +28,12 @@ import com.jme3.effect.ParticleMesh;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
 
@@ -93,14 +93,14 @@ public class GameState extends ESAppState {
                 new EntityTransform().setTranslation(0f, 0f, -7f),
                 new TransformMode(-1, 0, 0),
                 new CollisionShape("hitbox"),
-                BulletReaction.DIE,
+                new ContactReaction(ContactReaction.DIE),
                 new Team(0),
                 new Alive());
         Tank.applyProperties(ed, plr, playerSource);
         player = new PlayerAppState(plr);
         getStateManager().attach(player);
         
-        for (int i = 0; i < 0; i++) {
+        for (int i = 0; i < 1; i++) {
             var enemy = ed.createEntity();
             ed.setComponents(enemy,
                     new Visual(ModelFactory.TANK),
@@ -108,10 +108,19 @@ public class GameState extends ESAppState {
                     new EntityTransform().setTranslation(i*3, 0f, 7f),
                     new TransformMode(-1, 0, 0),
                     new CollisionShape("hitbox"),
+                    new ContactReaction(ContactReaction.RICOCHET),
                     new Team(1),
+                    new Alive(),
                     new Brain(AIFactory.BLACK));
-            Tank.applyProperties(ed, plr, playerSource);
+            Tank.applyProperties(ed, enemy, playerSource);
         }
+        
+        float r = 20f;
+        createWall(new Vector3f(-r, 0f, 0f), 0f, new Vector3f(1f, 1f, r));
+        createWall(new Vector3f(r, 0f, 0f), 0f, new Vector3f(1f, 1f, r));
+        createWall(new Vector3f(0f, 0f, -r), 0f, new Vector3f(r, 1f, 1f));
+        createWall(new Vector3f(0f, 0f, r), 0f, new Vector3f(r, 1f, 1f));
+        createWall(new Vector3f(0f, 0f, 0f), FastMath.PI/4, new Vector3f(1f, 1f, 1f));
         
         light = new DirectionalLight(new Vector3f(1f, -1f, 1f));
         rootNode.addLight(light);
@@ -138,24 +147,37 @@ public class GameState extends ESAppState {
     @Override
     protected void onDisable() {}
     
+    private void createWall(Vector3f location, float angle, Vector3f size) {
+        var wall = ed.createEntity();
+        ed.setComponents(wall,
+            new Visual(),
+            new Physics(0f),
+            new EntityTransform()
+                .setTranslation(location)
+                .setRotation(angle, Vector3f.UNIT_Y),
+            new TransformMode(1, 1, 0),
+            new CollisionShape(),
+            new ContactReaction(ContactReaction.RICOCHET));
+        var geometry = GameUtils.createDebugGeometry(assetManager, new ColorRGBA(.7f, .6f, .2f, 1f), size);
+        geometry.setLocalScale(size);
+        getState(VisualState.class).link(wall, geometry, true);
+    }
     private ParticleEmitter createBulletSmoke(Bullet b) {
         var smoke = new ParticleEmitter("bullet-smoke", ParticleMesh.Type.Triangle, 10);
-//        var mat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Particle.j3md");
-//        mat.setTexture("Texture", getApplication().getAssetManager().loadTexture("Effects/Smoke.png"));
-//        smoke.setMaterial(mat);
-//        smoke.setImagesX(15); smoke.setImagesY(1);
-//        smoke.setSelectRandomImage(true);
-//        smoke.setHighLife(.5f);
-//        smoke.setLowLife(smoke.getHighLife());
-//        smoke.setStartSize(.2f);
-//        smoke.setEndSize(.7f);
-//        smoke.setStartColor(new ColorRGBA(.1f, .1f, .1f, 1f));
-//        smoke.setEndColor(new ColorRGBA(.1f, .1f, .1f, 0f));
-//        smoke.setGravity(0f, 0f, 0f);
-//        smoke.setParticlesPerSec(b.getBulletInfo().getSpeed()*2);
-//        smoke.setNumParticles(10);
-//        var control = new BasicEmitterControl(scene, b.getEmitterNode());
-//        smoke.addControl(control);
+        var mat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Particle.j3md");
+        mat.setTexture("Texture", getApplication().getAssetManager().loadTexture("Effects/Smoke.png"));
+        smoke.setMaterial(mat);
+        smoke.setImagesX(15); smoke.setImagesY(1);
+        smoke.setSelectRandomImage(true);
+        smoke.setHighLife(.5f);
+        smoke.setLowLife(smoke.getHighLife());
+        smoke.setStartSize(.2f);
+        smoke.setEndSize(.7f);
+        smoke.setStartColor(new ColorRGBA(.1f, .1f, .1f, 1f));
+        smoke.setEndColor(new ColorRGBA(.1f, .1f, .1f, 0f));
+        smoke.setGravity(0f, 0f, 0f);
+        //smoke.setParticlesPerSec(b.getBulletInfo().getSpeed()*2);
+        smoke.setNumParticles(10);
         return smoke;
     }
     
