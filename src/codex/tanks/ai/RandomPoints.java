@@ -72,10 +72,10 @@ public class RandomPoints implements Algorithm {
     protected Vector3f getNextPoint(AlgorithmUpdate update, Vector3f direction,
             float minDist, float maxDist, float radius, int attempts) {
         while (attempts-- > 0) {
-            Ray ray = new Ray(update.getTank().getProbeLocation(), direction);
-            CollisionResults results = update.getCollisionState().raycast(ray, update.getTank().getEntity().getId());
+            var ray = new Ray(update.getTank().getProbeLocation(), direction);
+            var results = update.getCollisionState().raycast(ray, update.getTank().getEntity().getId());
             if (results.size() > 0) {
-                CollisionResult closest = results.getClosestCollision();
+                var closest = results.getClosestCollision();
                 if (closest.getDistance()-radius < minDist) {
                     continue;
                 }

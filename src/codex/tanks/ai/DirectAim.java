@@ -4,22 +4,11 @@
  */
 package codex.tanks.ai;
 
-import codex.tanks.components.Bounces;
-import codex.tanks.util.GameUtils;
-import com.jme3.math.FastMath;
-
 /**
  *
- * @author gary
+ * @author codex
  */
-public class Lookout implements Algorithm {
-    
-    private final float barrelSpeed;
-    private float distance = 0f;
-    
-    public Lookout(float barrelSpeed) {
-        this.barrelSpeed = barrelSpeed;
-    }
+public class DirectAim implements Algorithm {
     
     @Override
     public void initialize(AlgorithmUpdate update) {}
@@ -29,12 +18,7 @@ public class Lookout implements Algorithm {
     }
     @Override
     public boolean aim(AlgorithmUpdate update) {
-        if (FastMath.abs(distance) < barrelSpeed) {
-            distance = GameUtils.random(-FastMath.TWO_PI, FastMath.TWO_PI);
-        }
-        float angle = barrelSpeed*FastMath.sign(distance);
-        update.getTank().rotateAim(angle);
-        distance -= angle;
+        update.getTank().aimAt(update.getPlayerTank().getPosition());
         return true;
     }
     @Override

@@ -13,6 +13,7 @@ import codex.tanks.systems.BulletState;
 import codex.tanks.systems.CollisionState;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.simsilica.es.EntityData;
 import java.util.Collection;
 
 /**
@@ -24,12 +25,13 @@ public class AlgorithmUpdate {
     private final AIManager manager;
     private final Tank tank;
     private final float tpf;
-    private boolean satisfied;
+    private final boolean satisfied;
     private CollisionState collision;
     private Tank playerTank;
     private BulletState bulletState;
     private Vector3f dirToPlayer;
     private boolean playerInView;
+    private boolean playerInBounce;
     
     public AlgorithmUpdate(AIManager manager, Tank tank, float tpf) {
         this.manager = manager;
@@ -46,11 +48,16 @@ public class AlgorithmUpdate {
         bulletState = manager.getState(BulletState.class);
         dirToPlayer = playerTank.getPosition().subtract(tank.getPosition()).normalizeLocal();
         playerInView = calculatePlayerInView();
+        playerInBounce = calculatePlayerInBounce();
         return true;
     }
     private boolean calculatePlayerInView() {
-        return collision.raycast(new Ray(tank.getProbeLocation(), dirToPlayer),
-                tank.getEntity().getId(), 0) == playerTank.getEntity().getId();
+        return playerTank.getEntity().getId().equals(collision.raycast(
+                new Ray(tank.getProbeLocation(), dirToPlayer), tank.getEntity().getId(), 0));
+    }
+    private boolean calculatePlayerInBounce() {
+        return playerTank.getEntity().getId().equals(collision.raycast(
+                tank.getAimRay(), tank.getEntity().getId(), tank.getEntity().get(Bounces.class).getRemaining()));
     }
     
     public AIManager getManager() {
@@ -66,6 +73,9 @@ public class AlgorithmUpdate {
         return satisfied;
     }
     
+    public EntityData getEntityData() {
+        return manager.getEntityData();
+    }
     public CollisionState getCollisionState() {
         return collision;
     }
@@ -80,6 +90,9 @@ public class AlgorithmUpdate {
     }
     public boolean isPlayerInView() {
         return playerInView;
+    }
+    public boolean isPlayerInBounce() {
+        return playerInBounce;
     }
         
 }

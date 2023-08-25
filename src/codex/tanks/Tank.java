@@ -246,6 +246,14 @@ public class Tank {
         int max = entity.get(BulletCapacity.class).getMax();
         return reload <= 0 && (max < 0 || bullets.size() < max);
     }
+    public boolean ownsBullet(Bullet b) {
+        for (var e : bullets) {
+            if (e.getId().equals(b.getEntity().getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
     
     public static void applyProperties(EntityData ed, EntityId id, J3map source) {
         ed.setComponents(id,

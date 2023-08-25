@@ -5,9 +5,10 @@
 package codex.tanks;
 
 import codex.j3map.J3map;
-import codex.tanks.ai.DirectShot;
-import codex.tanks.ai.Lookout;
-import codex.tanks.ai.Wander;
+import codex.tanks.ai.AvoidBullets;
+import codex.tanks.ai.BasicShooting;
+import codex.tanks.ai.DefensivePoints;
+import codex.tanks.ai.DirectAim;
 import codex.tanks.components.*;
 import codex.tanks.factory.ModelFactory;
 import codex.tanks.systems.VisualState;
@@ -97,7 +98,7 @@ public class GameState extends ESAppState {
         getStateManager().attach(player);
         
         J3map enemySource = (J3map)assetManager.loadAsset("Properties/enemy.j3map");
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 2; i++) {
             var enemy = ed.createEntity();
             ed.setComponents(enemy,
                 new GameObject("tank"),
@@ -106,13 +107,16 @@ public class GameState extends ESAppState {
                 new EntityTransform().setTranslation(i*3, 0f, 7f),
                 new TransformMode(-1, 0, 0),
                 new CollisionShape("hitbox"),
-                new ContactReaction(ContactReaction.RICOCHET),
+                new ContactReaction(ContactReaction.DIE),
                 new Team(1),
                 new Alive(),
                 new Brain(
-                    new Lookout(FastMath.PI*0.01f),
-                    new DirectShot(0f, .01f),
-                    new Wander(2.0f, 0.02f, 2f, .3f)
+                    new AvoidBullets(5f),
+                    //new Lookout(FastMath.PI*0.01f),
+                    new DirectAim(),
+                    new BasicShooting(0f, .01f),
+                    //new Wander(2.0f, 0.02f, 2f, .3f)
+                    new DefensivePoints(10f, .25f)
                 )
             );
             Tank.applyProperties(ed, enemy, enemySource.getJ3map("tank"));
@@ -123,7 +127,7 @@ public class GameState extends ESAppState {
         createWall(new Vector3f(r, 0f, 0f), 0f, new Vector3f(1f, 1f, r));
         createWall(new Vector3f(0f, 0f, -r), 0f, new Vector3f(r, 1f, 1f));
         createWall(new Vector3f(0f, 0f, r), 0f, new Vector3f(r, 1f, 1f));
-        createWall(new Vector3f(0f, 0f, 0f), FastMath.PI/4, new Vector3f(1f, 1f, 1f));
+        createWall(new Vector3f(0f, 0f, 0f), FastMath.PI/4, new Vector3f(3f, 1f, 3f));
         
         light = new DirectionalLight(new Vector3f(1f, -1f, 1f));
         rootNode.addLight(light);

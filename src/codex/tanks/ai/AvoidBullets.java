@@ -17,11 +17,11 @@ import java.util.Collection;
  *
  * @author gary
  */
-public class BulletAlert implements Algorithm {
+public class AvoidBullets implements Algorithm {
     
     private float alert;
     
-    public BulletAlert(float alert) {
+    public AvoidBullets(float alert) {
         this.alert = alert;
     }
 
@@ -55,13 +55,15 @@ public class BulletAlert implements Algorithm {
         return false;
     }    
     @Override
-    public void cleanup(AlgorithmUpdate update) {}
-    
+    public void cleanup(AlgorithmUpdate update) {}    
     
     public static Bullet getThreateningBullet(Collection<Bullet> bullets, Tank tank, float distance) {
         float minDist = -1f;
         Bullet bullet = null;
         for (var b : bullets) {
+            if (b.getBouncesMade() == 0 && tank.ownsBullet(b)) {
+                continue;
+            }
             float dist = b.getPosition().distanceSquared(tank.getPosition());
             if (dist < distance*distance && (minDist < 0 || dist < minDist)) {
                 minDist = dist;

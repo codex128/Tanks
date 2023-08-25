@@ -75,17 +75,14 @@ public class CollisionState extends ESAppState implements Iterable<Spatial> {
                 var closest = results.getClosestCollision();
                 var id = VisualState.fetchId(closest.getGeometry(), -1);
                 var r = ed.getComponent(id, ContactReaction.class);
-                if (r == null) {
-                    return id;
-                }
-                if (maxBounces > 0 && r.ricochet()) {
+                if (r != null && maxBounces > 0 && r.ricochet()) {
                     ray = new Ray(closest.getContactPoint(), GameUtils.ricochet(ray.getDirection(), closest.getContactNormal()));
                     ignore = id;
                 }
                 else return id;
-                results.clear();
             }
             else break;
+            results.clear();
         } while (maxBounces-- > 0);
         return null;
     }
