@@ -8,6 +8,7 @@ import codex.tanks.systems.*;
 import codex.tanks.util.ColorProcessor;
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.simsilica.lemur.GuiGlobals;
 

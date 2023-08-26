@@ -7,8 +7,8 @@ package codex.tanks;
 import codex.j3map.J3map;
 import codex.tanks.ai.AvoidBullets;
 import codex.tanks.ai.BasicShooting;
-import codex.tanks.ai.DefensivePoints;
 import codex.tanks.ai.DirectAim;
+import codex.tanks.ai.Wander;
 import codex.tanks.components.*;
 import codex.tanks.factory.ModelFactory;
 import codex.tanks.systems.VisualState;
@@ -27,6 +27,7 @@ import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
+import com.jme3.post.filters.CartoonEdgeFilter;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Spatial;
@@ -98,13 +99,13 @@ public class GameState extends ESAppState {
         getStateManager().attach(player);
         
         J3map enemySource = (J3map)assetManager.loadAsset("Properties/enemy.j3map");
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 4; i++) {
             var enemy = ed.createEntity();
             ed.setComponents(enemy,
                 new GameObject("tank"),
                 new Visual(ModelFactory.TANK),
                 new Physics(),
-                new EntityTransform().setTranslation(i*3, 0f, 7f),
+                new EntityTransform().setTranslation(5f+i*3, 0f, 7f),
                 new TransformMode(-1, 0, 0),
                 new CollisionShape("hitbox"),
                 new ContactReaction(ContactReaction.DIE),
@@ -115,8 +116,8 @@ public class GameState extends ESAppState {
                     //new Lookout(FastMath.PI*0.01f),
                     new DirectAim(),
                     new BasicShooting(0f, .01f),
-                    //new Wander(2.0f, 0.02f, 2f, .3f)
-                    new DefensivePoints(10f, .25f)
+                    new Wander(2.0f, 0.02f, 2f, .7f)
+                    //new DefensivePoints(10f, .25f)
                 )
             );
             Tank.applyProperties(ed, enemy, enemySource.getJ3map("tank"));
@@ -127,7 +128,11 @@ public class GameState extends ESAppState {
         createWall(new Vector3f(r, 0f, 0f), 0f, new Vector3f(1f, 1f, r));
         createWall(new Vector3f(0f, 0f, -r), 0f, new Vector3f(r, 1f, 1f));
         createWall(new Vector3f(0f, 0f, r), 0f, new Vector3f(r, 1f, 1f));
-        createWall(new Vector3f(0f, 0f, 0f), FastMath.PI/4, new Vector3f(3f, 1f, 3f));
+        createWall(new Vector3f(0f, 0f, 0f), FastMath.PI/4, new Vector3f(3f, 1f, 3f));        
+        createWall(new Vector3f(12f, 0f, 0f), 0f, new Vector3f(4f, 1f, 1f));   
+        createWall(new Vector3f(-12f, 0f, 0f), 0f, new Vector3f(4f, 1f, 1f));   
+        createWall(new Vector3f(0f, 0f, 12f), 0f, new Vector3f(1f, 1f, 4f));   
+        createWall(new Vector3f(0f, 0f, -12f), 0f, new Vector3f(1f, 1f, 4f));
         
         light = new DirectionalLight(new Vector3f(1f, -1f, 1f));
         rootNode.addLight(light);
@@ -141,6 +146,8 @@ public class GameState extends ESAppState {
         fpp.addFilter(ssao);
         var bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
         fpp.addFilter(bloom);
+        var toon = new CartoonEdgeFilter(); // temporary
+        fpp.addFilter(toon);
         app.getViewPort().addProcessor(fpp);
         
     }

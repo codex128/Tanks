@@ -10,6 +10,7 @@ import com.jme3.app.Application;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.control.Control;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;
@@ -33,6 +34,7 @@ public class PhysicsState extends ESAppState {
         entities = ed.getEntities(Physics.class);
         bulletapp = getState(BulletAppState.class, true);
         visuals = getState(VisualState.class, true);
+        getPhysicsSpace().setGravity(new Vector3f(0f, -100f, 0f));
     }
     @Override
     protected void cleanup(Application app) {}
