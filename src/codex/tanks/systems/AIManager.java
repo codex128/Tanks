@@ -53,7 +53,7 @@ public class AIManager extends ESAppState {
             return;
         }
         for (var alg : e.get(Brain.class).getAlgorithms()) {
-            alg.initialize(update);
+            alg.update(update);
             if (move)  move  = !alg.move(update);
             if (aim)   aim   = !alg.aim(update);
             if (shoot) shoot = !alg.shoot(update);

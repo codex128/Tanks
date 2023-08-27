@@ -12,7 +12,7 @@ import codex.tanks.systems.AIManager;
  */
 public interface Algorithm {
     
-    public void initialize(AlgorithmUpdate update);
+    public void update(AlgorithmUpdate update);
     public boolean move(AlgorithmUpdate update);
     public boolean aim(AlgorithmUpdate update);
     public boolean shoot(AlgorithmUpdate update);

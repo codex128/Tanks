@@ -13,6 +13,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.texture.Texture;
 
 /**
  *
@@ -24,6 +25,7 @@ public class ModelFactory {
             TANK = "tank",
             BULLET = "bullet",
             MISSILE = "missile",
+            FLOOR = "floor",
             DEBUG = "debug";
     
     private final AssetManager assetManager;
@@ -37,6 +39,7 @@ public class ModelFactory {
             case TANK    -> createTank();
             case BULLET  -> createBullet();
             case MISSILE -> createMissile();
+            case FLOOR   -> createWorldFloor();
             case DEBUG   -> GameUtils.createDebugGeometry(assetManager, ColorRGBA.Blue, 1f);
             default      -> createDefault();
         };
@@ -75,6 +78,18 @@ public class ModelFactory {
         flame.setMaterial(mat);
         GameUtils.getChildNode(missile, "emitter").attachChild(flame);
         return missile;
+    }
+    public Spatial createWorldFloor() {
+        Spatial floor = assetManager.loadModel("Models/floor.j3o");
+        floor.setShadowMode(RenderQueue.ShadowMode.Receive);
+        Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        //mat.setBoolean("UseMaterialColors", true);
+        //mat.setColor("Diffuse", ColorRGBA.Green);
+        var tex = assetManager.loadTexture("Textures/testgrid.png");
+        tex.setWrap(Texture.WrapMode.Repeat);
+        mat.setTexture("DiffuseMap", tex);
+        floor.setMaterial(mat);
+        return floor;
     }
     
 }

@@ -12,23 +12,30 @@ import com.jme3.math.FastMath;
  */
 public class BasicShooting implements Algorithm {
     
-    private final float minExposure;
-    private final float maxBarrelOffset;
-    private final float bounceFactor;
+    private float minExposure = 0.1f;
+    private float maxBarrelOffset = 0.3f;
+    private float bounceFactor = 1f;
+    
     private float exposure = 0f;
     private float makeBounce = 0f;
     
-    public BasicShooting(float minExposure, float maxBarrelOffset) {
-        this(minExposure, maxBarrelOffset, 1f);
-    }
-    public BasicShooting(float minExposure, float maxBarrelOffset, float bounceFactor) {
+    public BasicShooting() {}
+    
+    public BasicShooting setMinExposure(float minExposure) {
         this.minExposure = minExposure;
+        return this;
+    }
+    public BasicShooting setMaxBarrelOffset(float maxBarrelOffset) {
         this.maxBarrelOffset = maxBarrelOffset;
+        return this;
+    }
+    public BasicShooting setBounceFactor(float bounceFactor) {
         this.bounceFactor = bounceFactor;
+        return this;
     }
     
     @Override
-    public void initialize(AlgorithmUpdate update) {
+    public void update(AlgorithmUpdate update) {
         if (update.isPlayerInView()) {
             exposure = Math.min(exposure+update.getTpf(), minExposure);
         }
@@ -49,7 +56,7 @@ public class BasicShooting implements Algorithm {
     public boolean shoot(AlgorithmUpdate update) {
         if (update.isPlayerInView()) {
             if (exposure > minExposure-0.01f) {
-                if (update.getDirectionToPlayer().dot(update.getTank().getAimDirection()) <= maxBarrelOffset) {
+                if (update.getDirectionToPlayer().dot(update.getTank().getAimDirection()) >= 1f-maxBarrelOffset) {
                     update.getTank().shoot(update.getEntityData());
                     return true;
                 }

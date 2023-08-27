@@ -18,7 +18,7 @@ public class GameStartWait implements Algorithm {
     }
     
     @Override
-    public void initialize(AlgorithmUpdate update) {
+    public void update(AlgorithmUpdate update) {
         time += update.getTpf();
         if (time > duration) time = duration+1;
     }

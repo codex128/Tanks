@@ -4,14 +4,9 @@
  */
 package codex.tanks.ai;
 
-import codex.j3map.J3map;
-import codex.tanks.Bullet;
-import codex.tanks.Tank;
-import codex.tanks.components.Velocity;
+import codex.tanks.components.Owner;
 import com.jme3.math.FastMath;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
-import java.util.Collection;
 
 /**
  *
@@ -19,25 +14,21 @@ import java.util.Collection;
  */
 public class AvoidBullets implements Algorithm {
     
-    private float alert;
+    private final float alert;
+    private final float directional;
     
-    public AvoidBullets(float alert) {
+    public AvoidBullets(float alert, float directional) {
         this.alert = alert;
+        this.directional = directional;
     }
 
     @Override
-    public void initialize(AlgorithmUpdate update) {}
+    public void update(AlgorithmUpdate update) {}
     @Override
     public boolean move(AlgorithmUpdate update) {
-        Vector3f location = update.getTank().getPosition();
-        var threat = getThreateningBullet(update.getBullets(), update.getTank(), alert);
-        if (threat != null) {
-            Vector3f away = location.subtract(threat.getPosition()).normalizeLocal();
-            Quaternion q = new Quaternion().lookAt(away, Vector3f.UNIT_Y);
-            Vector3f left = q.getRotationColumn(0);
-            int turn = threat.getEntity().get(Velocity.class).getDirection().dot(left) < 0 ? 1 : -1;
-            final float diagonalFactor = .25f;
-            update.getTank().move(FastMath.interpolateLinear(diagonalFactor, away, left.multLocal(turn)).normalizeLocal());
+        var dodge = getDodgeDirection(update);
+        if (dodge != null) {
+            update.getTank().move(dodge.normalizeLocal());
             return true;
         }
         return false;
@@ -55,22 +46,24 @@ public class AvoidBullets implements Algorithm {
         return false;
     }    
     @Override
-    public void cleanup(AlgorithmUpdate update) {}    
+    public void cleanup(AlgorithmUpdate update) {}
     
-    public static Bullet getThreateningBullet(Collection<Bullet> bullets, Tank tank, float distance) {
-        float minDist = -1f;
-        Bullet bullet = null;
-        for (var b : bullets) {
-            if (b.getBouncesMade() == 0 && tank.ownsBullet(b)) {
+    public Vector3f getDodgeDirection(AlgorithmUpdate update) {
+        Vector3f dirToBullet = new Vector3f();
+        Vector3f dodge = null;
+        for (var b : update.getBullets()) {
+            dirToBullet.set(b.getPosition().subtract(update.getTank().getPosition()).setY(0f).normalizeLocal());
+            var owner = update.getEntityData().getComponent(b.getEntity().getId(), Owner.class);
+            if (b.getBouncesMade() == 0 && owner != null && owner.isOwner(update.getTankId())) {
                 continue;
             }
-            float dist = b.getPosition().distanceSquared(tank.getPosition());
-            if (dist < distance*distance && (minDist < 0 || dist < minDist)) {
-                minDist = dist;
-                bullet = b;
+            float dist = b.getPosition().distance(update.getTank().getPosition());
+            if (dist < alert) {
+                if (dodge == null) dodge = new Vector3f();
+                dodge.addLocal(dirToBullet.multLocal(dist/alert).negateLocal());
             }
         }
-        return bullet;
+        return dodge;
     }
     
 }

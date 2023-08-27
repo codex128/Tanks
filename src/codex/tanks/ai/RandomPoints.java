@@ -29,7 +29,7 @@ public class RandomPoints implements Algorithm {
     }
     
     @Override
-    public void initialize(AlgorithmUpdate update) {
+    public void update(AlgorithmUpdate update) {
         updateOccured = false;
     }    
     @Override

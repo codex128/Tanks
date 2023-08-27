@@ -8,6 +8,7 @@ import codex.tanks.Bullet;
 import codex.tanks.components.Alive;
 import codex.tanks.components.Bounces;
 import codex.tanks.components.EntityTransform;
+import codex.tanks.components.Owner;
 import codex.tanks.components.Velocity;
 import codex.tanks.components.Visual;
 import codex.tanks.util.ESAppState;
@@ -32,7 +33,8 @@ public class BulletState extends ESAppState {
     @Override
     protected void init(Application app) {
         super.init(app);
-        entities = ed.getEntities(Visual.class, EntityTransform.class, Velocity.class, Bounces.class, Alive.class);
+        entities = ed.getEntities(Visual.class, EntityTransform.class,
+                Velocity.class, Bounces.class, Owner.class, Alive.class);
         visuals = getState(VisualState.class, true);
         collision = getState(CollisionState.class, true);
     }

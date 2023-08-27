@@ -22,7 +22,7 @@ public class Lookout implements Algorithm {
     }
     
     @Override
-    public void initialize(AlgorithmUpdate update) {}
+    public void update(AlgorithmUpdate update) {}
     @Override
     public boolean move(AlgorithmUpdate update) {
         return false;

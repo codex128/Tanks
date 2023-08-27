@@ -67,6 +67,12 @@ public class CollisionState extends ESAppState implements Iterable<Spatial> {
         raycast(ray, ignore, results);
         return results;
     }
+    public CollisionResult raycastClosest(Ray ray, EntityId ignore) {
+        CollisionResults results = new CollisionResults();
+        raycast(ray, ignore, results);
+        if (results.size() == 0) return null;
+        return results.getClosestCollision();
+    }
     public EntityId raycast(Ray ray, EntityId ignore, int maxBounces) {
         CollisionResults results = new CollisionResults();
         do {

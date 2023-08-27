@@ -72,12 +72,10 @@ public class PhysicsState extends ESAppState {
     }
     
     public boolean link(EntityId id, Object object) {
-        System.out.println("link");
         if (ed.getComponent(id, Physics.class) == null) {
             return false;
         }
         if (physics.putIfAbsent(id, object) == null) {
-            System.out.println("  link successful");
             getPhysicsSpace().add(object);
             return true;
         }

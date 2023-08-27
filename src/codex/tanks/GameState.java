@@ -5,6 +5,7 @@
 package codex.tanks;
 
 import codex.j3map.J3map;
+import codex.tanks.ai.AimSkew;
 import codex.tanks.ai.AvoidBullets;
 import codex.tanks.ai.BasicShooting;
 import codex.tanks.ai.DirectAim;
@@ -17,20 +18,19 @@ import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
-import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.effect.ParticleEmitter;
 import com.jme3.effect.ParticleMesh;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
-import com.jme3.post.filters.CartoonEdgeFilter;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Box;
 import com.jme3.shadow.DirectionalLightShadowRenderer;
 
 /**
@@ -52,36 +52,16 @@ public class GameState extends ESAppState {
         
         bulletapp = getState(BulletAppState.class, true);
         
-        Spatial floor = app.getAssetManager().loadModel("Models/floor.j3o");
-        floor.setLocalTranslation(0f, -1f, 0f);
-        floor.setShadowMode(RenderQueue.ShadowMode.Receive);
-        Material floorMat = new Material(app.getAssetManager(), "Common/MatDefs/Light/Lighting.j3md");
-        floorMat.setBoolean("UseMaterialColors", true);
-        floorMat.setColor("Diffuse", ColorRGBA.Green);
-        floor.setMaterial(floorMat);
-        rootNode.attachChild(floor);
-        RigidBodyControl floorPhys = new RigidBodyControl(0f);
-        floor.addControl(floorPhys);
-        getPhysicsSpace().add(floorPhys);
+        var floor = ed.createEntity();
+        ed.setComponents(floor,
+            new Visual(ModelFactory.FLOOR),
+            new Physics(0f),
+            new EntityTransform().setTranslation(0f, -1f, 0f),
+            new CollisionShape(null),
+            new ContactReaction(ContactReaction.RICOCHET)
+        );
         
-//        Node tank = (Node)app.getAssetManager().loadModel("Models/tank.j3o");
-//        Material pmat = new Material(app.getAssetManager(), "Materials/tank.j3md");
-//        pmat.setTexture("DiffuseMap", app.getAssetManager().loadTexture(new TextureKey("Models/tankTexture.png", false)));
-//        pmat.setColor("MainColor", ColorRGBA.Blue);
-//        pmat.setColor("SecondaryColor", new ColorRGBA(.3f, .5f, 1f, 1f));
-//        tank.setMaterial(pmat);
-//        tank.setShadowMode(RenderQueue.ShadowMode.Cast);
-        J3map playerSource = (J3map)app.getAssetManager().loadAsset("Properties/player.j3map");
-//        tank.setLocalTranslation(0f, 0f, -7f);
-//        scene.attachChild(tank);
-//        TankModel pmodel = new TankModel((J3map)app.getAssetManager().loadAsset("Properties/player.j3map"));
-//        Tank ptank = new Tank(tank, pmat, pmodel, 0);
-//        addTank(ptank);
-//        RigidBodyControl rigidbody = ptank.initPhysics();
-//        getState(BulletAppState.class).getPhysicsSpace().add(rigidbody);
-//        player = new PlayerAppState(this, ptank);
-//        getStateManager().attach(player);
-        
+        J3map playerSource = (J3map)app.getAssetManager().loadAsset("Properties/player.j3map");        
         var plr = ed.createEntity();
         ed.setComponents(plr,
             new GameObject("tank"),
@@ -99,7 +79,7 @@ public class GameState extends ESAppState {
         getStateManager().attach(player);
         
         J3map enemySource = (J3map)assetManager.loadAsset("Properties/enemy.j3map");
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 3; i++) {
             var enemy = ed.createEntity();
             ed.setComponents(enemy,
                 new GameObject("tank"),
@@ -112,12 +92,14 @@ public class GameState extends ESAppState {
                 new Team(1),
                 new Alive(),
                 new Brain(
-                    new AvoidBullets(5f),
+                    new AvoidBullets(5f, .3f),
                     //new Lookout(FastMath.PI*0.01f),
+                    //new ForwardAim(),
                     new DirectAim(),
-                    new BasicShooting(0f, .01f),
-                    new Wander(2.0f, 0.02f, 2f, .7f)
+                    new BasicShooting().setMinExposure(.5f),
+                    new Wander(),
                     //new DefensivePoints(10f, .25f)
+                    new AimSkew()
                 )
             );
             Tank.applyProperties(ed, enemy, enemySource.getJ3map("tank"));
@@ -146,8 +128,6 @@ public class GameState extends ESAppState {
         fpp.addFilter(ssao);
         var bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
         fpp.addFilter(bloom);
-        var toon = new CartoonEdgeFilter(); // temporary
-        fpp.addFilter(toon);
         app.getViewPort().addProcessor(fpp);
         
     }
@@ -164,6 +144,7 @@ public class GameState extends ESAppState {
     private void createWall(Vector3f location, float angle, Vector3f size) {
         var wall = ed.createEntity();
         ed.setComponents(wall,
+            new GameObject("wall"),
             new Visual(),
             new Physics(0f),
             new EntityTransform()
@@ -172,7 +153,10 @@ public class GameState extends ESAppState {
             new TransformMode(1, 1, 0),
             new CollisionShape(),
             new ContactReaction(ContactReaction.RICOCHET));
-        var geometry = GameUtils.createDebugGeometry(assetManager, new ColorRGBA(.7f, .6f, .2f, 1f), size);
+        var mesh = new Box(size.x, size.y, size.z);
+        mesh.scaleTextureCoordinates(new Vector2f(size.x, size.z));
+        var geometry = GameUtils.createDebugGeometry(assetManager, ColorRGBA.DarkGray, size);
+        geometry.setShadowMode(RenderQueue.ShadowMode.Cast);
         geometry.setLocalScale(size);
         getState(VisualState.class).link(wall, geometry, true);
     }

@@ -14,6 +14,7 @@ import codex.tanks.components.ContactReaction;
 import codex.tanks.components.CollisionShape;
 import codex.tanks.components.ColorScheme;
 import codex.tanks.components.FaceVelocity;
+import codex.tanks.components.GameObject;
 import codex.tanks.components.MineCapacity;
 import codex.tanks.components.Owner;
 import codex.tanks.components.ShootForce;
@@ -59,7 +60,7 @@ public class Tank {
     private final float wheelSpeedRatio = -15f;
     
     private float reload = 0f;
-    private int lastDir = 1;
+    private int drive = 1;
     
     public Tank(Spatial spatial, Entity entity, EntityData ed) {
         this.spatial = spatial;
@@ -107,25 +108,23 @@ public class Tank {
         }
     }
     public void move(Vector3f move) {
-        int d = rotateTo(move);
-        if (d != 0) {
-            lastDir = d;
+        if (rotateTo(move)) {
             var s = entity.get(Speed.class).getSpeed();
             setLinearVelocity(move.mult(s));
-            final float treadMovement = s*lastDir*treadSpeed;
+            final float treadMovement = s*drive*treadSpeed;
             nextTreadMove.addLocal(treadMovement, treadMovement);
         }
         else {
             stop();
         }
     }
-    public void move(int direction) {
-        direction = FastMath.sign(direction);
+    public void move(float factor) {
+        //direction = FastMath.sign(direction);
         final float speed = entity.get(Speed.class).getSpeed();
-        final float treadMovement = speed*direction*treadSpeed;
-        setLinearVelocity(getMoveDirection().mult(speed*direction));
+        final float treadMovement = speed*factor*treadSpeed;
+        setLinearVelocity(getMoveDirection().mult(speed*factor));
         nextTreadMove.addLocal(treadMovement, treadMovement);
-        lastDir = direction;
+        drive = (int)FastMath.sign(factor);
     }
     private void setLinearVelocity(Vector3f vel) {
         vel.setY(physics.getLinearVelocity().getY());
@@ -138,31 +137,26 @@ public class Tank {
         base.rotate(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y));
         nextTreadMove.addLocal(treadMoveMovement*isRight, -treadMoveMovement*isRight);
     }
-    public int rotateTo(Vector3f direction) {
-        final float bias = .1f;
-        final float blend = .2f;
-        final float threshold = FastMath.PI*.3f;
-        int dir = 0;
+    public boolean rotateTo(Vector3f direction) {
+        final float threshold = .7f;
         direction.setY(0f).normalizeLocal();
-        Quaternion q = base.getLocalRotation().clone();
-        int isLeft = q.getRotationColumn(0).dot(direction) > 0f ? 1 : -1;
-        Quaternion t1 = new Quaternion().lookAt(direction, Vector3f.UNIT_Y);
-        Quaternion t2 = new Quaternion().lookAt(direction.negate(), Vector3f.UNIT_Y);
-        if (q.dot(t1)+bias*lastDir >= q.dot(t2)) {
-            q.nlerp(t1, blend);
-            dir = 1;
+        var move = getMoveDirection();
+        var q = new Quaternion().lookAt(direction, Vector3f.UNIT_Y);
+        var factor = move.dot(direction);
+        if (factor >= 0f) {
+            // rotate current move direction to match direction
+            if (move.angleBetween(direction) > 0.1f) {
+                rotate(-0.1f*FastMath.sign(move.dot(q.getRotationColumn(0))));
+            }
+            else {
+                base.setLocalRotation(q);
+            }
         }
         else {
-            q.nlerp(t2, blend);
-            dir = -1;
+            // reverse the drive direction
+            drive = -drive;
         }
-        base.setLocalRotation(q);
-        nextTreadMove.addLocal(-treadSpeed*isLeft, treadSpeed*isLeft);
-        float angle = direction.angleBetween(getMoveDirection());
-        if (angle < threshold || angle > FastMath.PI-threshold) {
-            return dir;
-        }
-        else return 0;
+        return factor >= 1f-threshold;
     }
     public void stop() {
         setLinearVelocity(Vector3f.ZERO.clone());
@@ -172,16 +166,18 @@ public class Tank {
         if (!bulletAvailable()) return null;
         var id = ed.createEntity();
         ed.setComponents(id,
-                new Visual(ModelFactory.BULLET),
-                new EntityTransform().setTranslation(muzzle.getWorldTranslation()).setScale(.2f),
-                new TransformMode(1, 1, 0),
-                new Velocity(getAimDirection().multLocal(10f)),
-                new FaceVelocity(),
-                new Bounces(entity.get(Bounces.class).getRemaining()),
-                new CollisionShape("hitbox"),
-                new ContactReaction(ContactReaction.DIE),
-                new Owner(entity.getId()),
-                new Alive());
+            new GameObject("bullet"),
+            new Visual(ModelFactory.BULLET),
+            new EntityTransform().setTranslation(muzzle.getWorldTranslation()).setScale(.17f),
+            new TransformMode(1, 1, 0),
+            new Velocity(getAimDirection().multLocal(10f)),
+            new FaceVelocity(),
+            new Bounces(entity.get(Bounces.class).getRemaining()),
+            new CollisionShape("hitbox"),
+            new ContactReaction(ContactReaction.DIE),
+            new Owner(entity.getId()),
+            new Alive()
+        );
         reload = entity.get(Firerate.class).getRate();
         return id;
     }
@@ -192,6 +188,9 @@ public class Tank {
         Vector3f dir = target.subtract(turret.getWorldTranslation()).setY(0f).normalizeLocal();
         Quaternion q = new Quaternion().lookAt(dir, Vector3f.UNIT_Y);
         turret.setLocalRotation(q);
+    }
+    public void aimAtDirection(Vector3f direction) {
+        turret.setLocalRotation(new Quaternion().lookAt(direction, Vector3f.UNIT_Y));
     }
     public EntityId probeAim(CollisionState collision, int maxBounces) {
         int bounces = entity.get(Bounces.class).getRemaining();
@@ -224,6 +223,9 @@ public class Tank {
         return turret.getLocalRotation().mult(Vector3f.UNIT_Z);
     }
     public Vector3f getMoveDirection() {
+        return getForwardDirection().multLocal(drive);
+    }
+    public Vector3f getForwardDirection() {
         return base.getLocalRotation().mult(Vector3f.UNIT_Z);
     }
     public Vector3f getProbeLocation() {

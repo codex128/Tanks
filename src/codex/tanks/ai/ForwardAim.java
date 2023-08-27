@@ -8,7 +8,9 @@ package codex.tanks.ai;
  *
  * @author codex
  */
-public class DirectAim implements Algorithm {
+public class ForwardAim implements Algorithm {
+
+    private float distance = 15f;
     
     @Override
     public void update(AlgorithmUpdate update) {}
@@ -18,8 +20,11 @@ public class DirectAim implements Algorithm {
     }
     @Override
     public boolean aim(AlgorithmUpdate update) {
-        update.getTank().aimAt(update.getPlayerTank().getPosition());
-        return true;
+        if (update.getDistanceToPlayer() > distance && !update.isPlayerInView()) {
+            update.getTank().aimAtDirection(update.getTank().getForwardDirection());
+            return true;
+        }
+        return false;
     }
     @Override
     public boolean shoot(AlgorithmUpdate update) {

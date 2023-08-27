@@ -14,6 +14,7 @@ import codex.tanks.systems.CollisionState;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import java.util.Collection;
 
 /**
@@ -30,6 +31,7 @@ public class AlgorithmUpdate {
     private Tank playerTank;
     private BulletState bulletState;
     private Vector3f dirToPlayer;
+    private float distToPlayer;
     private boolean playerInView;
     private boolean playerInBounce;
     
@@ -47,6 +49,7 @@ public class AlgorithmUpdate {
         if (playerTank == null) return false;
         bulletState = manager.getState(BulletState.class);
         dirToPlayer = playerTank.getPosition().subtract(tank.getPosition()).normalizeLocal();
+        distToPlayer = playerTank.getPosition().distance(tank.getPosition());
         playerInView = calculatePlayerInView();
         playerInBounce = calculatePlayerInBounce();
         return true;
@@ -73,6 +76,9 @@ public class AlgorithmUpdate {
         return satisfied;
     }
     
+    public EntityId getTankId() {
+        return tank.getEntity().getId();
+    }
     public EntityData getEntityData() {
         return manager.getEntityData();
     }
@@ -82,11 +88,17 @@ public class AlgorithmUpdate {
     public Tank getPlayerTank() {
         return playerTank;
     }
+    public EntityId getPlayerId() {
+        return playerTank.getEntity().getId();
+    }
     public Collection<Bullet> getBullets() {
         return bulletState.getBullets();
     }
     public Vector3f getDirectionToPlayer() {
         return dirToPlayer;
+    }
+    public float getDistanceToPlayer() {
+        return distToPlayer;
     }
     public boolean isPlayerInView() {
         return playerInView;
