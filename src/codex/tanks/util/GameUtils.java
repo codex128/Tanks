@@ -16,6 +16,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
+import com.simsilica.lemur.Axis;
 
 /**
  *
@@ -91,13 +92,15 @@ public class GameUtils {
         }
     }
     
-    public static void setWorldTranslation(Spatial spatial, Vector3f translation) {
-        if (spatial.getParent() == null) {
-            spatial.setLocalTranslation(translation);
-        }
-        else {
-            spatial.setLocalTranslation(translation.subtract(spatial.getParent().getWorldTranslation()));
-        }
+    public static float distance2D(Vector3f a, Vector3f b, Axis omit) {
+        return switch (omit) {
+            case X -> distance2D(a.z, a.y, b.z, b.y);
+            case Y -> distance2D(a.x, a.z, b.x, b.z);
+            case Z -> distance2D(a.x, a.y, b.x, b.y);
+        };
+    }
+    private static float distance2D(float x1, float y1, float x2, float y2) {
+        return FastMath.sqrt(FastMath.sqr(x1-x2)+FastMath.sqr(y1-y2));
     }
     
 }

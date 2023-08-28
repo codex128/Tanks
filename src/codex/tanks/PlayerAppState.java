@@ -76,7 +76,7 @@ public class PlayerAppState extends ESAppState implements
         }
         tank.update(tpf);
         if (!inputdirection.equals(Vector3f.ZERO)) {
-            tank.move(inputdirection.normalize());
+            tank.drive(inputdirection.normalize());
         }
         else {
             tank.stop();

@@ -1,0 +1,15 @@
+tank: {
+    color: "light-green";
+    class: "base";
+    speed: 0f;
+    rps: .7f;
+    maxBullets: 2;
+    maxBounces: 2;
+    maxMines: 0;
+    bulletSpeed: 25f;
+    color1: ColorRGBA(0.0, 1.0, 0.0, 1.0);
+}
+Lookout: {
+}
+Sniper: {
+}

@@ -4,39 +4,38 @@
  */
 package codex.tanks.ai;
 
+import codex.j3map.J3map;
+
 /**
  *
- * @author gary
+ * @author codex
  */
-public class GameStartWait implements Algorithm {
-    
-    private final float duration;
-    private float time = 0f;
+public class Sniper implements Algorithm {
 
-    public GameStartWait(float duration) {
-        this.duration = duration;
-    }
+    public Sniper() {}
+    public Sniper(J3map source) {}
     
     @Override
-    public void update(AlgorithmUpdate update) {
-        time += update.getTpf();
-        if (time > duration) time = duration+1;
-    }
+    public void update(AlgorithmUpdate update) {}
     @Override
     public boolean move(AlgorithmUpdate update) {
         return false;
     }
     @Override
     public boolean aim(AlgorithmUpdate update) {
-        return time < duration;
+        return false;
     }
     @Override
     public boolean shoot(AlgorithmUpdate update) {
-        return time < duration;
+        if (update.calculatePlayerInBounce()) {
+            update.getTank().shoot(update.getEntityData());
+            return true;
+        }
+        return false;
     }
     @Override
-    public boolean mine(AlgorithmUpdate update) {        
-        return time < duration;
+    public boolean mine(AlgorithmUpdate update) {
+        return false;
     }
     @Override
     public void cleanup(AlgorithmUpdate update) {}

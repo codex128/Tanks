@@ -22,7 +22,7 @@ import codex.tanks.components.Speed;
 import codex.tanks.components.TransformMode;
 import codex.tanks.components.Velocity;
 import codex.tanks.components.Visual;
-import codex.tanks.factory.ModelFactory;
+import codex.tanks.systems.BulletState;
 import codex.tanks.systems.CollisionState;
 import codex.tanks.util.FunctionFilter;
 import codex.tanks.util.GameUtils;
@@ -107,7 +107,7 @@ public class Tank {
             nextTreadMove.set(0f, 0f);
         }
     }
-    public void move(Vector3f move) {
+    public void drive(Vector3f move) {
         if (rotateTo(move)) {
             var s = entity.get(Speed.class).getSpeed();
             setLinearVelocity(move.mult(s));
@@ -118,13 +118,17 @@ public class Tank {
             stop();
         }
     }
-    public void move(float factor) {
+    public int drive(float factor) {
         //direction = FastMath.sign(direction);
         final float speed = entity.get(Speed.class).getSpeed();
-        final float treadMovement = speed*factor*treadSpeed;
-        setLinearVelocity(getMoveDirection().mult(speed*factor));
+        final float treadMovement = speed*factor*treadSpeed*drive;
+        setLinearVelocity(getDriveDirection().mult(speed*factor));
         nextTreadMove.addLocal(treadMovement, treadMovement);
-        drive = (int)FastMath.sign(factor);
+        if (factor < 0) {
+            drive *= -1;
+            return -1;
+        }
+        return 1;
     }
     private void setLinearVelocity(Vector3f vel) {
         vel.setY(physics.getLinearVelocity().getY());
@@ -140,11 +144,11 @@ public class Tank {
     public boolean rotateTo(Vector3f direction) {
         final float threshold = .7f;
         direction.setY(0f).normalizeLocal();
-        var move = getMoveDirection();
+        var move = getDriveDirection();
         var q = new Quaternion().lookAt(direction, Vector3f.UNIT_Y);
         var factor = move.dot(direction);
         if (factor >= 0f) {
-            // rotate current move direction to match direction
+            // rotate current drive direction to match direction
             if (move.angleBetween(direction) > 0.1f) {
                 rotate(-0.1f*FastMath.sign(move.dot(q.getRotationColumn(0))));
             }
@@ -167,10 +171,10 @@ public class Tank {
         var id = ed.createEntity();
         ed.setComponents(id,
             new GameObject("bullet"),
-            new Visual(ModelFactory.BULLET),
+            new Visual(BulletState.getBulletModelId(entity.get(ShootForce.class).getForce())),
             new EntityTransform().setTranslation(muzzle.getWorldTranslation()).setScale(.17f),
             new TransformMode(1, 1, 0),
-            new Velocity(getAimDirection().multLocal(10f)),
+            new Velocity(getAimDirection().multLocal(entity.get(ShootForce.class).getForce())),
             new FaceVelocity(),
             new Bounces(entity.get(Bounces.class).getRemaining()),
             new CollisionShape("hitbox"),
@@ -222,7 +226,7 @@ public class Tank {
     public Vector3f getAimDirection() {
         return turret.getLocalRotation().mult(Vector3f.UNIT_Z);
     }
-    public Vector3f getMoveDirection() {
+    public Vector3f getDriveDirection() {
         return getForwardDirection().multLocal(drive);
     }
     public Vector3f getForwardDirection() {

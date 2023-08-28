@@ -4,11 +4,16 @@
  */
 package codex.tanks.ai;
 
+import codex.j3map.J3map;
+
 /**
  *
  * @author codex
  */
 public class DirectAim implements Algorithm {
+    
+    public DirectAim() {}
+    public DirectAim(J3map source) {}
     
     @Override
     public void update(AlgorithmUpdate update) {}

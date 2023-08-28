@@ -4,6 +4,7 @@
  */
 package codex.tanks.ai;
 
+import codex.j3map.J3map;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.FastMath;
@@ -31,23 +32,33 @@ public class Wander implements Algorithm {
     };
     
     private float turnSpeed = 0.1f;
-    private float currentDirFactor = 10f;
+    private float directionFactor = 10f;
     private float distanceFactor = 1f;
     private float randomFactor = 0.1f;
     private float aggressiveFactor = 1f;
-    private float decisive = 0.8f;
+    private float decisive = .8f;
+    private float wallAversion = 3f;
     
     private float turnDir = 0f;
     private float regulatedTurn = 0f;
     
     public Wander() {}
+    public Wander(J3map source) {
+        turnSpeed = source.getFloat("turnSpeed", turnSpeed);
+        directionFactor = source.getFloat("directionFactor", directionFactor);
+        distanceFactor = source.getFloat("distanceFactor", distanceFactor);
+        randomFactor = source.getFloat("randomFactor", randomFactor);
+        aggressiveFactor = source.getFloat("aggressiveFactor", aggressiveFactor);
+        decisive = source.getFloat("decisive", decisive);
+        wallAversion = source.getFloat("wallAversion", wallAversion);
+    }
     
     public Wander setTurnSpeed(float speed) {
         turnSpeed = speed;
         return this;
     }
     public Wander setCurrentDirectionFactor(float cdf) {
-        currentDirFactor = cdf;
+        directionFactor = cdf;
         return this;
     }
     public Wander setDistanceFactor(float df) {
@@ -71,32 +82,45 @@ public class Wander implements Algorithm {
     public void update(AlgorithmUpdate update) {}
     @Override
     public boolean move(AlgorithmUpdate update) {
-        Vector3f current = update.getTank().getMoveDirection();
+        Vector3f current = update.getTank().getDriveDirection();
         Vector3f decision = new Vector3f();
         var collisions = new Direction[RAYCAST_DIRECTIONS.length];
-        Direction strongest = null;
         for (int i = 0; i < collisions.length; i++) {
-            var direction = new Direction(update, i);
-            direction.weight = (current.dot(direction.vector)+1)*(currentDirFactor/2);
+            collisions[i] = new Direction(update, i);
+            collisions[i].weight = 0f;
+        }
+        for (int i = 0; i < collisions.length; i++) {
+            var direction = collisions[i];
+            direction.weight += (current.dot(direction.vector)+1)*(directionFactor/2);
             direction.weight += FastMath.nextRandomFloat()*randomFactor;
             direction.weight += direction.collision.getDistance()*distanceFactor;
-            direction.weight += direction.vector.dot(update.getDirectionToPlayer())*aggressiveFactor;
-            decision.addLocal(direction.vector.mult(direction.weight));
-            collisions[i] = direction;
-            if (strongest == null || direction.weight > strongest.weight) {
-                strongest = direction;
+            direction.weight += (direction.vector.dot(update.getDirectionToPlayer())+1)/2*aggressiveFactor;
+            if (direction.collision.getDistance() < wallAversion) {
+                var opposite = collisions[getOppositeDirectionIndex(i)];
+                if (opposite.weight >= 0f) opposite.weight += (1f/direction.collision.getDistance())*100;
+                direction.weight = -1f;
+            }
+        }
+        Direction strongest = null;
+        for (int i = 0; i < collisions.length; i++) {
+            var direction = collisions[i];
+            if (direction.weight >= 0f) {
+                decision.addLocal(direction.vector.mult(direction.weight));
+            }
+            if (strongest == null || collisions[i].weight > strongest.weight) {
+                strongest = collisions[i];
             }
         }
         decision.normalizeLocal();
         decision.set(FastMath.interpolateLinear(decisive, decision, strongest.vector)).normalizeLocal();
-        //update.getTank().move(decision);
-        if (current.dot(decision) < 1f) {
+        //update.getTank().drive(decision);
+        //if (current.dot(decision) < 1f) {
             var left = decision.cross(Vector3f.UNIT_Y);
             turnDir = turnSpeed*FastMath.sign(current.dot(left));
             regulatedTurn = FastMath.interpolateLinear(.1f, regulatedTurn, turnDir);
             update.getTank().rotate(regulatedTurn);
-        }
-        update.getTank().move(1f);
+        //}
+        update.getTank().drive(1f);
         return true;
     }
     @Override
@@ -114,12 +138,20 @@ public class Wander implements Algorithm {
     @Override
     public void cleanup(AlgorithmUpdate update) {}
     
+    private static int getOppositeDirectionIndex(int dir) {
+        if (dir < Wander.RAYCAST_DIRECTIONS.length/2) {
+            return dir+Wander.RAYCAST_DIRECTIONS.length/2;
+        }
+        else {
+            return dir-Wander.RAYCAST_DIRECTIONS.length/2;
+        }
+    }
     
     private static class Direction {
         float weight;
         Vector3f vector;
         CollisionResult collision;
-        private Direction() {}
+        //private Direction() {}
         private Direction(AlgorithmUpdate update, int direction) {
             raycast(update, direction);
         }

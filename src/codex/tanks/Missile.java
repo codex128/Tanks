@@ -28,7 +28,7 @@ public class Missile extends Bullet implements TimerListener {
     }
     
     private void initialize() {
-        material = GameUtils.fetchMaterial(getSpatial());
+        material = GameUtils.fetchMaterial(GameUtils.getChild(getSpatial(), "flame"));
         timer.setCycleMode(Timer.CycleMode.INFINITE);
         timer.addListener(this);
         timer.start();

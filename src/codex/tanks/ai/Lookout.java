@@ -4,7 +4,7 @@
  */
 package codex.tanks.ai;
 
-import codex.tanks.components.Bounces;
+import codex.j3map.J3map;
 import codex.tanks.util.GameUtils;
 import com.jme3.math.FastMath;
 
@@ -14,11 +14,14 @@ import com.jme3.math.FastMath;
  */
 public class Lookout implements Algorithm {
     
-    private final float barrelSpeed;
+    private float speed = 0.01f;
     private float distance = 0f;
     
-    public Lookout(float barrelSpeed) {
-        this.barrelSpeed = barrelSpeed;
+    public Lookout() {
+        speed *= FastMath.PI;
+    }
+    public Lookout(J3map source) {
+        speed = source.getFloat("speed", speed)*FastMath.PI;
     }
     
     @Override
@@ -29,10 +32,10 @@ public class Lookout implements Algorithm {
     }
     @Override
     public boolean aim(AlgorithmUpdate update) {
-        if (FastMath.abs(distance) < barrelSpeed) {
+        if (FastMath.abs(distance) < speed) {
             distance = GameUtils.random(-FastMath.TWO_PI, FastMath.TWO_PI);
         }
-        float angle = barrelSpeed*FastMath.sign(distance);
+        float angle = speed*FastMath.sign(distance);
         update.getTank().rotateAim(angle);
         distance -= angle;
         return true;

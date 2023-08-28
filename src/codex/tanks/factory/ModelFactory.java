@@ -10,6 +10,9 @@ import com.jme3.asset.TextureKey;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -73,6 +76,8 @@ public class ModelFactory {
         mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         mat.setTransparent(true);
         var flame = assetManager.loadModel("Effects/flame.j3o");
+        flame.setName("flame");
+        flame.setLocalRotation(new Quaternion().fromAngleAxis(FastMath.PI, Vector3f.UNIT_Y));
         flame.setLocalScale(3f, 3f, 4f);
         flame.setQueueBucket(RenderQueue.Bucket.Transparent);
         flame.setMaterial(mat);

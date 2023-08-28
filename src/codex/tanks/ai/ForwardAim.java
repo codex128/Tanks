@@ -4,13 +4,20 @@
  */
 package codex.tanks.ai;
 
+import codex.j3map.J3map;
+
 /**
  *
  * @author codex
  */
 public class ForwardAim implements Algorithm {
-
+    
     private float distance = 15f;
+    
+    public ForwardAim() {}
+    public ForwardAim(J3map source) {
+        distance = source.getFloat("distance", distance);
+    }
     
     @Override
     public void update(AlgorithmUpdate update) {}

@@ -48,17 +48,17 @@ public class AlgorithmUpdate {
         playerTank = manager.getState(PlayerAppState.class).getTank();
         if (playerTank == null) return false;
         bulletState = manager.getState(BulletState.class);
-        dirToPlayer = playerTank.getPosition().subtract(tank.getPosition()).normalizeLocal();
+        dirToPlayer = playerTank.getProbeLocation().subtract(tank.getProbeLocation()).normalizeLocal();
         distToPlayer = playerTank.getPosition().distance(tank.getPosition());
         playerInView = calculatePlayerInView();
         playerInBounce = calculatePlayerInBounce();
         return true;
     }
-    private boolean calculatePlayerInView() {
+    public boolean calculatePlayerInView() {
         return playerTank.getEntity().getId().equals(collision.raycast(
                 new Ray(tank.getProbeLocation(), dirToPlayer), tank.getEntity().getId(), 0));
     }
-    private boolean calculatePlayerInBounce() {
+    public boolean calculatePlayerInBounce() {
         return playerTank.getEntity().getId().equals(collision.raycast(
                 tank.getAimRay(), tank.getEntity().getId(), tank.getEntity().get(Bounces.class).getRemaining()));
     }

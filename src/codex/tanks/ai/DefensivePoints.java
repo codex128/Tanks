@@ -4,6 +4,7 @@
  */
 package codex.tanks.ai;
 
+import codex.j3map.J3map;
 import codex.tanks.util.GameUtils;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -15,11 +16,15 @@ import com.jme3.math.Vector3f;
  */
 public class DefensivePoints extends RandomPoints {
     
-    private final float pointAngle;
+    private float pointAngle = 0.25f;
     
-    public DefensivePoints(float maxPointDist, float pointAngle) {
-        super(maxPointDist);
-        this.pointAngle = pointAngle;
+    public DefensivePoints() {
+        super();
+        stacksize = 2;
+    }
+    public DefensivePoints(J3map source) {
+        super(source);
+        pointAngle = source.getFloat("pointAngle", pointAngle);
         stacksize = 2;
     }
     
@@ -28,13 +33,13 @@ public class DefensivePoints extends RandomPoints {
         updateOccured = true;
         Vector3f position = update.getTank().getPosition().setY(0f);
         if (stack.isEmpty() || position.distanceSquared(stack.getLast()) < radius*radius) {
-            stack.addLast(getNextPoint(update, getNextDirection(update.getDirectionToPlayer()), .1f, maxPointDistance, radius, 5));
+            stack.addLast(getNextPoint(update, .1f, maxPointDistance, radius, 5));
             stack.getLast().setY(0f);
         }
         if (stack.size() > stacksize) {
             stack.removeFirst();
         }
-        update.getTank().move(stack.getLast().subtract(position).normalizeLocal());
+        update.getTank().drive(stack.getLast().subtract(position).normalizeLocal());
 //        if (stack.size() >= 2) {
 //            var id = update.getCollisionState().raycast(update.getTank().getAimRay(), update.getTank().getEntity().getId(), 0);
 //            if (update.getPlayerTank().getEntity().getId().equals(id)) {

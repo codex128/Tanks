@@ -5,11 +5,7 @@
 package codex.tanks;
 
 import codex.j3map.J3map;
-import codex.tanks.ai.AimSkew;
-import codex.tanks.ai.AvoidBullets;
-import codex.tanks.ai.BasicShooting;
-import codex.tanks.ai.DirectAim;
-import codex.tanks.ai.Wander;
+import codex.tanks.ai.Algorithm;
 import codex.tanks.components.*;
 import codex.tanks.factory.ModelFactory;
 import codex.tanks.systems.VisualState;
@@ -41,9 +37,6 @@ public class GameState extends ESAppState {
     
     private BulletAppState bulletapp;
     private PlayerAppState player;
-    //private LinkedList<Tank> tanks = new LinkedList<>();
-    //private LinkedList<Bullet> bullets = new LinkedList<>();
-    //private LinkedList<CollisionShape> collisionShapes = new LinkedList<>();
     private DirectionalLight light;
     
     @Override
@@ -67,7 +60,7 @@ public class GameState extends ESAppState {
             new GameObject("tank"),
             new Visual(ModelFactory.TANK),
             new Physics(),
-            new EntityTransform().setTranslation(0f, 0f, -7f),
+            new EntityTransform().setTranslation(-7f, 0f, -7f),
             new TransformMode(-1, 0, 0),
             new CollisionShape("hitbox"),
             new ContactReaction(ContactReaction.DIE),
@@ -78,8 +71,15 @@ public class GameState extends ESAppState {
         player = new PlayerAppState(plr);
         getStateManager().attach(player);
         
-        J3map enemySource = (J3map)assetManager.loadAsset("Properties/enemy.j3map");
-        for (int i = 0; i < 3; i++) {
+        J3map[] enemySources = {
+            (J3map)assetManager.loadAsset("Properties/purple.j3map"),
+            (J3map)assetManager.loadAsset("Properties/grey.j3map"),
+            (J3map)assetManager.loadAsset("Properties/light-green.j3map"),
+            (J3map)assetManager.loadAsset("Properties/black.j3map"),
+        };
+        for (int i = 0; i < 5; i++) {
+            var src = enemySources[FastMath.nextRandomInt(0, enemySources.length-1)];
+            //var src = enemySources[0];
             var enemy = ed.createEntity();
             ed.setComponents(enemy,
                 new GameObject("tank"),
@@ -90,19 +90,10 @@ public class GameState extends ESAppState {
                 new CollisionShape("hitbox"),
                 new ContactReaction(ContactReaction.DIE),
                 new Team(1),
-                new Alive(),
-                new Brain(
-                    new AvoidBullets(5f, .3f),
-                    //new Lookout(FastMath.PI*0.01f),
-                    //new ForwardAim(),
-                    new DirectAim(),
-                    new BasicShooting().setMinExposure(.5f),
-                    new Wander(),
-                    //new DefensivePoints(10f, .25f)
-                    new AimSkew()
-                )
+                new Alive()
             );
-            Tank.applyProperties(ed, enemy, enemySource.getJ3map("tank"));
+            Tank.applyProperties(ed, enemy, src.getJ3map("tank"));
+            Algorithm.applyProperties(ed, enemy, src);
         }
         
         float r = 20f;
@@ -115,6 +106,7 @@ public class GameState extends ESAppState {
         createWall(new Vector3f(-12f, 0f, 0f), 0f, new Vector3f(4f, 1f, 1f));   
         createWall(new Vector3f(0f, 0f, 12f), 0f, new Vector3f(1f, 1f, 4f));   
         createWall(new Vector3f(0f, 0f, -12f), 0f, new Vector3f(1f, 1f, 4f));
+        //createWall(new Vector3f(0f, 0f, 0f), 0f, new Vector3f(20f, 1f, 1f));
         
         light = new DirectionalLight(new Vector3f(1f, -1f, 1f));
         rootNode.addLight(light);

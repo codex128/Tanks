@@ -5,12 +5,14 @@
 package codex.tanks.systems;
 
 import codex.tanks.Bullet;
+import codex.tanks.Missile;
 import codex.tanks.components.Alive;
 import codex.tanks.components.Bounces;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Owner;
 import codex.tanks.components.Velocity;
 import codex.tanks.components.Visual;
+import codex.tanks.factory.ModelFactory;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.Entity;
@@ -24,6 +26,8 @@ import java.util.HashMap;
  * @author codex
  */
 public class BulletState extends ESAppState {
+    
+    public static final float MISSILE_QUALIFIER = 15f;
     
     private EntitySet entities;
     private final HashMap<EntityId, Bullet> bullets = new HashMap<>();
@@ -59,7 +63,13 @@ public class BulletState extends ESAppState {
     }
     
     private void createBullet(Entity e) {
-        var bullet = new Bullet(visuals.getSpatial(e.getId()), e);
+        Bullet bullet;
+        if (e.get(Velocity.class).getSpeed() < MISSILE_QUALIFIER) {
+            bullet = new Bullet(visuals.getSpatial(e.getId()), e);
+        }
+        else {
+            bullet = new Missile(visuals.getSpatial(e.getId()), e);
+        }
         bullets.putIfAbsent(e.getId(), bullet);
     }
     private void destroyBullet(Entity e) {
@@ -72,6 +82,11 @@ public class BulletState extends ESAppState {
     
     public Collection<Bullet> getBullets() {
         return bullets.values();
+    }
+    
+    public static String getBulletModelId(float speed) {
+        if (speed < MISSILE_QUALIFIER) return ModelFactory.BULLET;
+        else return ModelFactory.MISSILE;
     }
     
 }

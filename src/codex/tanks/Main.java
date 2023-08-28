@@ -4,6 +4,7 @@ import codex.j3map.J3mapFactory;
 import codex.j3map.processors.FloatProcessor;
 import codex.j3map.processors.IntegerProcessor;
 import codex.j3map.processors.StringProcessor;
+import codex.tanks.ai.*;
 import codex.tanks.systems.*;
 import codex.tanks.util.ColorProcessor;
 import com.jme3.app.SimpleApplication;
@@ -37,7 +38,17 @@ public class Main extends SimpleApplication {
                 FloatProcessor.class,
                 ColorProcessor.class);
         
-        flyCam.setMoveSpeed(20f);
+        Algorithm.addAlgorithmClasses(
+                AimSkew.class,
+                AvoidBullets.class,
+                BasicShooting.class,
+                DefensivePoints.class,
+                DirectAim.class,
+                ForwardAim.class,
+                Lookout.class,
+                RandomPoints.class,
+                Sniper.class,
+                Wander.class);
         
         BulletAppState bulletapp = new BulletAppState();
         //bulletapp.setDebugEnabled(true);
@@ -56,8 +67,7 @@ public class Main extends SimpleApplication {
             ,new DecayState()
             ,new LifeState()
             ,new AIManager()
-        );
-        
+        );        
         stateManager.attach(new GameState());
         
     }

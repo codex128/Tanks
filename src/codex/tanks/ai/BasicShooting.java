@@ -4,7 +4,9 @@
  */
 package codex.tanks.ai;
 
-import com.jme3.math.FastMath;
+import codex.j3map.J3map;
+import codex.tanks.components.Bounces;
+import codex.tanks.components.Team;
 
 /**
  *
@@ -20,6 +22,11 @@ public class BasicShooting implements Algorithm {
     private float makeBounce = 0f;
     
     public BasicShooting() {}
+    public BasicShooting(J3map source) {
+        minExposure = source.getFloat("minExposure", minExposure);
+        maxBarrelOffset = source.getFloat("maxBarrelOffset", maxBarrelOffset);
+        bounceFactor = source.getFloat("bounceFactor", bounceFactor);
+    }
     
     public BasicShooting setMinExposure(float minExposure) {
         this.minExposure = minExposure;
@@ -36,7 +43,7 @@ public class BasicShooting implements Algorithm {
     
     @Override
     public void update(AlgorithmUpdate update) {
-        if (update.isPlayerInView()) {
+        if (update.calculatePlayerInView()) {
             exposure = Math.min(exposure+update.getTpf(), minExposure);
         }
         else {
@@ -56,18 +63,17 @@ public class BasicShooting implements Algorithm {
     public boolean shoot(AlgorithmUpdate update) {
         if (update.isPlayerInView()) {
             if (exposure > minExposure-0.01f) {
+                var id = update.getCollisionState().raycast(update.getTank().getAimRay(), update.getTankId(), update.getTank().getEntity().get(Bounces.class).getRemaining());
+                if (id != null) {
+                    var team = update.getEntityData().getComponent(id, Team.class);
+                    if (team != null && team.getTeam() == update.getTank().getEntity().get(Team.class).getTeam()) {
+                        return false;
+                    }
+                }
                 if (update.getDirectionToPlayer().dot(update.getTank().getAimDirection()) >= 1f-maxBarrelOffset) {
                     update.getTank().shoot(update.getEntityData());
                     return true;
                 }
-                exposure = minExposure;
-            }
-        }
-        if (makeBounce < 0.01f && update.isPlayerInBounce()) {
-            makeBounce = 1f;
-            if (FastMath.nextRandomFloat() < bounceFactor) {
-                update.getTank().shoot(update.getEntityData());
-                return true;
             }
         }
         return false;

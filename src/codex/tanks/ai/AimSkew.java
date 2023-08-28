@@ -4,6 +4,7 @@
  */
 package codex.tanks.ai;
 
+import codex.j3map.J3map;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
@@ -14,15 +15,23 @@ import com.jme3.math.Vector3f;
  */
 public class AimSkew implements Algorithm {
     
-    private float maxBarrelWander = .3f;
+    private float maxBarrelSkew = .3f;
+    private float speed = 5f;
+    
     private float skew = 0f;
+    
+    public AimSkew() {}
+    public AimSkew(J3map source) {
+        maxBarrelSkew = source.getFloat("maxBarrelSkew", maxBarrelSkew);
+        speed = source.getFloat("speed", speed);
+    }
     
     @Override
     public void update(AlgorithmUpdate update) {
         var forward = update.getTank().getAimDirection();
-        var q = new Quaternion().fromAngleAxis(FastMath.sin(skew)*maxBarrelWander, Vector3f.UNIT_Y);
+        var q = new Quaternion().fromAngleAxis(FastMath.sin(skew)*maxBarrelSkew, Vector3f.UNIT_Y);
         update.getTank().aimAtDirection(q.mult(forward));
-        skew += update.getTpf() * 5f;
+        skew += update.getTpf()*speed;
     }
     @Override
     public boolean move(AlgorithmUpdate update) {

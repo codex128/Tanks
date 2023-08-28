@@ -15,6 +15,7 @@ import codex.tanks.components.MineCapacity;
 import codex.tanks.components.Physics;
 import codex.tanks.components.ShootForce;
 import codex.tanks.components.Speed;
+import codex.tanks.components.Team;
 import codex.tanks.components.Visual;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
@@ -42,7 +43,7 @@ public class TankState extends ESAppState {
                 GameObject.class, Visual.class, Physics.class,
                 Speed.class, Firerate.class, BulletCapacity.class,
                 Bounces.class, ShootForce.class, MineCapacity.class,
-                ColorScheme.class, Alive.class);
+                ColorScheme.class, Alive.class, Team.class);
         visuals = getState(VisualState.class, true);
         physics = getState(PhysicsState.class, true);
     }

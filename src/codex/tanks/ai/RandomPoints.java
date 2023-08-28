@@ -4,8 +4,7 @@
  */
 package codex.tanks.ai;
 
-import com.jme3.collision.CollisionResult;
-import com.jme3.collision.CollisionResults;
+import codex.j3map.J3map;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
@@ -21,11 +20,12 @@ public class RandomPoints implements Algorithm {
     protected final LinkedList<Vector3f> stack = new LinkedList<>();
     protected final float radius = 1.5f;
     protected int stacksize = 1;
-    protected float maxPointDistance;
+    protected float maxPointDistance = 10f;
     protected boolean updateOccured = false;
     
-    public RandomPoints(float maxPointDistance) {
-        this.maxPointDistance = maxPointDistance;
+    public RandomPoints() {}
+    public RandomPoints(J3map source) {
+        maxPointDistance = source.getFloat("maxPointDistance", maxPointDistance);
     }
     
     @Override
@@ -36,13 +36,13 @@ public class RandomPoints implements Algorithm {
     public boolean move(AlgorithmUpdate update) {
         Vector3f position = update.getTank().getPosition().setY(0f);
         if (stack.isEmpty() || position.distanceSquared(stack.getLast()) < radius*radius) {
-            stack.addLast(getNextPoint(update, getNextDirection(update.getDirectionToPlayer()), .1f, maxPointDistance, radius, 5));
+            stack.addLast(getNextPoint(update, .1f, maxPointDistance, radius, 5));
             stack.getLast().setY(0f);
         }
         if (stack.size() > stacksize) {
             stack.removeFirst();
         }
-        update.getTank().move(stack.getLast().subtract(position).normalizeLocal());
+        update.getTank().drive(stack.getLast().subtract(position).normalizeLocal());
         updateOccured = true;
         return true;
     }
@@ -69,11 +69,14 @@ public class RandomPoints implements Algorithm {
         Quaternion q = new Quaternion().fromAngleAxis(FastMath.rand.nextFloat()*FastMath.TWO_PI, Vector3f.UNIT_Y);
         return q.mult(Vector3f.UNIT_Z);
     }
-    protected Vector3f getNextPoint(AlgorithmUpdate update, Vector3f direction,
-            float minDist, float maxDist, float radius, int attempts) {
+    protected Vector3f getNextPoint(AlgorithmUpdate update, float minDist, float maxDist, float radius, int attempts) {
         while (attempts-- > 0) {
-            var ray = new Ray(update.getTank().getProbeLocation(), direction);
-            var results = update.getCollisionState().raycast(ray, update.getTank().getEntity().getId());
+            var direction = getNextDirection(update.getDirectionToPlayer());
+            var left = new Quaternion().lookAt(direction, Vector3f.UNIT_Y).getRotationColumn(0);
+            var ray1 = new Ray(update.getTank().getProbeLocation().add(left), direction);
+            var ray2 = new Ray(update.getTank().getProbeLocation().subtract(left), direction);
+            var results = update.getCollisionState().raycast(ray1, update.getTankId());
+            update.getCollisionState().raycast(ray2, update.getTankId(), results);
             if (results.size() > 0) {
                 var closest = results.getClosestCollision();
                 if (closest.getDistance()-radius < minDist) {
@@ -83,7 +86,7 @@ public class RandomPoints implements Algorithm {
                     return closest.getContactPoint().add(closest.getContactNormal().mult(radius));
                 }
             }
-            return ray.getOrigin().add(ray.getDirection().mult(maxDist));
+            return ray1.getOrigin().add(ray1.getDirection().mult(maxDist));
         }
         return update.getTank().getPosition();
     }
