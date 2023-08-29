@@ -10,7 +10,12 @@ import codex.tanks.Tank;
 import codex.tanks.components.Bounces;
 import codex.tanks.systems.AIManager;
 import codex.tanks.systems.BulletState;
-import codex.tanks.systems.CollisionState;
+import codex.tanks.collision.CollisionState;
+import codex.tanks.collision.ShapeFilter;
+import codex.tanks.collision.BasicRaytest;
+import codex.tanks.collision.LaserRaytest;
+import codex.tanks.collision.EntityIgnoreFilter;
+import codex.tanks.systems.VisualState;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityData;
@@ -27,6 +32,7 @@ public class AlgorithmUpdate {
     private final Tank tank;
     private final float tpf;
     private final boolean satisfied;
+    private VisualState visuals;
     private CollisionState collision;
     private Tank playerTank;
     private BulletState bulletState;
@@ -44,9 +50,10 @@ public class AlgorithmUpdate {
     
     private boolean initialize() {
         if (tank == null) return false;
-        collision = manager.getState(CollisionState.class);
         playerTank = manager.getState(PlayerAppState.class).getTank();
         if (playerTank == null) return false;
+        visuals = manager.getState(VisualState.class);
+        collision = manager.getState(CollisionState.class);
         bulletState = manager.getState(BulletState.class);
         dirToPlayer = playerTank.getProbeLocation().subtract(tank.getProbeLocation()).normalizeLocal();
         distToPlayer = playerTank.getPosition().distance(tank.getPosition());
@@ -55,12 +62,14 @@ public class AlgorithmUpdate {
         return true;
     }
     public boolean calculatePlayerInView() {
-        return playerTank.getEntity().getId().equals(collision.raycast(
-                new Ray(tank.getProbeLocation(), dirToPlayer), tank.getEntity().getId(), 0));
+        var raytest = new BasicRaytest(new Ray(tank.getProbeLocation(), dirToPlayer), ShapeFilter.none(ShapeFilter.byId(getTankId())));
+        raytest.cast(collision);
+        return playerTank.getEntity().getId().equals(raytest.getCollisionEntity());
     }
     public boolean calculatePlayerInBounce() {
-        return playerTank.getEntity().getId().equals(collision.raycast(
-                tank.getAimRay(), tank.getEntity().getId(), tank.getEntity().get(Bounces.class).getRemaining()));
+        var raytest = new LaserRaytest(tank.getAimRay(), new EntityIgnoreFilter(getTankId(), null), tank.getEntity().get(Bounces.class).getRemaining());
+        raytest.cast(collision);
+        return playerTank.getEntity().getId().equals(raytest.getCollisionEntity());
     }
     
     public AIManager getManager() {
@@ -81,6 +90,9 @@ public class AlgorithmUpdate {
     }
     public EntityData getEntityData() {
         return manager.getEntityData();
+    }
+    public VisualState getVisualState() {
+        return visuals;
     }
     public CollisionState getCollisionState() {
         return collision;

@@ -5,25 +5,10 @@
 package codex.tanks;
 
 import codex.j3map.J3map;
-import codex.tanks.components.Alive;
-import codex.tanks.components.Bounces;
-import codex.tanks.components.EntityTransform;
-import codex.tanks.components.Firerate;
-import codex.tanks.components.BulletCapacity;
-import codex.tanks.components.ContactReaction;
-import codex.tanks.components.CollisionShape;
-import codex.tanks.components.ColorScheme;
-import codex.tanks.components.FaceVelocity;
-import codex.tanks.components.GameObject;
-import codex.tanks.components.MineCapacity;
-import codex.tanks.components.Owner;
-import codex.tanks.components.ShootForce;
-import codex.tanks.components.Speed;
-import codex.tanks.components.TransformMode;
-import codex.tanks.components.Velocity;
-import codex.tanks.components.Visual;
+import codex.tanks.components.*;
 import codex.tanks.systems.BulletState;
-import codex.tanks.systems.CollisionState;
+import codex.tanks.collision.CollisionState;
+import codex.tanks.systems.VisualState;
 import codex.tanks.util.FunctionFilter;
 import codex.tanks.util.GameUtils;
 import com.jme3.bullet.control.RigidBodyControl;
@@ -49,7 +34,7 @@ public class Tank {
 
     private final Spatial spatial;
     private final Entity entity;
-    private Spatial base, turret, muzzle, hitbox, pointer, probe;
+    private Spatial base, turret, muzzle, hitbox, pointer, probe, shield;
     private final Spatial[] wheels = new Spatial[4];
     private Material material;
     private RigidBodyControl physics;
@@ -75,12 +60,14 @@ public class Tank {
         hitbox = GameUtils.getChild(spatial, "hitbox");
         pointer = GameUtils.getChild(spatial, "pointer");
         probe = GameUtils.getChild(spatial, "probe");
+        shield = GameUtils.getChild(muzzle, "shield");
         wheels[0] = GameUtils.getChild(spatial, "wheel.FL");
         wheels[1] = GameUtils.getChild(spatial, "wheel.BL");
         wheels[2] = GameUtils.getChild(spatial, "wheel.FR");
         wheels[3] = GameUtils.getChild(spatial, "wheel.BR");
         hitbox.setCullHint(Spatial.CullHint.Always);
         pointer.setCullHint(Spatial.CullHint.Always);
+        shield.setCullHint(Spatial.CullHint.Always);
         var scheme = entity.get(ColorScheme.class);
         scheme.verifySize(2);
         material = GameUtils.fetchMaterial(spatial);
@@ -166,10 +153,10 @@ public class Tank {
         setLinearVelocity(Vector3f.ZERO.clone());
     }
     
-    public EntityId shoot(EntityData ed) {
+    public EntityId shoot(EntityData ed, VisualState visuals) {
         if (!bulletAvailable()) return null;
-        var id = ed.createEntity();
-        ed.setComponents(id,
+        var bullet = ed.createEntity();
+        ed.setComponents(bullet,
             new GameObject("bullet"),
             new Visual(BulletState.getBulletModelId(entity.get(ShootForce.class).getForce())),
             new EntityTransform().setTranslation(muzzle.getWorldTranslation()).setScale(.17f),
@@ -182,8 +169,16 @@ public class Tank {
             new Owner(entity.getId()),
             new Alive()
         );
+//        var shield = ed.createEntity();
+//        ed.setComponents(shield,
+//                new Visual(),
+//                new CollisionShape(),
+//                new ContactReaction(ContactReaction.SIMPLE),
+//                new Decay(10f),
+//                new Alive());
+//        visuals.link(shield, this.shield);
         reload = entity.get(Firerate.class).getRate();
-        return id;
+        return bullet;
     }
     public void rotateAim(float angle) {
         turret.rotate(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y));
@@ -195,11 +190,6 @@ public class Tank {
     }
     public void aimAtDirection(Vector3f direction) {
         turret.setLocalRotation(new Quaternion().lookAt(direction, Vector3f.UNIT_Y));
-    }
-    public EntityId probeAim(CollisionState collision, int maxBounces) {
-        int bounces = entity.get(Bounces.class).getRemaining();
-        return collision.raycast(getAimRay(), entity.getId(),
-                (maxBounces >= 0 ? Math.min(bounces, maxBounces) : bounces));
     }
     public Ray getAimRay() {
         return new Ray(muzzle.getWorldTranslation(), getAimDirection());

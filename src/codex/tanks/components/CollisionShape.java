@@ -13,20 +13,31 @@ import com.simsilica.es.EntityComponent;
 public class CollisionShape implements EntityComponent {
     
     private final String shape;
+    private final int group;
     
     public CollisionShape() {
-        this(null);
+        this(null, 0);
     }
     public CollisionShape(String shape) {
+        this(shape, 0);
+    }
+    public CollisionShape(int group) {
+        this(null, group);
+    }
+    public CollisionShape(String shape, int group) {
         this.shape = shape;
+        this.group = group;
     }
 
     public String getShape() {
         return shape;
     }
+    public int getGroup() {
+        return group;
+    }
     @Override
     public String toString() {
-        return "CollisionShape{" + "shape=" + shape + '}';
+        return "CollisionShape{" + "shape=" + shape + ", group=" + group + '}';
     }
     
 }

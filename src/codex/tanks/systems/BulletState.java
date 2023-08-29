@@ -4,6 +4,7 @@
  */
 package codex.tanks.systems;
 
+import codex.tanks.collision.CollisionState;
 import codex.tanks.Bullet;
 import codex.tanks.Missile;
 import codex.tanks.components.Alive;

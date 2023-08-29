@@ -6,7 +6,7 @@ package codex.tanks;
 
 import codex.boost.Timer;
 import codex.boost.TimerListener;
-import codex.tanks.systems.CollisionState;
+import codex.tanks.collision.CollisionState;
 import codex.tanks.util.GameUtils;
 import com.jme3.material.Material;
 import com.jme3.math.FastMath;

@@ -1,5 +1,6 @@
 package codex.tanks;
 
+import codex.tanks.collision.CollisionState;
 import codex.j3map.J3mapFactory;
 import codex.j3map.processors.FloatProcessor;
 import codex.j3map.processors.IntegerProcessor;

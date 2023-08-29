@@ -6,6 +6,7 @@ package codex.tanks;
 
 import codex.tanks.components.Alive;
 import codex.tanks.systems.TankState;
+import codex.tanks.systems.VisualState;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
 import com.jme3.math.Vector3f;
@@ -99,7 +100,7 @@ public class PlayerAppState extends ESAppState implements
     @Override
     public void valueChanged(FunctionId func, InputState value, double tpf) {
         if (func == Functions.F_SHOOT && value != InputState.Off) {
-            tank.shoot(ed);
+            tank.shoot(ed, getState(VisualState.class));
         }
     }
     

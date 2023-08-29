@@ -5,6 +5,9 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
+import codex.tanks.collision.PaddedRaytest;
+import codex.tanks.collision.ShapeFilter;
+import com.jme3.collision.CollisionResults;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
@@ -70,15 +73,16 @@ public class RandomPoints implements Algorithm {
         return q.mult(Vector3f.UNIT_Z);
     }
     protected Vector3f getNextPoint(AlgorithmUpdate update, float minDist, float maxDist, float radius, int attempts) {
+        var ray = new Ray();
         while (attempts-- > 0) {
-            var direction = getNextDirection(update.getDirectionToPlayer());
-            var left = new Quaternion().lookAt(direction, Vector3f.UNIT_Y).getRotationColumn(0);
-            var ray1 = new Ray(update.getTank().getProbeLocation().add(left), direction);
-            var ray2 = new Ray(update.getTank().getProbeLocation().subtract(left), direction);
-            var results = update.getCollisionState().raycast(ray1, update.getTankId());
-            update.getCollisionState().raycast(ray2, update.getTankId(), results);
-            if (results.size() > 0) {
-                var closest = results.getClosestCollision();
+            ray.setOrigin(update.getTank().getProbeLocation());
+            ray.setDirection(getNextDirection(update.getDirectionToPlayer()));
+            var filter = ShapeFilter.notId(update.getTankId());
+            var test = new PaddedRaytest(ray, filter, 1f, filter, new CollisionResults());
+            test.setResultMergingEnabled(true);
+            test.cast(update.getCollisionState());
+            var closest = test.getCollision();
+            if (closest != null) {
                 if (closest.getDistance()-radius < minDist) {
                     continue;
                 }
@@ -86,7 +90,7 @@ public class RandomPoints implements Algorithm {
                     return closest.getContactPoint().add(closest.getContactNormal().mult(radius));
                 }
             }
-            return ray1.getOrigin().add(ray1.getDirection().mult(maxDist));
+            return ray.getOrigin().add(ray.getDirection().mult(maxDist));
         }
         return update.getTank().getPosition();
     }

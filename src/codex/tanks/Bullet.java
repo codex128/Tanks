@@ -4,11 +4,13 @@
  */
 package codex.tanks;
 
+import codex.tanks.collision.BasicRaytest;
 import codex.tanks.components.Alive;
 import codex.tanks.components.Bounces;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Velocity;
-import codex.tanks.systems.CollisionState;
+import codex.tanks.collision.CollisionState;
+import codex.tanks.collision.ShapeFilter;
 import codex.tanks.systems.VisualState;
 import codex.tanks.util.GameUtils;
 import com.jme3.math.Ray;
@@ -37,11 +39,11 @@ public class Bullet {
     }
     
     public void update(CollisionState collision, float tpf) {
-        var results = collision.raycast(getMovementRay(), entity.getId());
-        if (results.size() > 0) {
-            var closest = results.getClosestCollision();
+        var test = new BasicRaytest(getMovementRay(), ShapeFilter.notId(entity.getId()));
+        var closest = test.getCollision();
+        if (closest != null) {
             if (closest.getDistance() < entity.get(Velocity.class).getSpeed()*tpf*2) {
-                var id = VisualState.fetchId(closest.getGeometry(), -1);
+                var id = test.getCollisionEntity();
                 if (id != null) {
                     collision.bulletCollision(id, this, closest);
                 }

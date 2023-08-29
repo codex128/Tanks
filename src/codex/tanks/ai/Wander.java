@@ -5,6 +5,8 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
+import codex.tanks.collision.PaddedRaytest;
+import codex.tanks.collision.ShapeFilter;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.FastMath;
@@ -20,15 +22,15 @@ public class Wander implements Algorithm {
     /**
      * Stores raycast directions and perpendicular vectors.
      */
-    private static final Vector3f[][] RAYCAST_DIRECTIONS = {
-        {Vector3f.UNIT_Z, Vector3f.UNIT_X},
-        {new Vector3f(1f, 0f, -1f).normalizeLocal(), new Vector3f(-1f, 0f, -1f).normalizeLocal()},
-        {Vector3f.UNIT_X.negate(), Vector3f.UNIT_Z},
-        {new Vector3f(-1f, 0f, -1f).normalizeLocal(), new Vector3f(-1f, 0f, 1f).normalizeLocal()},
-        {Vector3f.UNIT_Z.negate(), Vector3f.UNIT_X},
-        {new Vector3f(-1f, 0f, 1f).normalizeLocal(), new Vector3f(1f, 0f, 1f).normalizeLocal()},
-        {Vector3f.UNIT_X, Vector3f.UNIT_Z},
-        {new Vector3f(1f, 0f, 1f).normalizeLocal(), new Vector3f(1f, 0f, -1f).normalizeLocal()},
+    private static final Vector3f[] RAYCAST_DIRECTIONS = {
+        Vector3f.UNIT_Z,
+        new Vector3f(1f, 0f, -1f).normalizeLocal(),
+        Vector3f.UNIT_X.negate(),
+        new Vector3f(-1f, 0f, -1f).normalizeLocal(),
+        Vector3f.UNIT_Z.negate(),
+        new Vector3f(-1f, 0f, 1f).normalizeLocal(),
+        Vector3f.UNIT_X,
+        new Vector3f(1f, 0f, 1f).normalizeLocal(),
     };
     
     private float turnSpeed = 0.1f;
@@ -156,12 +158,12 @@ public class Wander implements Algorithm {
             raycast(update, direction);
         }
         private void raycast(AlgorithmUpdate update, int direction) {
-            this.vector = RAYCAST_DIRECTIONS[direction][0];
-            var across = RAYCAST_DIRECTIONS[direction][1];
-            var results = new CollisionResults();
-            update.getCollisionState().raycast(new Ray(update.getTank().getProbeLocation().add(across), this.vector), update.getTankId(), results);
-            update.getCollisionState().raycast(new Ray(update.getTank().getProbeLocation().add(across.negate()), this.vector), update.getTankId(), results);
-            collision = results.getClosestCollision();
+            vector = RAYCAST_DIRECTIONS[direction];
+            var filter = ShapeFilter.notId(update.getTankId());
+            var test = new PaddedRaytest(new Ray(update.getTank().getProbeLocation(), vector), filter, 1f, filter, new CollisionResults());
+            test.setResultMergingEnabled(true);
+            test.cast(update.getCollisionState());
+            collision = test.getCollision();
         }
     }
     

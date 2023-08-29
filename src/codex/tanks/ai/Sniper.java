@@ -28,7 +28,7 @@ public class Sniper implements Algorithm {
     @Override
     public boolean shoot(AlgorithmUpdate update) {
         if (update.calculatePlayerInBounce()) {
-            update.getTank().shoot(update.getEntityData());
+            update.getTank().shoot(update.getEntityData(), update.getVisualState());
             return true;
         }
         return false;

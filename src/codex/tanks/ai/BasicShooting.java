@@ -5,8 +5,10 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
+import codex.tanks.collision.PaddedLaserRaytest;
 import codex.tanks.components.Bounces;
 import codex.tanks.components.Team;
+import codex.tanks.collision.ShapeFilter;
 
 /**
  *
@@ -61,20 +63,18 @@ public class BasicShooting implements Algorithm {
     }
     @Override
     public boolean shoot(AlgorithmUpdate update) {
-        if (update.isPlayerInView()) {
-            if (exposure > minExposure-0.01f) {
-                var id = update.getCollisionState().raycast(update.getTank().getAimRay(), update.getTankId(), update.getTank().getEntity().get(Bounces.class).getRemaining());
-                if (id != null) {
-                    var team = update.getEntityData().getComponent(id, Team.class);
-                    if (team != null && team.getTeam() == update.getTank().getEntity().get(Team.class).getTeam()) {
-                        return false;
-                    }
-                }
-                if (update.getDirectionToPlayer().dot(update.getTank().getAimDirection()) >= 1f-maxBarrelOffset) {
-                    update.getTank().shoot(update.getEntityData());
-                    return true;
-                }
+        if (update.isPlayerInView() && exposure > minExposure-0.01f
+                && update.getDirectionToPlayer().dot(update.getTank().getAimDirection()) >= 1f-maxBarrelOffset) {
+            var raytest = new PaddedLaserRaytest(
+                    update.getTank().getAimRay(), update.getTankId(), 1f,
+                    ShapeFilter.and(ShapeFilter.byTeam(update.getTank().getEntity().get(Team.class).getTeam()), ShapeFilter.notId(update.getTankId())),
+                    update.getTank().getEntity().get(Bounces.class).getRemaining());
+            raytest.cast(update.getCollisionState());
+            if (raytest.isImpeded()) {
+                return false;
             }
+            update.getTank().shoot(update.getEntityData(), update.getVisualState());
+            return true;
         }
         return false;
     }
