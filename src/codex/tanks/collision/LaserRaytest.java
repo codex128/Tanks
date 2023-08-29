@@ -21,7 +21,7 @@ public class LaserRaytest implements Raytest {
     
     // input
     protected Ray ray = new Ray();
-    protected EntityIgnoreFilter filter;
+    protected OriginFilter filter;
     protected int maxBounces;
     
     // output
@@ -29,9 +29,9 @@ public class LaserRaytest implements Raytest {
     protected CollisionResult result;
     
     public LaserRaytest(Ray ray, EntityId ignore, int maxBounces) {
-        this(ray, new EntityIgnoreFilter(ignore, null), maxBounces);
+        this(ray, new OriginFilter(ignore, null), maxBounces);
     }
-    public LaserRaytest(Ray ray, EntityIgnoreFilter filter, int maxBounces) {
+    public LaserRaytest(Ray ray, OriginFilter filter, int maxBounces) {
         this.ray = ray;
         this.filter = filter;
         this.maxBounces = maxBounces;
@@ -79,7 +79,7 @@ public class LaserRaytest implements Raytest {
     public void setRay(Ray ray) {
         this.ray = ray;
     }
-    public void setFilter(EntityIgnoreFilter filter) {
+    public void setFilter(OriginFilter filter) {
         this.filter = filter;
     }
     public void setMaxBounces(int maxBounces) {

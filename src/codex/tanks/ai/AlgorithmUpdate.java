@@ -14,7 +14,7 @@ import codex.tanks.collision.CollisionState;
 import codex.tanks.collision.ShapeFilter;
 import codex.tanks.collision.BasicRaytest;
 import codex.tanks.collision.LaserRaytest;
-import codex.tanks.collision.EntityIgnoreFilter;
+import codex.tanks.collision.OriginFilter;
 import codex.tanks.systems.VisualState;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
@@ -67,7 +67,7 @@ public class AlgorithmUpdate {
         return playerTank.getEntity().getId().equals(raytest.getCollisionEntity());
     }
     public boolean calculatePlayerInBounce() {
-        var raytest = new LaserRaytest(tank.getAimRay(), new EntityIgnoreFilter(getTankId(), null), tank.getEntity().get(Bounces.class).getRemaining());
+        var raytest = new LaserRaytest(tank.getAimRay(), new OriginFilter(getTankId(), null), tank.getEntity().get(Bounces.class).getRemaining());
         raytest.cast(collision);
         return playerTank.getEntity().getId().equals(raytest.getCollisionEntity());
     }

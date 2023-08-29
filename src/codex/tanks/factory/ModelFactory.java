@@ -5,6 +5,9 @@
 package codex.tanks.factory;
 
 import codex.tanks.util.GameUtils;
+import com.epagagames.particles.Emitter;
+import com.epagagames.particles.emittershapes.EmitterCone;
+import com.epagagames.particles.valuetypes.ValueType;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.material.Material;
@@ -95,6 +98,20 @@ public class ModelFactory {
         mat.setTexture("DiffuseMap", tex);
         floor.setMaterial(mat);
         return floor;
+    }
+    public Spatial createBulletSmoke() {
+        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
+        mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        Texture tex = assetManager.loadTexture("Effects/Particles/part_light.png");
+        mat.setTexture("Texture", tex);
+        Emitter emitter = new Emitter("test", mat, 100);
+        emitter.setStartSpeed(new ValueType(6.5f));
+        emitter.setLifeFixedDuration(2.0f);
+        emitter.setEmissionsPerSecond(20);
+        emitter.setParticlesPerEmission(1);
+        emitter.setShape(new EmitterCone());
+        ((EmitterCone)emitter.getShape()).setRadius(0.005f);
+        return emitter;
     }
     
 }

@@ -36,7 +36,7 @@ public interface ShapeFilter {
     public static ShapeFilter or(ShapeFilter... filters) {
         return new OrFilter(filters);
     }
-    public static ShapeFilter none(ShapeFilter filter) {
+    public static ShapeFilter none(ShapeFilter... filter) {
         return new NotFilter(filter);
     }
     public static ShapeFilter notId(EntityId id) {

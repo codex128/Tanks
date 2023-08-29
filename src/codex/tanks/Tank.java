@@ -7,7 +7,7 @@ package codex.tanks;
 import codex.j3map.J3map;
 import codex.tanks.components.*;
 import codex.tanks.systems.BulletState;
-import codex.tanks.collision.CollisionState;
+import codex.tanks.systems.ParticleState;
 import codex.tanks.systems.VisualState;
 import codex.tanks.util.FunctionFilter;
 import codex.tanks.util.GameUtils;
@@ -169,6 +169,14 @@ public class Tank {
             new Owner(entity.getId()),
             new Alive()
         );
+        var smokeEntity = ed.createEntity();
+        ed.setComponents(smokeEntity,
+                new GameObject("particle-emitter"),
+                new Visual().setIndependent(true),
+                new Copy(bullet, Copy.TRANSFORM, Copy.LIFE),
+                new Alive());
+        var
+        visuals.getState(ParticleState.class).link(bullet, emitter)
 //        var shield = ed.createEntity();
 //        ed.setComponents(shield,
 //                new Visual(),

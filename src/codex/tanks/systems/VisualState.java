@@ -70,7 +70,7 @@ public class VisualState extends ESAppState {
     }
     private void destroyModel(Entity e) {
         var spatial = unlink(e.getId());
-        if (spatial != null) {
+        if (spatial != null && !e.get(Visual.class).isIndependent()) {
             spatial.removeFromParent();
         }
     }

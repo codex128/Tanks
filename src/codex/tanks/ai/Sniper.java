@@ -5,6 +5,10 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
+import codex.tanks.collision.OriginFilter;
+import codex.tanks.collision.LaserRaytest;
+import codex.tanks.collision.ShapeFilter;
+import codex.tanks.components.Bounces;
 
 /**
  *
@@ -28,6 +32,12 @@ public class Sniper implements Algorithm {
     @Override
     public boolean shoot(AlgorithmUpdate update) {
         if (update.calculatePlayerInBounce()) {
+            var filter = new OriginFilter(update.getTankId(), ShapeFilter.or(ShapeFilter.byId(update.getTankId()), ShapeFilter.none(ShapeFilter.byGameObject("tank"))));
+            var test = new LaserRaytest(update.getTank().getAimRay(), filter, update.getTank().getEntity().get(Bounces.class).getRemaining());
+            test.cast(update.getCollisionState());
+            if (update.getTankId().equals(test.getCollisionEntity())) {
+                return false;
+            }
             update.getTank().shoot(update.getEntityData(), update.getVisualState());
             return true;
         }

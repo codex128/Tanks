@@ -4,6 +4,8 @@
  */
 package codex.tanks.components;
 
+import codex.tanks.util.FunctionFilter;
+import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityId;
 
@@ -40,6 +42,10 @@ public class Copy implements EntityComponent {
     @Override
     public String toString() {
         return "Copy{" + "copy=" + copy + ", mode=" + modes + '}';
+    }
+    
+    public static ComponentFilter<Copy> filter(String mode) {
+        return new FunctionFilter<>(Copy.class, c -> c.supports(mode));
     }
     
 }

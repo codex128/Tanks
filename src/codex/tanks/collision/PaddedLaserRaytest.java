@@ -29,7 +29,7 @@ public class PaddedLaserRaytest extends LaserRaytest {
         this.padding = padding;
         this.paddingFilter = paddingFilter;
     }
-    public PaddedLaserRaytest(Ray ray, EntityIgnoreFilter mainFilter, float padding, ShapeFilter paddingFilter, int maxBounces) {
+    public PaddedLaserRaytest(Ray ray, OriginFilter mainFilter, float padding, ShapeFilter paddingFilter, int maxBounces) {
         super(ray, mainFilter, maxBounces);
         this.padding = padding;
         this.paddingFilter = paddingFilter;

@@ -13,6 +13,7 @@ import com.simsilica.es.EntityComponent;
 public class Visual implements EntityComponent {
     
     private final String model;
+    private boolean independent = false;
     
     public Visual() {
         this(null);
@@ -21,11 +22,19 @@ public class Visual implements EntityComponent {
         this.model = model;
     }
     
+    public Visual setIndependent(boolean i) {
+        this.independent = i;
+        return this;
+    }
+    
     public String getModel() {
         return model;
     }
     public boolean isCustom() {
         return model == null;
+    }
+    public boolean isIndependent() {
+        return independent;
     }
     @Override
     public String toString() {

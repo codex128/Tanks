@@ -29,7 +29,7 @@ public class TransformUpdateState extends ESAppState {
         super.init(app);
         spatialUpdate = ed.getEntities(Visual.class, EntityTransform.class, TransformMode.class);
         entityCopy = ed.getEntities(
-                new FunctionFilter<>(Copy.class, c -> c.supports(Copy.TRANSFORM)),
+                Copy.filter(Copy.TRANSFORM),
                 EntityTransform.class, TransformMode.class, Copy.class);
         visuals = getState(VisualState.class, true);
     }

@@ -4,21 +4,26 @@
  */
 package codex.tanks.collision;
 
-import codex.tanks.collision.ShapeFilter;
 import codex.tanks.components.CollisionShape;
 import codex.tanks.util.EntityAccess;
 import com.simsilica.es.EntityId;
 
 /**
- *
+ * Implementation of {@link ShapeFilter} which ignores a given entity id.
+ * 
+ * <p>This implementation differs from {@code ShapeFilter.byId()} because {@link LaserRaytest}
+ * uses it to specifically filter out the entity in which a single raytest begins.
+ * 
+ * <p>This filter has no unique effects if it is not the root filter of a given raytest.
+ * 
  * @author codex
  */
-public class EntityIgnoreFilter implements ShapeFilter {
+public class OriginFilter implements ShapeFilter {
     
     private EntityId root;
     private final ShapeFilter child;
     
-    public EntityIgnoreFilter(EntityId id, ShapeFilter child) {
+    public OriginFilter(EntityId id, ShapeFilter child) {
         this.root = id;
         this.child = child;
     }

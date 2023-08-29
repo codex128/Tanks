@@ -34,6 +34,7 @@ public class BasicRaytest implements Raytest {
 
     @Override
     public void cast(CollisionState state) {
+        results.clear();
         Raytest.raycast(state, ray, filter, results);
     }
     @Override

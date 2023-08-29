@@ -40,6 +40,7 @@ public class Bullet {
     
     public void update(CollisionState collision, float tpf) {
         var test = new BasicRaytest(getMovementRay(), ShapeFilter.notId(entity.getId()));
+        test.cast(collision);
         var closest = test.getCollision();
         if (closest != null) {
             if (closest.getDistance() < entity.get(Velocity.class).getSpeed()*tpf*2) {

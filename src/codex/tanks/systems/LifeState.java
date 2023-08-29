@@ -5,7 +5,9 @@
 package codex.tanks.systems;
 
 import codex.tanks.components.Alive;
+import codex.tanks.components.Copy;
 import codex.tanks.util.ESAppState;
+import codex.tanks.util.FunctionFilter;
 import com.jme3.app.Application;
 import com.simsilica.es.EntitySet;
 
@@ -16,11 +18,15 @@ import com.simsilica.es.EntitySet;
 public class LifeState extends ESAppState {
     
     private EntitySet alive;
+    private EntitySet copy;
     
     @Override
     protected void init(Application app) {
         super.init(app);
         alive = ed.getEntities(Alive.class);
+        copy = ed.getEntities(
+                Copy.filter(Copy.LIFE),
+                Alive.class, Copy.class);
     }
     @Override
     protected void cleanup(Application app) {
@@ -35,6 +41,13 @@ public class LifeState extends ESAppState {
         if (alive.applyChanges()) for (var e : alive.getChangedEntities()) {
             if (!e.get(Alive.class).isAlive()) {
                 ed.removeEntity(e.getId());
+            }
+        }
+        copy.applyChanges();
+        for (var e : copy) {
+            var a = ed.getComponent(e.get(Copy.class).getCopy(), Alive.class);
+            if (a != null && !a.isAlive()) {
+                e.set(new Alive(false));
             }
         }
     }
