@@ -10,20 +10,20 @@ import com.simsilica.es.EntityComponent;
  *
  * @author codex
  */
-public class ShootForce implements EntityComponent {
+public class Power implements EntityComponent {
     
-    private final float force;
+    private final float power;
 
-    public ShootForce(float force) {
-        this.force = force;
+    public Power(float power) {
+        this.power = power;
     }
 
-    public float getForce() {
-        return force;
+    public float getPower() {
+        return power;
     }
     @Override
     public String toString() {
-        return "ShootForce{" + "force=" + force + '}';
+        return "Power{" + "power=" + power + '}';
     }
     
 }

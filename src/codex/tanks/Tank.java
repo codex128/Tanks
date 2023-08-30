@@ -7,7 +7,6 @@ package codex.tanks;
 import codex.j3map.J3map;
 import codex.tanks.components.*;
 import codex.tanks.systems.BulletState;
-import codex.tanks.systems.ParticleState;
 import codex.tanks.systems.VisualState;
 import codex.tanks.util.FunctionFilter;
 import codex.tanks.util.GameUtils;
@@ -158,10 +157,10 @@ public class Tank {
         var bullet = ed.createEntity();
         ed.setComponents(bullet,
             new GameObject("bullet"),
-            new Visual(BulletState.getBulletModelId(entity.get(ShootForce.class).getForce())),
+            new Visual(BulletState.getBulletModelId(entity.get(Power.class).getPower())),
             new EntityTransform().setTranslation(muzzle.getWorldTranslation()).setScale(.17f),
             new TransformMode(1, 1, 0),
-            new Velocity(getAimDirection().multLocal(entity.get(ShootForce.class).getForce())),
+            new Velocity(getAimDirection().multLocal(entity.get(Power.class).getPower())),
             new FaceVelocity(),
             new Bounces(entity.get(Bounces.class).getRemaining()),
             new CollisionShape("hitbox"),
@@ -169,14 +168,35 @@ public class Tank {
             new Owner(entity.getId()),
             new Alive()
         );
-        var smokeEntity = ed.createEntity();
-        ed.setComponents(smokeEntity,
-                new GameObject("particle-emitter"),
-                new Visual().setIndependent(true),
-                new Copy(bullet, Copy.TRANSFORM, Copy.LIFE),
-                new Alive());
-        var
-        visuals.getState(ParticleState.class).link(bullet, emitter)
+        var flash = ed.createEntity();
+        ed.setComponents(flash,
+                new GameObject("light"),
+                new EntityLight(EntityLight.POINT),
+                new EntityTransform().setTranslation(muzzle.getWorldTranslation()),
+                new Decay(.03f),
+                new Alive(),
+                new Power(50f),
+                new ColorScheme(ColorRGBA.Orange));
+        if (BulletState.isMissile(entity.get(Power.class).getPower())) {
+            var light = ed.createEntity();
+            ed.setComponents(light,
+                    new GameObject("light"),
+                    new EntityLight(EntityLight.POINT),
+                    new EntityTransform(),
+                    new TransformMode(1, 1, 1),
+                    new Copy(bullet, Copy.TRANSFORM, Copy.LIFE),
+                    new Alive(),
+                    new Power(100f),
+                    new ColorScheme(ColorRGBA.Orange));
+        }
+//        var smokeEntity = ed.createEntity();
+//        ed.setComponents(smokeEntity,
+//                new GameObject("particle-emitter"),
+//                new Visual(ModelFactory.BULLET_SMOKE).setIndependent(true),
+//                new EntityTransform(),
+//                new TransformMode(1, 0, 0),
+//                new Copy(bullet, Copy.TRANSFORM, Copy.LIFE),
+//                new Alive());
 //        var shield = ed.createEntity();
 //        ed.setComponents(shield,
 //                new Visual(),
@@ -265,7 +285,7 @@ public class Tank {
                 new Firerate(source.getFloat("rps", 1f)),
                 new BulletCapacity(source.getInteger("maxBullets", 5)),
                 new Bounces(source.getInteger("maxBounces", 1)),
-                new ShootForce(source.getFloat("bulletSpeed", 10f)),
+                new Power(source.getFloat("bulletSpeed", 10f)),
                 new MineCapacity(source.getInteger("maxMines", 2)),
                 new ColorScheme(
                         source.getProperty(ColorRGBA.class, "color1", ColorRGBA.Blue),

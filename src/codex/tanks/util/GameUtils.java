@@ -55,8 +55,9 @@ public class GameUtils {
     
     public static Geometry createDebugGeometry(AssetManager assetManager, ColorRGBA color, Vector3f size) {
         Geometry g = new Geometry("debug", new Box(size.x, size.y, size.z));
-        Material m = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        m.setColor("Color", color);
+        Material m = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        m.setBoolean("UseMaterialColors", true);
+        m.setColor("Diffuse", color);
         g.setMaterial(m);
         return g;
     }

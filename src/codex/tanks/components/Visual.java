@@ -22,6 +22,15 @@ public class Visual implements EntityComponent {
         this.model = model;
     }
     
+    /**
+     * Set this as independent.
+     * <p>If true, then the spatial associated with this component
+     * will not be detached from the scene graph by {@link VisualState}
+     * when the entity is removed. It is up to other systems to handle
+     * the spatial after entity death.
+     * @param i
+     * @return this visual instance
+     */
     public Visual setIndependent(boolean i) {
         this.independent = i;
         return this;

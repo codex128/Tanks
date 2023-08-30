@@ -4,6 +4,7 @@
  */
 package codex.tanks.factory;
 
+import codex.tanks.effects.PointEmissionShape;
 import codex.tanks.util.GameUtils;
 import com.epagagames.particles.Emitter;
 import com.epagagames.particles.emittershapes.EmitterCone;
@@ -32,6 +33,7 @@ public class ModelFactory {
             BULLET = "bullet",
             MISSILE = "missile",
             FLOOR = "floor",
+            BULLET_SMOKE = "bullet-smoke",
             DEBUG = "debug";
     
     private final AssetManager assetManager;
@@ -42,12 +44,13 @@ public class ModelFactory {
     
     public Spatial create(String model) {
         return switch (model) {
-            case TANK    -> createTank();
-            case BULLET  -> createBullet();
-            case MISSILE -> createMissile();
-            case FLOOR   -> createWorldFloor();
-            case DEBUG   -> GameUtils.createDebugGeometry(assetManager, ColorRGBA.Blue, 1f);
-            default      -> createDefault();
+            case TANK           -> createTank();
+            case BULLET         -> createBullet();
+            case MISSILE        -> createMissile();
+            case FLOOR          -> createWorldFloor();
+            case BULLET_SMOKE   -> createBulletSmoke();
+            case DEBUG          -> GameUtils.createDebugGeometry(assetManager, ColorRGBA.Blue, 1f);
+            default             -> createDefault();
         };
     }
     
@@ -100,18 +103,19 @@ public class ModelFactory {
         return floor;
     }
     public Spatial createBulletSmoke() {
-        Material mat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
+        var mat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
         mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
-        Texture tex = assetManager.loadTexture("Effects/Particles/part_light.png");
-        mat.setTexture("Texture", tex);
-        Emitter emitter = new Emitter("test", mat, 100);
-        emitter.setStartSpeed(new ValueType(6.5f));
-        emitter.setLifeFixedDuration(2.0f);
-        emitter.setEmissionsPerSecond(20);
-        emitter.setParticlesPerEmission(1);
-        emitter.setShape(new EmitterCone());
-        ((EmitterCone)emitter.getShape()).setRadius(0.005f);
-        return emitter;
+        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        mat.setTransparent(true);
+        mat.setTexture("Texture", assetManager.loadTexture("Effects/Smoke.png"));
+        var smoke = new Emitter("bullet-smoke", mat, 100);
+        smoke.setStartSpeed(new ValueType(6.5f));
+        smoke.setLifeFixedDuration(2.0f);
+        smoke.setEmissionsPerSecond(20);
+        smoke.setParticlesPerEmission(1);
+        smoke.setShape(new PointEmissionShape());
+        smoke.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return smoke;
     }
     
 }

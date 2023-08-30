@@ -108,7 +108,7 @@ public class GameState extends ESAppState {
         createWall(new Vector3f(0f, 0f, -12f), 0f, new Vector3f(1f, 1f, 4f));
         //createWall(new Vector3f(0f, 0f, 0f), 0f, new Vector3f(20f, 1f, 1f));
         
-        light = new DirectionalLight(new Vector3f(1f, -1f, 1f));
+        light = new DirectionalLight(new Vector3f(1f, -1f, 1f), ColorRGBA.DarkGray);
         rootNode.addLight(light);
         var drsr = new DirectionalLightShadowRenderer(app.getAssetManager(), 4096, 2);
         drsr.setLight(light);

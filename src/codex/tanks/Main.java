@@ -61,6 +61,7 @@ public class Main extends SimpleApplication {
             ,new TransformUpdateState()
             ,new PhysicsState()
             ,new CollisionState()
+            ,new LightingState()
             ,new MovementState()
             ,new BulletState()
             ,new TankState()

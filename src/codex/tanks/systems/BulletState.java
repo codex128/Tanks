@@ -85,6 +85,9 @@ public class BulletState extends ESAppState {
         return bullets.values();
     }
     
+    public static boolean isMissile(float speed) {
+        return speed >= MISSILE_QUALIFIER;
+    }
     public static String getBulletModelId(float speed) {
         if (speed < MISSILE_QUALIFIER) return ModelFactory.BULLET;
         else return ModelFactory.MISSILE;

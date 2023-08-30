@@ -38,16 +38,16 @@ public class LifeState extends ESAppState {
     protected void onDisable() {}
     @Override
     public void update(float tpf) {
-        if (alive.applyChanges()) for (var e : alive.getChangedEntities()) {
-            if (!e.get(Alive.class).isAlive()) {
-                ed.removeEntity(e.getId());
-            }
-        }
         copy.applyChanges();
         for (var e : copy) {
             var a = ed.getComponent(e.get(Copy.class).getCopy(), Alive.class);
             if (a != null && !a.isAlive()) {
                 e.set(new Alive(false));
+            }
+        }
+        if (alive.applyChanges()) for (var e : alive.getChangedEntities()) {
+            if (!e.get(Alive.class).isAlive()) {
+                ed.removeEntity(e.getId());
             }
         }
     }
