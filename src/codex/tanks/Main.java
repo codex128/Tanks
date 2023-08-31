@@ -68,6 +68,7 @@ public class Main extends SimpleApplication {
             ,new FaceVelocityState()
             ,new DecayState()
             ,new LifeState()
+            ,new OrphanState()
             ,new AIManager()
         );        
         stateManager.attach(new GameState());

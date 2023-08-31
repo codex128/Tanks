@@ -77,9 +77,9 @@ public class GameState extends ESAppState {
             (J3map)assetManager.loadAsset("Properties/light-green.j3map"),
             (J3map)assetManager.loadAsset("Properties/black.j3map"),
         };
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             var src = enemySources[FastMath.nextRandomInt(0, enemySources.length-1)];
-            //var src = enemySources[0];
+            //var src = enemySources[2];
             var enemy = ed.createEntity();
             ed.setComponents(enemy,
                 new GameObject("tank"),
@@ -108,11 +108,11 @@ public class GameState extends ESAppState {
         createWall(new Vector3f(0f, 0f, -12f), 0f, new Vector3f(1f, 1f, 4f));
         //createWall(new Vector3f(0f, 0f, 0f), 0f, new Vector3f(20f, 1f, 1f));
         
-        light = new DirectionalLight(new Vector3f(1f, -1f, 1f), ColorRGBA.DarkGray);
+        light = new DirectionalLight(new Vector3f(1f, -1f, 1f), new ColorRGBA(.01f, .01f, .01f, 1f));
         rootNode.addLight(light);
         var drsr = new DirectionalLightShadowRenderer(app.getAssetManager(), 4096, 2);
         drsr.setLight(light);
-        app.getViewPort().addProcessor(drsr);
+        //app.getViewPort().addProcessor(drsr);
         
         var fpp = new FilterPostProcessor(app.getAssetManager());
         var ssao = new SSAOFilter();

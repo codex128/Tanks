@@ -6,9 +6,10 @@ package codex.tanks.systems;
 
 import codex.tanks.components.Alive;
 import codex.tanks.components.Copy;
+import codex.tanks.components.GameObject;
 import codex.tanks.util.ESAppState;
-import codex.tanks.util.FunctionFilter;
 import com.jme3.app.Application;
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;
 
 /**
@@ -45,10 +46,15 @@ public class LifeState extends ESAppState {
                 e.set(new Alive(false));
             }
         }
-        if (alive.applyChanges()) for (var e : alive.getChangedEntities()) {
-            if (!e.get(Alive.class).isAlive()) {
-                ed.removeEntity(e.getId());
-            }
+        if (alive.applyChanges()) {
+            alive.getChangedEntities().forEach(e -> update(e));
+            alive.getChangedEntities().forEach(e -> update(e));
+        }
+    }
+    
+    private void update(Entity e) {
+        if (!e.get(Alive.class).isAlive()) {
+            ed.removeEntity(e.getId());
         }
     }
     

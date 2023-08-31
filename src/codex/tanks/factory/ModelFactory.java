@@ -7,7 +7,6 @@ package codex.tanks.factory;
 import codex.tanks.effects.PointEmissionShape;
 import codex.tanks.util.GameUtils;
 import com.epagagames.particles.Emitter;
-import com.epagagames.particles.emittershapes.EmitterCone;
 import com.epagagames.particles.valuetypes.ValueType;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
@@ -93,7 +92,7 @@ public class ModelFactory {
     public Spatial createWorldFloor() {
         Spatial floor = assetManager.loadModel("Models/floor.j3o");
         floor.setShadowMode(RenderQueue.ShadowMode.Receive);
-        Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        Material mat = new Material(assetManager, "Common/MatDefs/PBR.j3md");
         //mat.setBoolean("UseMaterialColors", true);
         //mat.setColor("Diffuse", ColorRGBA.Green);
         var tex = assetManager.loadTexture("Textures/testgrid.png");

@@ -184,10 +184,11 @@ public class Tank {
                     new EntityLight(EntityLight.POINT),
                     new EntityTransform(),
                     new TransformMode(1, 1, 1),
-                    new Copy(bullet, Copy.TRANSFORM, Copy.LIFE),
+                    new Copy(bullet, Copy.TRANSFORM),
                     new Alive(),
                     new Power(100f),
-                    new ColorScheme(ColorRGBA.Orange));
+                    new ColorScheme(ColorRGBA.Orange),
+                    new OrphanBucket(bullet, new Decay(.3f)));
         }
 //        var smokeEntity = ed.createEntity();
 //        ed.setComponents(smokeEntity,
