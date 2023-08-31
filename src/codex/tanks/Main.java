@@ -6,6 +6,7 @@ import codex.j3map.processors.FloatProcessor;
 import codex.j3map.processors.IntegerProcessor;
 import codex.j3map.processors.StringProcessor;
 import codex.tanks.ai.*;
+import codex.tanks.factory.FactoryState;
 import codex.tanks.systems.*;
 import codex.tanks.util.ColorProcessor;
 import com.jme3.app.SimpleApplication;
@@ -57,6 +58,7 @@ public class Main extends SimpleApplication {
         stateManager.attachAll(
             new EntityState()
             ,bulletapp
+            ,new FactoryState()
             ,new VisualState()
             ,new TransformUpdateState()
             ,new PhysicsState()
@@ -69,6 +71,7 @@ public class Main extends SimpleApplication {
             ,new DecayState()
             ,new LifeState()
             ,new OrphanState()
+            ,new ParticleState()
             ,new AIManager()
         );        
         stateManager.attach(new GameState());

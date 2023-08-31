@@ -6,8 +6,9 @@ package codex.tanks.systems;
 
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Visual;
-import codex.tanks.factory.ModelFactory;
+import codex.tanks.factory.SpatialFactory;
 import codex.tanks.util.ESAppState;
+import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
@@ -27,7 +28,7 @@ public class VisualState extends ESAppState {
     private EntitySet visuals;
     private final HashMap<EntityId, Spatial> spatials = new HashMap<>();
     private final HashMap<String, Node> scenes = new HashMap<>();
-    private ModelFactory factory;
+    private SpatialFactory factory;
     
     @Override
     protected void init(Application app) {
@@ -35,7 +36,7 @@ public class VisualState extends ESAppState {
         visuals = ed.getEntities(Visual.class);
         addScene(rootNode);
         addScene(guiNode);
-        factory = new ModelFactory(assetManager);
+        factory = new SpatialFactory(assetManager);
     }
     @Override
     protected void cleanup(Application app) {
@@ -60,10 +61,12 @@ public class VisualState extends ESAppState {
     private void createModel(Entity e) {
         var v = e.get(Visual.class);
         if (v.getModel() != null) {
-            Spatial spatial = factory.create(v.getModel());
-            var transform = ed.getComponent(e.getId(), EntityTransform.class);
-            if (transform != null) {
-                transform.applyToSpatial(spatial);
+            Spatial spatial;
+            if (v.getParent() == null) {
+                spatial = factory.create(v.getModel());
+            }
+            else {
+                spatial = GameUtils.getChild(getSpatial(v.getParent()), v.getModel());
             }
             link(e.getId(), spatial, true);
         }
@@ -84,8 +87,12 @@ public class VisualState extends ESAppState {
     public boolean link(EntityId id, Spatial spatial, boolean attach) {
         if (spatials.putIfAbsent(id, spatial) == null) {
             assignId(spatial, id);
-            if (attach) {
+            if (spatial.getParent() == null && attach) {
                 rootNode.attachChild(spatial);
+            }
+            var transform = ed.getComponent(id, EntityTransform.class);
+            if (transform != null) {
+                transform.assignToSpatial(spatial);
             }
             return true;
         }

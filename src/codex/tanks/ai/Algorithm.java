@@ -30,7 +30,6 @@ public interface Algorithm {
     public void cleanup(AlgorithmUpdate update);
     
     public static void addAlgorithmClass(Class<? extends Algorithm> clazz) {
-        System.out.println("add class: "+clazz.getSimpleName());
         classes.put(clazz.getSimpleName(), clazz);
     }
     public static void addAlgorithmClasses(Class<? extends Algorithm>... classes) {

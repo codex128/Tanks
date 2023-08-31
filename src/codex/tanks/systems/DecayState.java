@@ -18,12 +18,16 @@ import com.simsilica.es.EntitySet;
  */
 public class DecayState extends ESAppState {
     
+    private EntitySet decay;
     private EntitySet life;
+    private EntitySet power;
     
     @Override
     protected void init(Application app) {
         super.init(app);
+        decay = ed.getEntities(Decay.class);
         life = ed.getEntities(new FunctionFilter<>(Alive.class, c -> c.isAlive()), Decay.class, Alive.class);
+        power = ed.getEntities(Decay.class, Power.class);
     }
     @Override
     protected void cleanup(Application app) {
@@ -35,15 +39,17 @@ public class DecayState extends ESAppState {
     protected void onDisable() {}
     @Override
     public void update(float tpf) {
+        decay.applyChanges();
         life.applyChanges();
+        power.applyChanges();
+        for (var e : power) {
+            e.set(new Power(Math.max(e.get(Power.class).getPower()*(1f-tpf/e.get(Decay.class).getDecay()), 0.01f)));
+        }
+        for (var e : decay) {
+            e.set(e.get(Decay.class).increment(tpf));
+        }
         for (var e : life) {
-            var d = e.get(Decay.class);
-            var p = ed.getComponent(e.getId(), Power.class);
-            if (p != null) {
-                ed.setComponent(e.getId(), new Power(Math.max(p.getPower()*(1f-tpf/d.getDecay()), 0.01f)));
-            }
-            e.set(d.increment(tpf));
-            if (d.isExhausted()) {
+            if (e.get(Decay.class).isExhausted()) {
                 e.set(new Alive(false));
             }
         }

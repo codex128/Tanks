@@ -7,7 +7,7 @@ package codex.tanks;
 import codex.j3map.J3map;
 import codex.tanks.ai.Algorithm;
 import codex.tanks.components.*;
-import codex.tanks.factory.ModelFactory;
+import codex.tanks.factory.SpatialFactory;
 import codex.tanks.systems.VisualState;
 import codex.tanks.util.ESAppState;
 import codex.tanks.util.GameUtils;
@@ -47,7 +47,7 @@ public class GameState extends ESAppState {
         
         var floor = ed.createEntity();
         ed.setComponents(floor,
-            new Visual(ModelFactory.FLOOR),
+            new Visual(SpatialFactory.FLOOR),
             new Physics(0f),
             new EntityTransform().setTranslation(0f, -1f, 0f),
             new CollisionShape(null),
@@ -58,7 +58,7 @@ public class GameState extends ESAppState {
         var plr = ed.createEntity();
         ed.setComponents(plr,
             new GameObject("tank"),
-            new Visual(ModelFactory.TANK),
+            new Visual(SpatialFactory.TANK),
             new Physics(),
             new EntityTransform().setTranslation(-7f, 0f, -7f),
             new TransformMode(-1, 0, 0),
@@ -83,7 +83,7 @@ public class GameState extends ESAppState {
             var enemy = ed.createEntity();
             ed.setComponents(enemy,
                 new GameObject("tank"),
-                new Visual(ModelFactory.TANK),
+                new Visual(SpatialFactory.TANK),
                 new Physics(),
                 new EntityTransform().setTranslation(5f+i*3, 0f, 7f),
                 new TransformMode(-1, 0, 0),
@@ -104,11 +104,12 @@ public class GameState extends ESAppState {
         createWall(new Vector3f(0f, 0f, 0f), FastMath.PI/4, new Vector3f(3f, 1f, 3f));        
         createWall(new Vector3f(12f, 0f, 0f), 0f, new Vector3f(4f, 1f, 1f));   
         createWall(new Vector3f(-12f, 0f, 0f), 0f, new Vector3f(4f, 1f, 1f));   
-        createWall(new Vector3f(0f, 0f, 12f), 0f, new Vector3f(1f, 1f, 4f));   
+        createWall(new Vector3f(0f, 0f, 12f), 0f, new Vector3f(1f, 1f, 4f));
         createWall(new Vector3f(0f, 0f, -12f), 0f, new Vector3f(1f, 1f, 4f));
         //createWall(new Vector3f(0f, 0f, 0f), 0f, new Vector3f(20f, 1f, 1f));
         
-        light = new DirectionalLight(new Vector3f(1f, -1f, 1f), new ColorRGBA(.01f, .01f, .01f, 1f));
+        final float brightness = 0.1f;
+        light = new DirectionalLight(new Vector3f(1f, -1f, 1f), new ColorRGBA(brightness, brightness, brightness, 1f));
         rootNode.addLight(light);
         var drsr = new DirectionalLightShadowRenderer(app.getAssetManager(), 4096, 2);
         drsr.setLight(light);
@@ -119,8 +120,20 @@ public class GameState extends ESAppState {
         ssao.setIntensity(5f);
         fpp.addFilter(ssao);
         var bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
+        bloom.setBlurScale(1f);
         fpp.addFilter(bloom);
         app.getViewPort().addProcessor(fpp);
+        
+        /*var envCam = getState(EnvironmentCamera.class, true);
+        envCam.setPosition(new Vector3f(0f, 20f, 0f));
+        envCam.setBackGroundColor(ColorRGBA.White);
+        LightProbeFactory.makeProbe(envCam, rootNode, new JobProgressAdapter<>() {
+            @Override
+            public void done(LightProbe result) {
+                result.getArea().setRadius(100f);
+                rootNode.addLight(result);
+            }
+        });*/
         
     }
     @Override

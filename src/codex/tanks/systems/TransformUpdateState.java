@@ -9,8 +9,8 @@ import codex.tanks.components.EntityTransform;
 import codex.tanks.components.TransformMode;
 import codex.tanks.components.Visual;
 import codex.tanks.util.ESAppState;
-import codex.tanks.util.FunctionFilter;
 import com.jme3.app.Application;
+import com.jme3.math.Transform;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;
 
@@ -46,10 +46,10 @@ public class TransformUpdateState extends ESAppState {
     @Override
     public void update(float tpf) {
         spatialUpdate.applyChanges();
-        entityCopy.applyChanges();
         for (var e : spatialUpdate) {
             updateSpatial(e);
         }
+        entityCopy.applyChanges();
         for (var e : entityCopy) {
             updateCopy(e);
         }
@@ -59,14 +59,15 @@ public class TransformUpdateState extends ESAppState {
         var spatial = visuals.getSpatial(e.getId());
         var transform = e.get(EntityTransform.class);
         var enable = e.get(TransformMode.class);
+        var newTrans = new Transform();
         boolean change = false;
         switch (enable.getTranslationState()) {
             case TransformMode.LOCAL_TO_ENTITY -> {
-                transform.setTranslation(spatial.getLocalTranslation());
+                newTrans.setTranslation(spatial.getLocalTranslation());
                 change = true;
             }
             case TransformMode.WORLD_TO_ENTITY -> {
-                transform.setTranslation(spatial.getWorldTranslation());
+                newTrans.setTranslation(spatial.getWorldTranslation());
                 change = true;
             }
             default ->
@@ -74,11 +75,11 @@ public class TransformUpdateState extends ESAppState {
         }
         switch (enable.getRotationState()) {
             case TransformMode.LOCAL_TO_ENTITY -> {
-                transform.setRotation(spatial.getLocalRotation());
+                newTrans.setRotation(spatial.getLocalRotation());
                 change = true;
             }
             case TransformMode.WORLD_TO_ENTITY -> {
-                transform.setRotation(spatial.getWorldRotation());
+                newTrans.setRotation(spatial.getWorldRotation());
                 change = true;
             }
             default ->
@@ -86,18 +87,18 @@ public class TransformUpdateState extends ESAppState {
         }
         switch (enable.getScaleState()) {
             case TransformMode.LOCAL_TO_ENTITY -> {
-                transform.setScale(spatial.getLocalScale());
+                newTrans.setScale(spatial.getLocalScale());
                 change = true;
             }
             case TransformMode.WORLD_TO_ENTITY -> {
-                transform.setScale(spatial.getWorldScale());
+                newTrans.setScale(spatial.getWorldScale());
                 change = true;
             }
             default ->
                 spatial.setLocalScale(transform.getScale());
         }
         if (change) {
-            e.set(new EntityTransform(transform));
+            e.set(new EntityTransform(newTrans));
         }
     }
     private void updateCopy(Entity e) {

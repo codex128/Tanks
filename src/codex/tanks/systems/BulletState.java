@@ -7,13 +7,8 @@ package codex.tanks.systems;
 import codex.tanks.collision.CollisionState;
 import codex.tanks.Bullet;
 import codex.tanks.Missile;
-import codex.tanks.components.Alive;
-import codex.tanks.components.Bounces;
-import codex.tanks.components.EntityTransform;
-import codex.tanks.components.Owner;
-import codex.tanks.components.Velocity;
-import codex.tanks.components.Visual;
-import codex.tanks.factory.ModelFactory;
+import codex.tanks.components.*;
+import codex.tanks.factory.SpatialFactory;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.Entity;
@@ -30,7 +25,7 @@ public class BulletState extends ESAppState {
     
     public static final float MISSILE_QUALIFIER = 15f;
     
-    private EntitySet entities;
+    private EntitySet set;
     private final HashMap<EntityId, Bullet> bullets = new HashMap<>();
     private VisualState visuals;
     private CollisionState collision;
@@ -38,14 +33,13 @@ public class BulletState extends ESAppState {
     @Override
     protected void init(Application app) {
         super.init(app);
-        entities = ed.getEntities(Visual.class, EntityTransform.class,
-                Velocity.class, Bounces.class, Owner.class, Alive.class);
+        set = ed.getEntities(Visual.class, EntityTransform.class, Velocity.class, Bounces.class, Owner.class, Alive.class);
         visuals = getState(VisualState.class, true);
         collision = getState(CollisionState.class, true);
     }
     @Override
     protected void cleanup(Application app) {
-        entities.release();
+        set.release();
         bullets.clear();
     }
     @Override
@@ -54,11 +48,11 @@ public class BulletState extends ESAppState {
     protected void onDisable() {}
     @Override
     public void update(float tpf) {
-        if (entities.applyChanges()) {
-            entities.getAddedEntities().forEach(e -> createBullet(e));
-            entities.getRemovedEntities().forEach(e -> destroyBullet(e));
+        if (set.applyChanges()) {
+            set.getAddedEntities().forEach(e -> createBullet(e));
+            set.getRemovedEntities().forEach(e -> destroyBullet(e));
         }
-        for (var e : entities) {
+        for (var e : set) {
             update(e, tpf);
         }
     }
@@ -89,8 +83,8 @@ public class BulletState extends ESAppState {
         return speed >= MISSILE_QUALIFIER;
     }
     public static String getBulletModelId(float speed) {
-        if (speed < MISSILE_QUALIFIER) return ModelFactory.BULLET;
-        else return ModelFactory.MISSILE;
+        if (speed < MISSILE_QUALIFIER) return SpatialFactory.BULLET;
+        else return SpatialFactory.MISSILE;
     }
     
 }

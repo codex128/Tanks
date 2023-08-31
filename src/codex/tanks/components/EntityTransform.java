@@ -5,6 +5,7 @@
 package codex.tanks.components;
 
 import com.jme3.math.Quaternion;
+import com.jme3.math.Transform;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.EntityComponent;
@@ -18,12 +19,21 @@ public class EntityTransform implements EntityComponent {
     private final Vector3f translation = new Vector3f();
     private final Quaternion rotation = new Quaternion();
     private final Vector3f scale = new Vector3f(1f, 1f, 1f);
+    private boolean applyOnAssign = true;
     
     public EntityTransform() {}
+    public EntityTransform(boolean applyOnAssign) {
+        this.applyOnAssign = applyOnAssign;
+    }
     public EntityTransform(EntityTransform transform) {
         translation.set(transform.translation);
         rotation.set(transform.rotation);
         scale.set(transform.scale);
+    }
+    public EntityTransform(Transform transform) {
+        transform.getTranslation(translation);
+        transform.getRotation(rotation);
+        transform.getScale(scale);
     }
     
     public EntityTransform setTranslation(Vector3f location) {
@@ -74,10 +84,15 @@ public class EntityTransform implements EntityComponent {
         return scale;
     }
     
-    public void applyToSpatial(Spatial spatial) {
-        spatial.setLocalTranslation(translation);
-        spatial.setLocalRotation(rotation);
-        spatial.setLocalScale(scale);
+    public void assignToSpatial(Spatial spatial) {
+        if (applyOnAssign) {
+            spatial.setLocalTranslation(translation);
+            spatial.setLocalRotation(rotation);
+            spatial.setLocalScale(scale);
+        }
+    }
+    public Transform toJmeTransform() {
+        return new Transform(translation, rotation, scale);
     }
 
     @Override

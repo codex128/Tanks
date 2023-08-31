@@ -1,0 +1,19 @@
+Material MyMaterial : Common/MatDefs/Light/Lighting.j3md {
+    MaterialParameters {
+        ParallaxHeight : 0.05
+        BackfaceShadows : false
+        Specular : 1.0 1.0 1.0 1.0
+        Shininess : 1
+        DiffuseMap : "Effects/muzzleflash.png"
+        GlowMap : "Effects/muzzleflash.png"
+    }
+    AdditionalRenderState {
+      FaceCull Off
+      DepthWrite On
+      ColorWrite On
+      PolyOffset 0.0 0.0
+      DepthTest On
+      Blend Alpha
+      Wireframe Off
+    }
+}

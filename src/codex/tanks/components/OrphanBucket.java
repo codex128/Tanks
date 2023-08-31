@@ -32,7 +32,7 @@ public class OrphanBucket implements EntityComponent {
     }
     @Override
     public String toString() {
-        return "OrphanBucket{" + "parent=" + parent + ", components=" + components + '}';
+        return "OrphanBucket{" + "parent=" + parent + ", components=" + components.length + '}';
     }
     
     public void apply(EntityData ed, EntityId entity) {

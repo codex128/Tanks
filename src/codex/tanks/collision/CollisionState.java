@@ -14,15 +14,11 @@ import codex.tanks.util.EntityAccess;
 import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
 import com.jme3.collision.CollisionResult;
-import com.jme3.collision.CollisionResults;
-import com.jme3.math.Ray;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import java.util.Iterator;
-import com.jme3.math.Quaternion;
-import com.jme3.math.Vector3f;
 
 /**
  *

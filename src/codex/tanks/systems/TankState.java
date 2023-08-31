@@ -5,18 +5,7 @@
 package codex.tanks.systems;
 
 import codex.tanks.Tank;
-import codex.tanks.components.Alive;
-import codex.tanks.components.Bounces;
-import codex.tanks.components.Firerate;
-import codex.tanks.components.BulletCapacity;
-import codex.tanks.components.ColorScheme;
-import codex.tanks.components.GameObject;
-import codex.tanks.components.MineCapacity;
-import codex.tanks.components.Physics;
-import codex.tanks.components.Power;
-import codex.tanks.components.Speed;
-import codex.tanks.components.Team;
-import codex.tanks.components.Visual;
+import codex.tanks.components.*;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.Entity;
@@ -32,18 +21,19 @@ public class TankState extends ESAppState {
     
     private EntitySet entities;
     private final HashMap<EntityId, Tank> tanks = new HashMap<>();
-    private VisualState visuals;
     private PhysicsState physics;
     
     @Override
     protected void init(Application app) {
         super.init(app);
+        // for tanks: GameObject (tank), Visual, Physics, MoveVelocity, MuzzlePosition
+        // for ai: Bounces, Team
+        // for shooting: Power, Bounces, Team
+        // for shooting limitation: BulletCapacity, Firerate
+        // for mines: MineCapacity
+        // for materials: ColorScheme
         entities = ed.getEntities(GameObject.filter("tank"),
-                GameObject.class, Visual.class, Physics.class,
-                Speed.class, Firerate.class, BulletCapacity.class,
-                Bounces.class, Power.class, MineCapacity.class,
-                ColorScheme.class, Alive.class, Team.class);
-        visuals = getState(VisualState.class, true);
+                GameObject.class, Visual.class, Physics.class, MoveVelocity.class, MuzzlePosition.class, AimDirection.class);
         physics = getState(PhysicsState.class, true);
     }
     @Override
@@ -81,6 +71,20 @@ public class TankState extends ESAppState {
     
     public Tank getTank(EntityId id) {
         return tanks.get(id);
+    }
+    
+    public EntityId shoot(EntityId id) {
+        var tank = getTank(id);
+        var aim = tank.getAimRay();
+        var bullet = factory.getEntityFactory().createBullet(id, aim.getOrigin(),
+                aim.getDirection().multLocal(tank.getEntity().get(Power.class).getPower()),
+                tank.getEntity().get(Bounces.class).getRemaining());
+        var flash = factory.getEntityFactory().createMuzzleflash(.7f);
+        ed.setComponent(flash, new Visual());
+        var flashSpatial = factory.getSpatialFactory().createMuzzleflash();
+        tank.getMuzzleNode().attachChild(flashSpatial);
+        visuals.link(flash, flashSpatial);
+        return bullet;
     }
     
 }

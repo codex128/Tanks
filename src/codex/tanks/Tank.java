@@ -6,6 +6,7 @@ package codex.tanks;
 
 import codex.j3map.J3map;
 import codex.tanks.components.*;
+import codex.tanks.factory.SpatialFactory;
 import codex.tanks.systems.BulletState;
 import codex.tanks.systems.VisualState;
 import codex.tanks.util.FunctionFilter;
@@ -19,6 +20,7 @@ import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
@@ -33,7 +35,8 @@ public class Tank {
 
     private final Spatial spatial;
     private final Entity entity;
-    private Spatial base, turret, muzzle, hitbox, pointer, probe, shield;
+    private Spatial base, turret, hitbox, pointer, probe, shield;
+    private Node muzzle;
     private final Spatial[] wheels = new Spatial[4];
     private Material material;
     private RigidBodyControl physics;
@@ -55,18 +58,18 @@ public class Tank {
     private void initialize(EntityData ed) {
         base = GameUtils.getChild(spatial, "base");
         turret = GameUtils.getChild(spatial, "turret");
-        muzzle = GameUtils.getChild(spatial, "muzzle");
+        muzzle = (Node)GameUtils.getChild(spatial, "muzzle");
         hitbox = GameUtils.getChild(spatial, "hitbox");
         pointer = GameUtils.getChild(spatial, "pointer");
         probe = GameUtils.getChild(spatial, "probe");
-        shield = GameUtils.getChild(muzzle, "shield");
+        //shield = GameUtils.getChild(spatial, "shield");
         wheels[0] = GameUtils.getChild(spatial, "wheel.FL");
         wheels[1] = GameUtils.getChild(spatial, "wheel.BL");
         wheels[2] = GameUtils.getChild(spatial, "wheel.FR");
         wheels[3] = GameUtils.getChild(spatial, "wheel.BR");
         hitbox.setCullHint(Spatial.CullHint.Always);
         pointer.setCullHint(Spatial.CullHint.Always);
-        shield.setCullHint(Spatial.CullHint.Always);
+        //shield.setCullHint(Spatial.CullHint.Always);
         var scheme = entity.get(ColorScheme.class);
         scheme.verifySize(2);
         material = GameUtils.fetchMaterial(spatial);
@@ -95,7 +98,7 @@ public class Tank {
     }
     public void drive(Vector3f move) {
         if (rotateTo(move)) {
-            var s = entity.get(Speed.class).getSpeed();
+            var s = entity.get(MaxSpeed.class).getSpeed();
             setLinearVelocity(move.mult(s));
             final float treadMovement = s*drive*treadSpeed;
             nextTreadMove.addLocal(treadMovement, treadMovement);
@@ -106,7 +109,7 @@ public class Tank {
     }
     public int drive(float factor) {
         //direction = FastMath.sign(direction);
-        final float speed = entity.get(Speed.class).getSpeed();
+        final float speed = entity.get(MaxSpeed.class).getSpeed();
         final float treadMovement = speed*factor*treadSpeed*drive;
         setLinearVelocity(getDriveDirection().mult(speed*factor));
         nextTreadMove.addLocal(treadMovement, treadMovement);
@@ -152,63 +155,6 @@ public class Tank {
         setLinearVelocity(Vector3f.ZERO.clone());
     }
     
-    public EntityId shoot(EntityData ed, VisualState visuals) {
-        if (!bulletAvailable()) return null;
-        var bullet = ed.createEntity();
-        ed.setComponents(bullet,
-            new GameObject("bullet"),
-            new Visual(BulletState.getBulletModelId(entity.get(Power.class).getPower())),
-            new EntityTransform().setTranslation(muzzle.getWorldTranslation()).setScale(.17f),
-            new TransformMode(1, 1, 0),
-            new Velocity(getAimDirection().multLocal(entity.get(Power.class).getPower())),
-            new FaceVelocity(),
-            new Bounces(entity.get(Bounces.class).getRemaining()),
-            new CollisionShape("hitbox"),
-            new ContactReaction(ContactReaction.DIE),
-            new Owner(entity.getId()),
-            new Alive()
-        );
-        var flash = ed.createEntity();
-        ed.setComponents(flash,
-                new GameObject("light"),
-                new EntityLight(EntityLight.POINT),
-                new EntityTransform().setTranslation(muzzle.getWorldTranslation()),
-                new Decay(.03f),
-                new Alive(),
-                new Power(50f),
-                new ColorScheme(ColorRGBA.Orange));
-        if (BulletState.isMissile(entity.get(Power.class).getPower())) {
-            var light = ed.createEntity();
-            ed.setComponents(light,
-                    new GameObject("light"),
-                    new EntityLight(EntityLight.POINT),
-                    new EntityTransform(),
-                    new TransformMode(1, 1, 1),
-                    new Copy(bullet, Copy.TRANSFORM),
-                    new Alive(),
-                    new Power(100f),
-                    new ColorScheme(ColorRGBA.Orange),
-                    new OrphanBucket(bullet, new Decay(.3f)));
-        }
-//        var smokeEntity = ed.createEntity();
-//        ed.setComponents(smokeEntity,
-//                new GameObject("particle-emitter"),
-//                new Visual(ModelFactory.BULLET_SMOKE).setIndependent(true),
-//                new EntityTransform(),
-//                new TransformMode(1, 0, 0),
-//                new Copy(bullet, Copy.TRANSFORM, Copy.LIFE),
-//                new Alive());
-//        var shield = ed.createEntity();
-//        ed.setComponents(shield,
-//                new Visual(),
-//                new CollisionShape(),
-//                new ContactReaction(ContactReaction.SIMPLE),
-//                new Decay(10f),
-//                new Alive());
-//        visuals.link(shield, this.shield);
-        reload = entity.get(Firerate.class).getRate();
-        return bullet;
-    }
     public void rotateAim(float angle) {
         turret.rotate(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y));
     }
@@ -244,6 +190,8 @@ public class Tank {
     }
     public Vector3f getAimDirection() {
         return turret.getLocalRotation().mult(Vector3f.UNIT_Z);
+        //muzzle.applyChanges();
+        //return muzzle.get(EntityTransform.class).getRotation().mult(Vector3f.UNIT_Z).negateLocal();
     }
     public Vector3f getDriveDirection() {
         return getForwardDirection().multLocal(drive);
@@ -259,6 +207,9 @@ public class Tank {
     }
     public Spatial getPointerMesh() {
         return pointer;
+    }
+    public Node getMuzzleNode() {
+        return muzzle;
     }
     public RigidBodyControl getPhysics() {
         return physics;
@@ -282,7 +233,7 @@ public class Tank {
     
     public static void applyProperties(EntityData ed, EntityId id, J3map source) {
         ed.setComponents(id,
-                new Speed(source.getFloat("speed", 6f)),
+                new MaxSpeed(source.getFloat("speed", 6f)),
                 new Firerate(source.getFloat("rps", 1f)),
                 new BulletCapacity(source.getInteger("maxBullets", 5)),
                 new Bounces(source.getInteger("maxBounces", 1)),

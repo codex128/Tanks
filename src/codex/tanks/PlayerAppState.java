@@ -27,11 +27,9 @@ public class PlayerAppState extends ESAppState implements
         AnalogFunctionListener, StateFunctionListener {
     
     private final EntityId player;
-    private GameState game;
-    private Camera cam;
     private Tank tank;
     private PointerManager pointer;
-    private Vector3f inputdirection = new Vector3f();
+    private final Vector3f inputdirection = new Vector3f();
     
     public PlayerAppState(EntityId player) {
         this.player = player;
@@ -100,7 +98,7 @@ public class PlayerAppState extends ESAppState implements
     @Override
     public void valueChanged(FunctionId func, InputState value, double tpf) {
         if (func == Functions.F_SHOOT && value != InputState.Off) {
-            tank.shoot(ed, getState(VisualState.class));
+            getState(TankState.class).shoot(player);
         }
     }
     
