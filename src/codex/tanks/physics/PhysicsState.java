@@ -2,13 +2,18 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanks.systems;
+package codex.tanks.physics;
 
+import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Physics;
+import codex.tanks.components.TransformMode;
+import codex.tanks.components.Visual;
 import codex.tanks.util.ESAppState;
+import codex.tanks.util.FunctionFilter;
 import com.jme3.app.Application;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
+import com.jme3.bullet.PhysicsTickListener;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.control.Control;
@@ -21,19 +26,21 @@ import java.util.HashMap;
  *
  * @author codex
  */
-public class PhysicsState extends ESAppState {
+public class PhysicsState extends ESAppState implements PhysicsTickListener {
     
-    private EntitySet entities;
-    private HashMap<EntityId, Object> physics = new HashMap<>();
+    private EntitySet basicSet;
+    private EntitySet advSet;
+    private HashMap<EntityId, RigidBodyControl> physics = new HashMap<>();
     private BulletAppState bulletapp;
-    private VisualState visuals;
     
     @Override
     protected void init(Application app) {
         super.init(app);
-        entities = ed.getEntities(Physics.class);
+        basicSet = ed.getEntities(Physics.class);
+        advSet = ed.getEntities(
+                new FunctionFilter<>(TransformMode.class, c -> c.anyMatch(m -> TransformMode.isPhysics(m))),
+                Physics.class, EntityTransform.class, TransformMode.class);
         bulletapp = getState(BulletAppState.class, true);
-        visuals = getState(VisualState.class, true);
         getPhysicsSpace().setGravity(new Vector3f(0f, -100f, 0f));
     }
     @Override
@@ -44,9 +51,33 @@ public class PhysicsState extends ESAppState {
     protected void onDisable() {}
     @Override
     public void update(float tpf) {
-        if (entities.applyChanges()) {
-            entities.getAddedEntities().forEach(e -> create(e));
-            entities.getRemovedEntities().forEach(e -> destroy(e));
+        if (basicSet.applyChanges()) {
+            basicSet.getAddedEntities().forEach(e -> create(e));
+            basicSet.getRemovedEntities().forEach(e -> destroy(e));
+        }
+    }    
+    @Override
+    public void prePhysicsTick(PhysicsSpace space, float timeStep) {
+        advSet.applyChanges();
+        for (var e : advSet) {
+            var object = physics.get(e.getId());
+            if (object == null) continue;
+            var transform = e.get(EntityTransform.class);
+            var enable = e.get(TransformMode.class);
+            if (TransformMode.isPhysics(enable.getTranslation())) {
+                object.setPhysicsLocation(transform.getTranslation());
+            }
+            if (TransformMode.isPhysics(enable.getRotation())) {
+                object.setPhysicsRotation(transform.getRotation());
+            }
+        }
+    }
+    @Override
+    public void physicsTick(PhysicsSpace space, float timeStep) {
+        for (var e : advSet) {
+            var object = physics.get(e.getId());
+            if (object == null) continue;
+            // get physical attributes
         }
     }
     
@@ -71,7 +102,7 @@ public class PhysicsState extends ESAppState {
         }
     }
     
-    public boolean link(EntityId id, Object object) {
+    public boolean link(EntityId id, RigidBodyControl object) {
         if (ed.getComponent(id, Physics.class) == null) {
             return false;
         }
@@ -81,7 +112,7 @@ public class PhysicsState extends ESAppState {
         }
         return false;
     }
-    public Object unlink(EntityId id) {
+    public RigidBodyControl unlink(EntityId id) {
         var object = physics.remove(id);
         if (object != null) {
             getPhysicsSpace().remove(object);

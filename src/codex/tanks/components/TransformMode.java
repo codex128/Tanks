@@ -5,6 +5,7 @@
 package codex.tanks.components;
 
 import com.simsilica.es.EntityComponent;
+import java.util.function.Function;
 
 /**
  *
@@ -13,6 +14,7 @@ import com.simsilica.es.EntityComponent;
 public class TransformMode implements EntityComponent {
     
     public static final int
+            PHYSICS_TO_ENTITY = -3,
             WORLD_TO_ENTITY = -2,
             LOCAL_TO_ENTITY = -1,
             NONE = 0,
@@ -30,56 +32,39 @@ public class TransformMode implements EntityComponent {
         this.scale = scale;
     }
 
-    public int getTranslationState() {
+    public int getTranslation() {
         return translation;
     }
-    public int getRotationState() {
+    public int getRotation() {
         return rotation;
     }
-    public int getScaleState() {
+    public int getScale() {
         return scale;
     }
     
-    public boolean isEntityToSpatialTranslation() {
-        return translation > 0;
-    }
-    public boolean isEntityToSpatialRotation() {
-        return rotation > 0;
-    }
-    public boolean isEntityToSpatialScale() {
-        return rotation > 0;
-    }
-    public boolean isSpatialTranslationToEntity() {
-        return translation < 0;
-    }
-    public boolean isSpatialRotationToEntity() {
-        return rotation < 0;
-    }
-    public boolean isSpatialScaleToEntity() {
-        return rotation < 0;
-    }
-    public boolean useWorldTranslation() {
-        return Math.abs(translation) == 2;
-    }
-    public boolean useWorldRotation() {
-        return Math.abs(rotation) == 2;
-    }
-    public boolean useWorldScale() {
-        return Math.abs(scale) == 2;
-    }
-    public boolean useTranslation() {
-        return translation != 0;
-    }
-    public boolean useRotation() {
-        return rotation != 0;
-    }
-    public boolean useScale() {
-        return scale != 0;
+    public boolean anyMatch(Function<Integer, Boolean> filter) {
+        return filter.apply(translation) || filter.apply(rotation) || filter.apply(scale);
     }
     
     @Override
     public String toString() {
         return "SpatialTransform{" + "translation=" + translation + ", rotation=" + rotation + ", scale=" + scale + '}';
+    }
+    
+    public static boolean isEntityToSpatial(int m) {
+        return m >= ENTITY_TO_LOCAL;
+    }
+    public static boolean isSpatialToEntity(int m) {
+        return m == LOCAL_TO_ENTITY || m == WORLD_TO_ENTITY;
+    }
+    public static boolean isWorld(int m) {
+        return m == ENTITY_TO_WORLD || m == WORLD_TO_ENTITY;
+    }
+    public static boolean isNone(int m) {
+        return m == NONE;
+    }
+    public static boolean isPhysics(int m) {
+        return m == PHYSICS_TO_ENTITY;
     }
     
 }

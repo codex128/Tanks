@@ -4,6 +4,7 @@
  */
 package codex.tanks.systems;
 
+import codex.tanks.physics.PhysicsState;
 import codex.tanks.Tank;
 import codex.tanks.components.*;
 import codex.tanks.util.ESAppState;
@@ -26,14 +27,15 @@ public class TankState extends ESAppState {
     @Override
     protected void init(Application app) {
         super.init(app);
-        // for tanks: GameObject (tank), Visual, Physics, MoveVelocity, MuzzlePosition
+        // for tanks: GameObject (tank), Visual, Physics, MoveVelocity, MuzzlePosition, etc
         // for ai: Bounces, Team
         // for shooting: Power, Bounces, Team
         // for shooting limitation: BulletCapacity, Firerate
         // for mines: MineCapacity
         // for materials: ColorScheme
         entities = ed.getEntities(GameObject.filter("tank"),
-                GameObject.class, Visual.class, Physics.class, MoveVelocity.class, MuzzlePosition.class, AimDirection.class);
+                GameObject.class, Visual.class, Physics.class, MoveVelocity.class, MuzzlePosition.class,
+                AimDirection.class, TurnSpeed.class, Forward.class);
         physics = getState(PhysicsState.class, true);
     }
     @Override

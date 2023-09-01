@@ -6,10 +6,6 @@ package codex.tanks;
 
 import codex.j3map.J3map;
 import codex.tanks.components.*;
-import codex.tanks.factory.SpatialFactory;
-import codex.tanks.systems.BulletState;
-import codex.tanks.systems.VisualState;
-import codex.tanks.util.FunctionFilter;
 import codex.tanks.util.GameUtils;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
@@ -25,7 +21,6 @@ import com.jme3.scene.Spatial;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import com.simsilica.es.EntitySet;
 
 /**
  *
@@ -40,13 +35,12 @@ public class Tank {
     private final Spatial[] wheels = new Spatial[4];
     private Material material;
     private RigidBodyControl physics;
-    private EntitySet bullets;
     private final Vector2f treadOffset = new Vector2f();
     private final Vector2f nextTreadMove = new Vector2f();
     private final float treadSpeed = -0.002f;
     private final float wheelSpeedRatio = -15f;
     
-    private float reload = 0f;
+    //private float reload = 0f;
     private int drive = 1;
     
     public Tank(Spatial spatial, Entity entity, EntityData ed) {
@@ -75,7 +69,7 @@ public class Tank {
         material = GameUtils.fetchMaterial(spatial);
         material.setColor("MainColor", scheme.getPallete()[0]);
         material.setColor("SecondaryColor", scheme.getPallete()[1]);
-        bullets = ed.getEntities(new FunctionFilter<>(Owner.class, c -> c.isOwner(entity.getId())), Owner.class);
+        //bullets = ed.getEntities(new FunctionFilter<>(Owner.class, c -> c.isOwner(entity.getId())), Owner.class);
         initPhysics();
     }
     private void initPhysics() {
@@ -84,65 +78,60 @@ public class Tank {
         spatial.addControl(physics);
     }
     public void cleanup() {
-        bullets.release();
+        //bullets.release();
     }
     
     public void update(float tpf) {
-        if ((reload -= tpf) < 0f) reload = 0f;
-        bullets.applyChanges();
+        //if ((reload -= tpf) < 0f) reload = 0f;
+        //bullets.applyChanges();
+        drive(entity.get(MoveVelocity.class).getMove());
+        aimAtDirection(entity.get(AimDirection.class).getAim());
+        entity.set(new Forward(base.getLocalRotation().mult(Vector3f.UNIT_Y)));
+        entity.set(new MuzzlePosition(muzzle.getWorldTranslation()));
         if (!nextTreadMove.equals(Vector2f.ZERO)) {
             moveRightTread(nextTreadMove.y);
             moveLeftTread(nextTreadMove.x);
             nextTreadMove.set(0f, 0f);
         }
     }
+    
     public void drive(Vector3f move) {
         if (rotateTo(move)) {
-            var s = entity.get(MaxSpeed.class).getSpeed();
-            setLinearVelocity(move.mult(s));
-            final float treadMovement = s*drive*treadSpeed;
+            //var s = entity.get(MaxSpeed.class).getSpeed();
+            setLinearVelocity(move);
+            final float treadMovement = move.length()*drive*treadSpeed;
             nextTreadMove.addLocal(treadMovement, treadMovement);
         }
-        else {
-            stop();
-        }
+        //else {
+        //    stop();
+        //}
     }
-    public int drive(float factor) {
-        //direction = FastMath.sign(direction);
-        final float speed = entity.get(MaxSpeed.class).getSpeed();
-        final float treadMovement = speed*factor*treadSpeed*drive;
-        setLinearVelocity(getDriveDirection().mult(speed*factor));
+    @Deprecated
+    public void drive(float speed) {
+        assert speed >= 0;
+        final float treadMovement = speed*treadSpeed*drive;
+        setLinearVelocity(getDriveDirection().mult(speed));
         nextTreadMove.addLocal(treadMovement, treadMovement);
-        if (factor < 0) {
-            drive *= -1;
-            return -1;
-        }
-        return 1;
     }
     private void setLinearVelocity(Vector3f vel) {
-        vel.setY(physics.getLinearVelocity().getY());
-        physics.setLinearVelocity(vel);
+        physics.setLinearVelocity(vel.clone().setY(physics.getLinearVelocity().getY()));
         physics.activate();
     }
-    public void rotate(float angle) {
-        final float treadMoveMovement = angle*treadSpeed;
-        final float isRight = FastMath.sign(angle);
-        base.rotate(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y));
-        nextTreadMove.addLocal(treadMoveMovement*isRight, -treadMoveMovement*isRight);
-    }
-    public boolean rotateTo(Vector3f direction) {
-        final float threshold = .7f;
+    
+    private boolean rotateTo(Vector3f direction) {
+        final float threshold = .6f;
         direction.setY(0f).normalizeLocal();
         var move = getDriveDirection();
         var q = new Quaternion().lookAt(direction, Vector3f.UNIT_Y);
         var factor = move.dot(direction);
         if (factor >= 0f) {
             // rotate current drive direction to match direction
-            if (move.angleBetween(direction) > 0.1f) {
-                rotate(-0.1f*FastMath.sign(move.dot(q.getRotationColumn(0))));
+            float turn = entity.get(TurnSpeed.class).getSpeed();
+            if (move.angleBetween(direction) > turn) {
+                rotate(-turn*FastMath.sign(move.dot(q.getRotationColumn(0))));
             }
             else {
-                base.setLocalRotation(q);
+                entity.set(new Forward(q.getRotationColumn(2)));
             }
         }
         else {
@@ -151,13 +140,18 @@ public class Tank {
         }
         return factor >= 1f-threshold;
     }
-    public void stop() {
-        setLinearVelocity(Vector3f.ZERO.clone());
+    private void rotate(float angle) {
+        final float treadMoveMovement = angle*treadSpeed;
+        final float isRight = FastMath.sign(angle);
+        entity.set(new Forward(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y).mult(entity.get(Forward.class).getForward())));
+        nextTreadMove.addLocal(treadMoveMovement*isRight, -treadMoveMovement*isRight);
     }
     
+    @Deprecated
     public void rotateAim(float angle) {
         turret.rotate(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y));
     }
+    @Deprecated
     public void aimAt(Vector3f target) {
         Vector3f dir = target.subtract(turret.getWorldTranslation()).setY(0f).normalizeLocal();
         Quaternion q = new Quaternion().lookAt(dir, Vector3f.UNIT_Y);
@@ -167,7 +161,7 @@ public class Tank {
         turret.setLocalRotation(new Quaternion().lookAt(direction, Vector3f.UNIT_Y));
     }
     public Ray getAimRay() {
-        return new Ray(muzzle.getWorldTranslation(), getAimDirection());
+        return new Ray(entity.get(MuzzlePosition.class).getPosition(), entity.get(AimDirection.class).getAim());
     }
     
     private void moveRightTread(float amount) {
@@ -185,16 +179,18 @@ public class Tank {
         wheels[1].rotate(q);
     }
     
+    @Deprecated
     public Vector3f getPosition() {
         return physics.getPhysicsLocation();
     }
+    @Deprecated
     public Vector3f getAimDirection() {
         return turret.getLocalRotation().mult(Vector3f.UNIT_Z);
         //muzzle.applyChanges();
         //return muzzle.get(EntityTransform.class).getRotation().mult(Vector3f.UNIT_Z).negateLocal();
     }
     public Vector3f getDriveDirection() {
-        return getForwardDirection().multLocal(drive);
+        return entity.get(Forward.class).getForward().mult(drive);
     }
     public Vector3f getForwardDirection() {
         return base.getLocalRotation().mult(Vector3f.UNIT_Z);
@@ -219,15 +215,16 @@ public class Tank {
     }
     
     public boolean bulletAvailable() {
-        int max = entity.get(BulletCapacity.class).getMax();
-        return reload <= 0 && (max < 0 || bullets.size() < max);
+        //int max = entity.get(BulletCapacity.class).getMax();
+        //return reload <= 0 && (max < 0 || bullets.size() < max);
+        return false;
     }
     public boolean ownsBullet(Bullet b) {
-        for (var e : bullets) {
-            if (e.getId().equals(b.getEntity().getId())) {
-                return true;
-            }
-        }
+//        for (var e : bullets) {
+//            if (e.getId().equals(b.getEntity().getId())) {
+//                return true;
+//            }
+//        }
         return false;
     }
     
