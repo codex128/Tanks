@@ -12,7 +12,6 @@ import codex.tanks.components.Firerate;
 import codex.tanks.components.MuzzlePosition;
 import codex.tanks.components.Power;
 import codex.tanks.components.Team;
-import codex.tanks.components.Trigger;
 import codex.tanks.systems.OwnerState;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
@@ -89,10 +88,11 @@ public class GunState extends ESAppState implements Listenable<ShootEventListene
         return false;
     }
     private boolean shoot(Entity e) {
-        factory.getEntityFactory().createBullet(
+        factory.getEntityFactory().createProjectile(
             e.getId(),
             e.get(MuzzlePosition.class).getPosition(),
-            e.get(AimDirection.class).getAim().mult(e.get(Power.class).getPower()),
+            e.get(AimDirection.class).getAim(),
+            e.get(Power.class).getPower(),
             e.get(Bounces.class).getRemaining());
         return true;
     }

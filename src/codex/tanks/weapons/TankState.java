@@ -26,16 +26,9 @@ public class TankState extends ESAppState {
     @Override
     protected void init(Application app) {
         super.init(app);
-        // for tanks: GameObject (tank), Visual, RigidBody, MoveVelocity, MuzzlePosition, etc
-        // for ai: Bounces, Team
-        // for shooting: Power, Bounces, Team
-        // for shooting limitation: BulletCapacity, Firerate
-        // for mines: MineCapacity
-        // for materials: ColorScheme
         entities = ed.getEntities(GameObject.filter("tank"),
-                GameObject.class, Visual.class, RigidBody.class, EntityTransform.class, MoveVelocity.class,
-                MuzzlePosition.class, AimDirection.class, TurnSpeed.class, Forward.class, LinearVelocity.class,
-                ColorScheme.class);
+                GameObject.class, Visual.class, RigidBody.class, MoveVelocity.class, MuzzlePosition.class,
+                AimDirection.class, TurnSpeed.class, Forward.class, LinearVelocity.class, ProbeLocation.class);
         physics = getState(PhysicsState.class, true);
     }
     @Override
@@ -55,6 +48,7 @@ public class TankState extends ESAppState {
         }
         for (var t : tanks.values()) {
             t.update(tpf);
+            t.getMatChanges().applyChanges(ed, t.getEntity().getId());
         }
     }
     

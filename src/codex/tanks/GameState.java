@@ -4,10 +4,8 @@
  */
 package codex.tanks;
 
-import codex.tanks.weapons.Bullet;
 import codex.tanks.weapons.Tank;
 import codex.j3map.J3map;
-import codex.tanks.ai.Algorithm;
 import codex.tanks.components.*;
 import codex.tanks.factory.SpatialFactory;
 import codex.tanks.systems.VisualState;
@@ -16,10 +14,7 @@ import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
-import com.jme3.effect.ParticleEmitter;
-import com.jme3.effect.ParticleMesh;
-import com.jme3.light.DirectionalLight;
-import com.jme3.material.Material;
+import com.jme3.light.PointLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
@@ -29,7 +24,6 @@ import com.jme3.post.filters.BloomFilter;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.shape.Box;
-import com.jme3.shadow.DirectionalLightShadowRenderer;
 
 /**
  *
@@ -39,7 +33,6 @@ public class GameState extends ESAppState {
     
     private BulletAppState bulletapp;
     private PlayerAppState player;
-    private DirectionalLight light;
     
     @Override
     protected void init(Application app) {
@@ -58,6 +51,7 @@ public class GameState extends ESAppState {
         
         J3map playerSource = (J3map)app.getAssetManager().loadAsset("Properties/player.j3map");        
         var plr = factory.getEntityFactory().createTank(new Vector3f(-7f, 0f, -7f), 0, playerSource);
+        ed.setComponents(plr, new Player(0));
         player = new PlayerAppState(plr);
         getStateManager().attach(player);
         
@@ -67,23 +61,12 @@ public class GameState extends ESAppState {
             (J3map)assetManager.loadAsset("Properties/light-green.j3map"),
             (J3map)assetManager.loadAsset("Properties/black.j3map"),
         };
-        for (int i = 0; i < 0; i++) {
-            var src = enemySources[FastMath.nextRandomInt(0, enemySources.length-1)];
-            //var src = enemySources[2];
-            var enemy = ed.createEntity();
-            ed.setComponents(enemy,
-                new GameObject("tank"),
-                new Visual(SpatialFactory.TANK),
-                new RigidBody(),
-                new EntityTransform().setTranslation(5f+i*3, 0f, 7f),
-                new TransformMode(-1, 0, 0),
-                new CollisionShape("hitbox"),
-                new ContactReaction(ContactReaction.DIE),
-                new Team(1),
-                new Alive()
-            );
-            Tank.applyProperties(ed, enemy, src.getJ3map("tank"));
-            Algorithm.applyProperties(ed, enemy, src);
+        for (int i = 0; i < 1; i++) {
+            //var src = enemySources[FastMath.nextRandomInt(0, enemySources.length-1)];
+            var src = enemySources[2];
+            var enemy = factory.getEntityFactory().createAITank(new Vector3f(7f+i*3, 0f, 7f), 1, src);
+            //Tank.applyProperties(ed, enemy, src.getJ3map("tank"));
+            //Algorithm.applyProperties(ed, enemy, src);
         }
         
         float r = 20f;
@@ -98,12 +81,12 @@ public class GameState extends ESAppState {
         createWall(new Vector3f(0f, 0f, -12f), 0f, new Vector3f(1f, 1f, 4f));
         //createWall(new Vector3f(0f, 0f, 0f), 0f, new Vector3f(20f, 1f, 1f));
         
-        final float brightness = 0.1f;
-        light = new DirectionalLight(new Vector3f(1f, -1f, 1f), new ColorRGBA(brightness, brightness, brightness, 1f));
-        rootNode.addLight(light);
-        var drsr = new DirectionalLightShadowRenderer(app.getAssetManager(), 4096, 2);
-        drsr.setLight(light);
-        //app.getViewPort().addProcessor(drsr);
+        float radius = 50f;
+        addLight(new Vector3f(r-2, 2f, r-2), ColorRGBA.White, radius);
+        addLight(new Vector3f(-r+2, 2f, r-2), ColorRGBA.White, radius);
+        addLight(new Vector3f(r+2, 2f, -r+2), ColorRGBA.White, radius);
+        addLight(new Vector3f(-r+2, 2f, -r+2), ColorRGBA.White, radius);
+        addLight(new Vector3f(0f, 2f, 0f), ColorRGBA.White, radius);
         
         var fpp = new FilterPostProcessor(app.getAssetManager());
         var ssao = new SSAOFilter();
@@ -155,23 +138,8 @@ public class GameState extends ESAppState {
         geometry.setLocalScale(size);
         getState(VisualState.class).link(wall, geometry, true);
     }
-    private ParticleEmitter createBulletSmoke(Bullet b) {
-        var smoke = new ParticleEmitter("bullet-smoke", ParticleMesh.Type.Triangle, 10);
-        var mat = new Material(getApplication().getAssetManager(), "Common/MatDefs/Misc/Particle.j3md");
-        mat.setTexture("Texture", getApplication().getAssetManager().loadTexture("Effects/Smoke.png"));
-        smoke.setMaterial(mat);
-        smoke.setImagesX(15); smoke.setImagesY(1);
-        smoke.setSelectRandomImage(true);
-        smoke.setHighLife(.5f);
-        smoke.setLowLife(smoke.getHighLife());
-        smoke.setStartSize(.2f);
-        smoke.setEndSize(.7f);
-        smoke.setStartColor(new ColorRGBA(.1f, .1f, .1f, 1f));
-        smoke.setEndColor(new ColorRGBA(.1f, .1f, .1f, 0f));
-        smoke.setGravity(0f, 0f, 0f);
-        //smoke.setParticlesPerSec(b.getBulletInfo().getSpeed()*2);
-        smoke.setNumParticles(10);
-        return smoke;
+    private void addLight(Vector3f location, ColorRGBA color, float radius) {
+        rootNode.addLight(new PointLight(location, color, radius));
     }
     
     public PlayerAppState getPlayerState() {

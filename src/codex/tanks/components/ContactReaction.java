@@ -4,8 +4,9 @@
  */
 package codex.tanks.components;
 
-import codex.tanks.weapons.Bullet;
+import codex.tanks.util.GameUtils;
 import com.jme3.collision.CollisionResult;
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -22,8 +23,8 @@ public class ContactReaction implements EntityComponent {
     public static final ContactReaction
     SIMPLE = new ContactReaction() {
         @Override
-        public void react(EntityData ed, EntityId target, Bullet bullet, CollisionResult collision) {
-            bullet.getEntity().set(new Alive(false));
+        public void react(EntityData ed, EntityId target, Entity bullet, CollisionResult collision) {
+            bullet.set(new Alive(false));
         }
     };
     
@@ -33,8 +34,16 @@ public class ContactReaction implements EntityComponent {
     public static final ContactReaction
     RICOCHET = new ContactReaction() {
         @Override
-        public void react(EntityData ed, EntityId target, Bullet bullet, CollisionResult collision) {
-            bullet.ricochet(collision.getContactNormal());
+        public void react(EntityData ed, EntityId target, Entity bullet, CollisionResult collision) {
+            var b = bullet.get(Bounces.class);
+            if (!b.isExhausted()) {
+                var v = bullet.get(Velocity.class);
+                bullet.set(new Velocity(GameUtils.ricochet(v.getDirection(), collision.getContactNormal()).multLocal(v.getSpeed())));
+                bullet.set(b.increment());
+            }
+            else {
+                bullet.set(new Alive(false));
+            }
         }
         @Override
         public boolean ricochet() {
@@ -48,8 +57,8 @@ public class ContactReaction implements EntityComponent {
     public static final ContactReaction
     DIE = new ContactReaction() {
         @Override
-        public void react(EntityData ed, EntityId target, Bullet bullet, CollisionResult collision) {
-            bullet.getEntity().set(new Alive(false));
+        public void react(EntityData ed, EntityId target, Entity bullet, CollisionResult collision) {
+            bullet.set(new Alive(false));
             ed.setComponent(target, new Alive(false));
         }
     };
@@ -61,7 +70,7 @@ public class ContactReaction implements EntityComponent {
         this.delegate = delegate;
     }
     
-    public void react(EntityData ed, EntityId target, Bullet bullet, CollisionResult collision) {
+    public void react(EntityData ed, EntityId target, Entity bullet, CollisionResult collision) {
         if (delegate != null) {
             delegate.react(ed, target, bullet, collision);
         }

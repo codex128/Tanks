@@ -28,7 +28,6 @@ public class VisualState extends ESAppState {
     private EntitySet visuals;
     private final HashMap<EntityId, Spatial> spatials = new HashMap<>();
     private final HashMap<String, Node> scenes = new HashMap<>();
-    private SpatialFactory factory;
     
     @Override
     protected void init(Application app) {
@@ -36,7 +35,6 @@ public class VisualState extends ESAppState {
         visuals = ed.getEntities(Visual.class);
         addScene(rootNode);
         addScene(guiNode);
-        factory = new SpatialFactory(assetManager);
     }
     @Override
     protected void cleanup(Application app) {
@@ -63,7 +61,7 @@ public class VisualState extends ESAppState {
         if (v.getModel() != null) {
             Spatial spatial;
             if (v.getParent() == null) {
-                spatial = factory.create(v.getModel());
+                spatial = factory.getSpatialFactory().create(v.getModel());
             }
             else {
                 spatial = GameUtils.getChild(getSpatial(v.getParent()), v.getModel());

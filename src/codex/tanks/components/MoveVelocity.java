@@ -13,10 +13,10 @@ import com.simsilica.es.EntityComponent;
  */
 public class MoveVelocity implements EntityComponent {
     
-    private final Vector3f move;
+    private final Vector3f move = new Vector3f();
     
     public MoveVelocity(Vector3f move) {
-        this.move = move;
+        this.move.set(move);
     }
     
     public Vector3f getMove() {

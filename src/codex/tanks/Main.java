@@ -51,33 +51,35 @@ public class Main extends SimpleApplication {
                 DefensivePoints.class,
                 DirectAim.class,
                 Lookout.class,
+                PlayerFinder.class,
                 RandomPoints.class,
-                Sniper.class,
+                SniperShooting.class,
                 Wander.class);
         
         BulletAppState bulletapp = new BulletAppState();
         //bulletapp.setDebugEnabled(true);
         
         stateManager.attachAll(
-            new EntityState()
-            ,bulletapp
-            ,new FactoryState()
-            ,new VisualState()
-            ,new TransformUpdateState()
-            ,new PhysicsState()
-            ,new CollisionState()
-            ,new LightingState()
-            ,new MovementState()
-            ,new GunState()
-            ,new BulletState()
-            ,new TankState()
-            ,new FaceVelocityState()
-            ,new DecayState()
-            ,new LifeState()
-            ,new OrphanState()
-            ,new OwnerState()
-            ,new ParticleState()
-            ,new AIManager()
+            new EntityState(),
+            bulletapp,
+            new FactoryState(),
+            new VisualState(),
+            new TransformUpdateState(),
+            new PhysicsState(),
+            new CollisionState(),
+            new LightingState(),
+            new MovementState(),
+            new GunState(),
+            new BulletState(),
+            new TankState(),
+            new FaceVelocityState(),
+            new DecayState(),
+            new LifeState(),
+            new OrphanState(),
+            new OwnerState(),
+            new MaterialState(),
+            new ParticleState(),
+            new AIManager()
         );        
         stateManager.attach(new GameState());
         

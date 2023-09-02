@@ -8,6 +8,7 @@ import codex.j3map.J3map;
 import codex.tanks.collision.PaddedRaytest;
 import codex.tanks.collision.ShapeFilter;
 import codex.tanks.components.Forward;
+import codex.tanks.components.ProbeLocation;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.FastMath;
@@ -135,7 +136,7 @@ public class Wander implements Algorithm {
         return false;
     }
     @Override
-    public void cleanup(AlgorithmUpdate update) {}
+    public void endUpdate(AlgorithmUpdate update) {}
     
     private static int getOppositeDirectionIndex(int dir) {
         if (dir < Wander.RAYCAST_DIRECTIONS.length/2) {
@@ -156,8 +157,8 @@ public class Wander implements Algorithm {
         }
         private void raycast(AlgorithmUpdate update, int direction) {
             vector = RAYCAST_DIRECTIONS[direction];
-            var filter = ShapeFilter.notId(update.getTankId());
-            var test = new PaddedRaytest(new Ray(update.getTank().getProbeLocation(), vector), filter, 1f, filter, new CollisionResults());
+            var filter = ShapeFilter.notId(update.getAgentId());
+            var test = new PaddedRaytest(new Ray(update.getComponent(ProbeLocation.class).getLocation(), vector), filter, 1f, filter, new CollisionResults());
             test.setResultMergingEnabled(true);
             test.cast(update.getCollisionState());
             collision = test.getCollision();

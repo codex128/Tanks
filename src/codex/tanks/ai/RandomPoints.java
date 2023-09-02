@@ -8,6 +8,7 @@ import codex.j3map.J3map;
 import codex.tanks.collision.PaddedRaytest;
 import codex.tanks.collision.ShapeFilter;
 import codex.tanks.components.EntityTransform;
+import codex.tanks.components.ProbeLocation;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -63,7 +64,7 @@ public class RandomPoints implements Algorithm {
         return false;
     }    
     @Override
-    public void cleanup(AlgorithmUpdate update) {
+    public void endUpdate(AlgorithmUpdate update) {
         if (!updateOccured) {
             stack.clear();
         }
@@ -76,9 +77,9 @@ public class RandomPoints implements Algorithm {
     protected Vector3f getNextPoint(AlgorithmUpdate update, float minDist, float maxDist, float radius, int attempts) {
         var ray = new Ray();
         while (attempts-- > 0) {
-            ray.setOrigin(update.getTank().getProbeLocation());
+            ray.setOrigin(update.getComponent(ProbeLocation.class).getLocation());
             ray.setDirection(getNextDirection(update.getDirectionToPlayer()));
-            var filter = ShapeFilter.notId(update.getTankId());
+            var filter = ShapeFilter.notId(update.getAgentId());
             var test = new PaddedRaytest(ray, filter, 1f, filter, new CollisionResults());
             test.setResultMergingEnabled(true);
             test.cast(update.getCollisionState());

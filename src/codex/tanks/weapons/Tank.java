@@ -6,6 +6,8 @@ package codex.tanks.weapons;
 
 import codex.j3map.J3map;
 import codex.tanks.components.*;
+import codex.tanks.effects.MatChange;
+import codex.tanks.effects.MaterialChangeBucket;
 import codex.tanks.util.GameUtils;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
@@ -18,6 +20,7 @@ import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.shader.VarType;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -30,8 +33,8 @@ public class Tank {
 
     private final Spatial spatial;
     private final Entity entity;
-    private Spatial base, turret, hitbox, probe, shield;
-    private Node muzzle;
+    private Spatial base, turret, probe, muzzle;
+    private MaterialChangeBucket matBucket = new MaterialChangeBucket();
     private final Spatial[] wheels = new Spatial[4];
     private Material material;
     private RigidBodyControl physics;
@@ -52,24 +55,13 @@ public class Tank {
     private void initialize() {
         base = GameUtils.getChild(spatial, "base");
         turret = GameUtils.getChild(spatial, "turret");
-        muzzle = (Node)GameUtils.getChild(spatial, "muzzle");
-        hitbox = GameUtils.getChild(spatial, "hitbox");
-        var pointer = GameUtils.getChild(spatial, "pointer");
+        muzzle = GameUtils.getChild(spatial, "muzzle");
         probe = GameUtils.getChild(spatial, "probe");
-        //shield = GameUtils.getChild(spatial, "shield");
+        Spatial hitbox = GameUtils.getChild(spatial, "hitbox");
         wheels[0] = GameUtils.getChild(spatial, "wheel.FL");
         wheels[1] = GameUtils.getChild(spatial, "wheel.BL");
         wheels[2] = GameUtils.getChild(spatial, "wheel.FR");
         wheels[3] = GameUtils.getChild(spatial, "wheel.BR");
-        hitbox.setCullHint(Spatial.CullHint.Always);
-        pointer.setCullHint(Spatial.CullHint.Always);
-        //shield.setCullHint(Spatial.CullHint.Always);
-        var scheme = entity.get(ColorScheme.class);
-        scheme.verifySize(2);
-        material = GameUtils.fetchMaterial(spatial);
-        material.setColor("MainColor", scheme.getPallete()[0]);
-        material.setColor("SecondaryColor", scheme.getPallete()[1]);
-        //bullets = ed.getEntities(new FunctionFilter<>(Owner.class, c -> c.isOwner(entity.getId())), Owner.class);
         physics = new RigidBodyControl(CollisionShapeFactory.createMergedHullShape(hitbox), 2000f);
         physics.setAngularFactor(0f);
         spatial.addControl(physics);
@@ -82,7 +74,8 @@ public class Tank {
         aimAtDirection(entity.get(AimDirection.class).getAim());
         entity.set(new Forward(getDriveDirection()));
         entity.set(new MuzzlePosition(muzzle.getWorldTranslation()));
-        //entity.set(new MoveVelocity(Vector3f.ZERO));
+        entity.set(new MoveVelocity(Vector3f.ZERO));
+        entity.set(new ProbeLocation(probe.getWorldTranslation()));
         if (!nextTreadMove.equals(Vector2f.ZERO)) {
             moveRightTread(nextTreadMove.y);
             moveLeftTread(nextTreadMove.x);
@@ -91,7 +84,11 @@ public class Tank {
     }
     
     private void drive(Vector3f move) {
-        if (rotateTo(move)) {
+        if (move.equals(Vector3f.ZERO)) {
+            setLinearVelocity(move);
+            return;
+        }
+        if (rotateTo(move.clone())) {
             //var s = entity.get(MaxSpeed.class).getSpeed();
             setLinearVelocity(move);
             final float treadMovement = move.length()*drive*treadSpeed;
@@ -101,9 +98,9 @@ public class Tank {
             setLinearVelocity(Vector3f.ZERO);
         }
     }
-    private void setLinearVelocity(Vector3f vel) {
-        entity.set(new LinearVelocity(GameUtils.merge(vel, entity.get(LinearVelocity.class).getVelocity(), 1, -1, 1)));
-    }    
+    private void setLinearVelocity(Vector3f velocity) {
+        entity.set(new LinearVelocity(GameUtils.merge(velocity, entity.get(LinearVelocity.class).getVelocity(), 1, -1, 1)));
+    }
     private boolean rotateTo(Vector3f direction) {
         final float threshold = .6f;
         direction.setY(0f).normalizeLocal();
@@ -117,7 +114,7 @@ public class Tank {
                 rotate(-turn*FastMath.sign(move.dot(q.getRotationColumn(0))));
             }
             else {
-                entity.set(new Forward(q.getRotationColumn(2)));
+                base.setLocalRotation(q);
             }
         }
         else {
@@ -129,7 +126,7 @@ public class Tank {
     private void rotate(float angle) {
         final float treadMoveMovement = angle*treadSpeed;
         final float isRight = FastMath.sign(angle);
-        entity.set(new Forward(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y).mult(entity.get(Forward.class).getForward())));
+        base.rotate(0f, angle, 0f);
         nextTreadMove.addLocal(treadMoveMovement*isRight, -treadMoveMovement*isRight);
     }
     private void aimAtDirection(Vector3f direction) {
@@ -137,14 +134,14 @@ public class Tank {
     }    
     private void moveRightTread(float amount) {
         treadOffset.y += amount;
-        material.setFloat("TreadOffset2", treadOffset.y);
+        matBucket.add(new MatChange("TreadOffset2", VarType.Float, treadOffset.y));
         Quaternion q = new Quaternion().fromAngleAxis(amount*wheelSpeedRatio, Vector3f.UNIT_X);
         wheels[2].rotate(q);
         wheels[3].rotate(q);
     }
     private void moveLeftTread(float amount) {
         treadOffset.x += amount;
-        material.setFloat("TreadOffset1", treadOffset.x);
+        matBucket.add(new MatChange("TreadOffset2", VarType.Float, treadOffset.y));
         Quaternion q = new Quaternion().fromAngleAxis(amount*wheelSpeedRatio, Vector3f.UNIT_X);
         wheels[0].rotate(q);
         wheels[1].rotate(q);
@@ -152,7 +149,7 @@ public class Tank {
     
     public Ray getAimRay() {
         return new Ray(entity.get(MuzzlePosition.class).getPosition(), entity.get(AimDirection.class).getAim());
-    }    
+    }
     
     private Vector3f getDriveDirection() {
         return base.getLocalRotation().mult(Vector3f.UNIT_Z).mult(drive);
@@ -162,6 +159,9 @@ public class Tank {
     }
     public Spatial getSpatial() {
         return spatial;
+    }
+    public MaterialChangeBucket getMatChanges() {
+        return matBucket;
     }
     public RigidBodyControl getPhysics() {
         return physics;
@@ -178,9 +178,9 @@ public class Tank {
             new Bounces(source.getInteger("maxBounces", 1)),
             new Power(source.getFloat("bulletSpeed", 10f)),
             new MineCapacity(source.getInteger("maxMines", 2)),
-            new ColorScheme(
-                source.getProperty(ColorRGBA.class, "color1", ColorRGBA.Blue),
-                source.getProperty(ColorRGBA.class, "color2", ColorRGBA.DarkGray)));
+            new MaterialUpdate(
+                new MatChange("MainColor", VarType.Vector4, source.getProperty(ColorRGBA.class, "color1", ColorRGBA.Blue)),
+                new MatChange("SecondaryColor", VarType.Vector4, source.getProperty(ColorRGBA.class, "color2", ColorRGBA.DarkGray))));
     }
     
 }

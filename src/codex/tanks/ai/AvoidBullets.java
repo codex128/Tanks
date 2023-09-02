@@ -5,6 +5,7 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
+import codex.tanks.components.Bounces;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Owner;
 import codex.tanks.components.Velocity;
@@ -53,20 +54,20 @@ public class AvoidBullets implements Algorithm {
         return false;
     }    
     @Override
-    public void cleanup(AlgorithmUpdate update) {}
+    public void endUpdate(AlgorithmUpdate update) {}
     
     public Vector3f getDodgeDirection(AlgorithmUpdate update) {
         var vec = new Vector3f();
         var bulletDir = new Vector3f();
         Vector3f dodge = null;
-        for (var b : update.getBullets()) {
-            vec.set(b.getPosition()).subtractLocal(update.getComponent(EntityTransform.class).getTranslation()).setY(0f).normalizeLocal();
-            bulletDir.set(b.getEntity().get(Velocity.class).getDirection());
-            var owner = update.getEntityData().getComponent(b.getEntity().getId(), Owner.class);
-            if (b.getBouncesMade() == 0 && owner != null && owner.isOwner(update.getTankId())) {
+        for (var e : update.getBullets()) {
+            vec.set(e.get(EntityTransform.class).getTranslation()).subtractLocal(update.getComponent(EntityTransform.class).getTranslation()).setY(0f).normalizeLocal();
+            bulletDir.set(e.get(Velocity.class).getDirection());
+            var owner = update.getEntityData().getComponent(e.getId(), Owner.class);
+            if (e.get(Bounces.class).getBouncesMade() == 0 && owner != null && owner.isOwner(update.getAgentId())) {
                 continue;
             }
-            float dist = GameUtils.distance2D(b.getPosition(), update.getComponent(EntityTransform.class).getTranslation(), Axis.Y);
+            float dist = GameUtils.distance2D(e.get(EntityTransform.class).getTranslation(), update.getComponent(EntityTransform.class).getTranslation(), Axis.Y);
             if (dist < alert) {
                 if (dodge == null) dodge = new Vector3f();
                 vec.negateLocal();

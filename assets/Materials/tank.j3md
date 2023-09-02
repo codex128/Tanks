@@ -1,11 +1,11 @@
 MaterialDef Tank {
     MaterialParameters {
         Texture2D DiffuseMap
-        Color MainColor
-        Color SecondaryColor
+        Color MainColor      : 0.0 0.0 1.0 1.0
+        Color SecondaryColor : 0.0 0.0 1.0 1.0
         Color MainPlaceholder      : 1.0 0.0 0.0 1.0
         Color SecondaryPlaceholder : 0.0 0.0 1.0 1.0
-        Float Similarity : 0.001
+        Float Similarity   : 0.001
         Float TreadOffset1 : 0.0
         Float TreadOffset2 : 0.0
         Float TreadCoord1  : 0.1

@@ -50,6 +50,6 @@ public class Lookout implements Algorithm {
         return false;
     }
     @Override
-    public void cleanup(AlgorithmUpdate update) {}
+    public void endUpdate(AlgorithmUpdate update) {}
     
 }

@@ -4,7 +4,6 @@
  */
 package codex.tanks.collision;
 
-import codex.tanks.weapons.Bullet;
 import codex.tanks.components.ContactReaction;
 import codex.tanks.components.CollisionShape;
 import codex.tanks.components.Visual;
@@ -56,7 +55,7 @@ public class CollisionState extends ESAppState implements Iterable<Spatial> {
         return new ShapeIterator(filter);
     }
     
-    public void bulletCollision(EntityId target, Bullet bullet, CollisionResult collision) {
+    public void bulletCollision(EntityId target, Entity bullet, CollisionResult collision) {
         var r = ed.getComponent(target, ContactReaction.class);
         if (r != null) r.react(ed, target, bullet, collision);
     }

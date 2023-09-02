@@ -46,7 +46,7 @@ public class BasicShooting implements Algorithm {
     
     @Override
     public void update(AlgorithmUpdate update) {
-        if (update.calculatePlayerInView()) {
+        if (update.isTargetInView()) {
             exposure = Math.min(exposure+update.getTpf(), minExposure);
         }
         else {
@@ -64,12 +64,12 @@ public class BasicShooting implements Algorithm {
     }
     @Override
     public boolean shoot(AlgorithmUpdate update) {
-        if (update.isPlayerInView() && exposure > minExposure-0.01f
+        if (update.isTargetInView() && exposure > minExposure-0.01f
                 && update.getDirectionToPlayer().dot(update.getComponent(AimDirection.class).getAim()) >= 1f-maxBarrelOffset) {
             var raytest = new PaddedLaserRaytest(
-                    update.getTank().getAimRay(), update.getTankId(), 1f,
-                    ShapeFilter.and(ShapeFilter.byTeam(update.getTank().getEntity().get(Team.class).getTeam()), ShapeFilter.notId(update.getTankId())),
-                    update.getTank().getEntity().get(Bounces.class).getRemaining());
+                    update.getAimRay(), update.getAgentId(), 1f,
+                    ShapeFilter.and(ShapeFilter.byTeam(update.getComponent(Team.class).getTeam()), ShapeFilter.notId(update.getAgentId())),
+                    update.getComponent(Bounces.class).getRemaining());
             raytest.cast(update.getCollisionState());
             if (raytest.isImpeded()) {
                 return false;
@@ -85,6 +85,6 @@ public class BasicShooting implements Algorithm {
         return false;
     }
     @Override
-    public void cleanup(AlgorithmUpdate update) {}
+    public void endUpdate(AlgorithmUpdate update) {}
     
 }

@@ -4,18 +4,20 @@
  */
 package codex.tanks.systems;
 
+import codex.boost.Timer;
+import codex.tanks.collision.BasicRaytest;
 import codex.tanks.collision.CollisionState;
-import codex.tanks.weapons.Bullet;
-import codex.tanks.weapons.Missile;
+import codex.tanks.collision.ShapeFilter;
 import codex.tanks.components.*;
+import codex.tanks.effects.MatChange;
 import codex.tanks.factory.SpatialFactory;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
+import com.jme3.math.FastMath;
+import com.jme3.math.Ray;
+import com.jme3.shader.VarType;
 import com.simsilica.es.Entity;
-import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import java.util.Collection;
-import java.util.HashMap;
 
 /**
  *
@@ -25,22 +27,21 @@ public class BulletState extends ESAppState {
     
     public static final float MISSILE_QUALIFIER = 15f;
     
-    private EntitySet set;
-    private final HashMap<EntityId, Bullet> bullets = new HashMap<>();
-    private VisualState visuals;
+    private EntitySet entities;
+    private Timer flameUpdate = new Timer(0.03f);
     private CollisionState collision;
     
     @Override
     protected void init(Application app) {
         super.init(app);
-        set = ed.getEntities(Visual.class, EntityTransform.class, Velocity.class, Bounces.class, Owner.class, Alive.class);
+        entities = ed.getEntities(Visual.class, EntityTransform.class, Velocity.class, Bounces.class, Owner.class, Alive.class);
         visuals = getState(VisualState.class, true);
         collision = getState(CollisionState.class, true);
+        flameUpdate.setCycleMode(Timer.CycleMode.ONCE);
     }
     @Override
     protected void cleanup(Application app) {
-        set.release();
-        bullets.clear();
+        entities.release();
     }
     @Override
     protected void onEnable() {}
@@ -48,37 +49,48 @@ public class BulletState extends ESAppState {
     protected void onDisable() {}
     @Override
     public void update(float tpf) {
-        if (set.applyChanges()) {
-            set.getAddedEntities().forEach(e -> createBullet(e));
-            set.getRemovedEntities().forEach(e -> destroyBullet(e));
-        }
-        for (var e : set) {
+        flameUpdate.update(tpf);
+        entities.applyChanges();
+        for (var e : entities) {
             update(e, tpf);
         }
+        if (flameUpdate.isComplete()) {
+            flameUpdate.reset();
+            flameUpdate.start();
+        }
     }
     
-    private void createBullet(Entity e) {
-        Bullet bullet;
-        if (e.get(Velocity.class).getSpeed() < MISSILE_QUALIFIER) {
-            bullet = new Bullet(visuals.getSpatial(e.getId()), e);
-        }
-        else {
-            bullet = new Missile(visuals.getSpatial(e.getId()), e);
-        }
-        bullets.putIfAbsent(e.getId(), bullet);
-    }
-    private void destroyBullet(Entity e) {
-        bullets.remove(e.getId());
-    }    
     private void update(Entity e, float tpf) {
-        var bullet = bullets.get(e.getId());
-        bullet.update(collision, tpf);
+        //var bullet = bullets.get(e.getId());
+        //bullet.update(collision, tpf);
+        raytest(e, tpf);        
+        if (flameUpdate.isComplete() && isMissile(e)) {
+            ed.setComponent(e.getId(), new MaterialUpdate("flame", new MatChange("Seed", VarType.Float, FastMath.nextRandomFloat()*97.43f)));
+        }
+    }
+    private void raytest(Entity e, float tpf) {
+        var test = new BasicRaytest(
+                new Ray(e.get(EntityTransform.class).getTranslation(), e.get(Velocity.class).getDirection()),
+                ShapeFilter.notId(e.getId()));
+        test.cast(collision);
+        var closest = test.getCollision();
+        if (closest != null) {
+            if (closest.getDistance() < e.get(Velocity.class).getSpeed()*tpf*2) {
+                var id = test.getCollisionEntity();
+                if (id != null) {
+                    collision.bulletCollision(id, e, closest);
+                }
+            }
+        }
     }
     
-    public Collection<Bullet> getBullets() {
-        return bullets.values();
+    public EntitySet getBullets() {
+        return entities;
     }
     
+    public static boolean isMissile(Entity e) {
+        return isMissile(e.get(Velocity.class).getSpeed());
+    }
     public static boolean isMissile(float speed) {
         return speed >= MISSILE_QUALIFIER;
     }

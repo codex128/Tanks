@@ -8,6 +8,7 @@ import codex.j3map.J3map;
 import codex.tanks.weapons.Tank;
 import codex.tanks.ai.Algorithm;
 import codex.tanks.components.*;
+import codex.tanks.systems.BulletState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityData;
@@ -26,6 +27,7 @@ public class EntityFactory {
     }
     
     public EntityId createTank(Vector3f position, int team, J3map properties) {
+        System.out.println("create tank");
         var tank = ed.createEntity();
         ed.setComponents(tank,
             new GameObject("tank"),
@@ -40,19 +42,29 @@ public class EntityFactory {
             new Alive(),
             new MuzzlePosition(Vector3f.ZERO),
             new AimDirection(Vector3f.UNIT_Z),
-            new TurnSpeed(0.01f),
+            new TurnSpeed(0.1f),
             new Forward(),
-            new LinearVelocity(Vector3f.ZERO)
+            new LinearVelocity(Vector3f.ZERO),
+            new ProbeLocation(Vector3f.ZERO)
         );
         Tank.applyProperties(ed, tank, properties);
         return tank;
     }
     public EntityId createAITank(Vector3f position, int team, J3map properties) {
-        var tank = createTank(position, team, properties);
+        System.out.println("create AI tank");
+        var tank = createTank(position, team, properties.getJ3map("tank"));
         Algorithm.applyProperties(ed, tank, properties);
         return tank;
     }
     
+    public EntityId createProjectile(EntityId owner, Vector3f position, Vector3f direction, float speed, int bounces) {
+        if (!BulletState.isMissile(speed)) {
+            return createBullet(owner, position, direction.mult(speed), bounces);
+        }
+        else {
+            return createMissile(owner, position, direction.mult(speed), bounces)[0];
+        }
+    }
     public EntityId createBullet(EntityId owner, Vector3f position, Vector3f velocity, int bounces) {
         var bullet = ed.createEntity();
         ed.setComponents(bullet,

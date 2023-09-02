@@ -4,6 +4,7 @@
  */
 package codex.tanks.factory;
 
+import codex.boost.scene.UserDataIterator;
 import codex.tanks.util.GameUtils;
 import com.epagagames.particles.Emitter;
 import com.epagagames.particles.emittershapes.EmitterSphere;
@@ -25,6 +26,7 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.texture.Texture;
+import java.util.LinkedList;
 
 /**
  *
@@ -33,22 +35,33 @@ import com.jme3.texture.Texture;
 public class SpatialFactory {
     
     public static final String
-            TANK = "tank",
-            BULLET = "bullet",
-            MISSILE = "missile",
-            FLOOR = "floor",
-            BULLET_SMOKE = "bullet-smoke",
-            TANK_DEBRIS = "tank-debris",
-            MUZZLEFLASH = "muzzleflash",
-            DEBUG = "debug";
+        TANK = "tank",
+        BULLET = "bullet",
+        MISSILE = "missile",
+        FLOOR = "floor",
+        BULLET_SMOKE = "bullet-smoke",
+        TANK_DEBRIS = "tank-debris",
+        MUZZLEFLASH = "muzzleflash",
+        DEBUG = "debug";
     
     private final AssetManager assetManager;
+    private LinkedList<UserDataIterator> preprocessors = new LinkedList<>();
     
     public SpatialFactory(AssetManager assetManager) {
         this.assetManager = assetManager;
     }
     
     public Spatial create(String model) {
+        var spatial = createSpatial(model);
+        if (spatial != null) for (var pre : preprocessors) {
+            pre.setSpatial(spatial);
+            for (var i = pre.iterator(); i.hasNext();) {
+                pre.accept(i.getSpatial(), i.next());
+            }
+        }
+        return spatial;
+    }
+    private Spatial createSpatial(String model) {
         return switch (model) {
             case TANK           -> createTank();
             case BULLET         -> createBullet();
@@ -61,6 +74,7 @@ public class SpatialFactory {
             default             -> createNode();
         };
     }
+    
     public Node createNode() {
         return new Node();
     }
@@ -192,6 +206,16 @@ public class SpatialFactory {
         sprite.setSpriteCols(3);
         sprite.setUseRandomImage(true);
         return debris;
+    }
+    
+    public void addSpatialPreProcessor(UserDataIterator pre) {
+        preprocessors.add(pre);
+    }
+    public void removeSpatialPreProcessor(UserDataIterator pre) {
+        preprocessors.remove(pre);
+    }
+    public void clearAllPreProcessors() {
+        preprocessors.clear();
     }
     
 }

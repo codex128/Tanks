@@ -74,7 +74,7 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
         }
         //tank.update(tpf);
         if (!inputdirection.equals(Vector3f.ZERO)) {
-            ed.setComponent(player, new MoveVelocity(inputdirection.normalizeLocal().multLocal(ed.getComponent(player, MaxSpeed.class).getSpeed()*100)));
+            ed.setComponent(player, new MoveVelocity(inputdirection.normalizeLocal().multLocal(ed.getComponent(player, MaxSpeed.class).getSpeed())));
         }
         final float n = 35;
         cam.setLocation(new Vector3f(0f, n, -n));

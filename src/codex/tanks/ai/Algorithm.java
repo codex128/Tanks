@@ -6,13 +6,14 @@ package codex.tanks.ai;
 
 import codex.j3map.J3map;
 import codex.tanks.components.Brain;
+import codex.tanks.systems.EntityState;
+import com.jme3.app.Application;
+import com.jme3.app.state.AppState;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import java.lang.System.Logger.Level;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import org.bushe.swing.event.Logger;
 
 /**
  *
@@ -22,12 +23,26 @@ public interface Algorithm {
     
     public static final HashMap<String, Class<? extends Algorithm>> classes = new HashMap<>();
     
+    public default void initialize(Application app) {}
+    public default EntityId fetchTargetId(AlgorithmUpdate update) {
+        return null;
+    }
+    
     public void update(AlgorithmUpdate update);
     public boolean move(AlgorithmUpdate update);
     public boolean aim(AlgorithmUpdate update);
     public boolean shoot(AlgorithmUpdate update);
     public boolean mine(AlgorithmUpdate update);
-    public void cleanup(AlgorithmUpdate update);
+    public void endUpdate(AlgorithmUpdate update);
+    
+    public default void cleanup(Application app) {}
+    
+    public default <T extends AppState> T getState(Application app, Class<T> type) {
+        return app.getStateManager().getState(type);
+    }
+    public default EntityData getEntityData(Application app) {
+        return getState(app, EntityState.class).getEntityData();
+    }
     
     public static void addAlgorithmClass(Class<? extends Algorithm> clazz) {
         classes.put(clazz.getSimpleName(), clazz);
@@ -45,15 +60,16 @@ public interface Algorithm {
             }
             var clazz = classes.get(p.key);
             if (clazz != null) {
-                var a = applyToClass(ed, id, (J3map)p.property, clazz);
+                var a = applyToClass((J3map)p.property, clazz);
                 if (a != null) {
+                    //a.initialize(app);
                     brains.add(a);
                 }
             }
         }
         ed.setComponent(id, new Brain(brains.toArray(Algorithm[]::new)));
     }
-    private static Algorithm applyToClass(EntityData ed, EntityId id, J3map source, Class<? extends Algorithm> clazz) {
+    private static Algorithm applyToClass(J3map source, Class<? extends Algorithm> clazz) {
         try {
             return clazz.getConstructor(J3map.class).newInstance(source);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
