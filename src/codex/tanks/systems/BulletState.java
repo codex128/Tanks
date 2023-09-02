@@ -5,8 +5,8 @@
 package codex.tanks.systems;
 
 import codex.tanks.collision.CollisionState;
-import codex.tanks.Bullet;
-import codex.tanks.Missile;
+import codex.tanks.weapons.Bullet;
+import codex.tanks.weapons.Missile;
 import codex.tanks.components.*;
 import codex.tanks.factory.SpatialFactory;
 import codex.tanks.util.ESAppState;

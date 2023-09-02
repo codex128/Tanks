@@ -9,6 +9,7 @@ import codex.tanks.collision.PaddedLaserRaytest;
 import codex.tanks.components.Bounces;
 import codex.tanks.components.Team;
 import codex.tanks.collision.ShapeFilter;
+import codex.tanks.components.AimDirection;
 
 /**
  *
@@ -64,7 +65,7 @@ public class BasicShooting implements Algorithm {
     @Override
     public boolean shoot(AlgorithmUpdate update) {
         if (update.isPlayerInView() && exposure > minExposure-0.01f
-                && update.getDirectionToPlayer().dot(update.getTank().getAimDirection()) >= 1f-maxBarrelOffset) {
+                && update.getDirectionToPlayer().dot(update.getComponent(AimDirection.class).getAim()) >= 1f-maxBarrelOffset) {
             var raytest = new PaddedLaserRaytest(
                     update.getTank().getAimRay(), update.getTankId(), 1f,
                     ShapeFilter.and(ShapeFilter.byTeam(update.getTank().getEntity().get(Team.class).getTeam()), ShapeFilter.notId(update.getTankId())),
@@ -73,7 +74,8 @@ public class BasicShooting implements Algorithm {
             if (raytest.isImpeded()) {
                 return false;
             }
-            update.getTank().shoot(update.getEntityData(), update.getVisualState());
+            //update.getTank().shoot(update.getEntityData(), update.getVisualState());
+            update.shoot();
             return true;
         }
         return false;

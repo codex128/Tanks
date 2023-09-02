@@ -4,7 +4,7 @@
  */
 package codex.tanks.components;
 
-import codex.tanks.Bullet;
+import codex.tanks.weapons.Bullet;
 import com.jme3.collision.CollisionResult;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;

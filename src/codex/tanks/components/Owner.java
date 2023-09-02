@@ -14,13 +14,21 @@ import com.simsilica.es.EntityId;
 public class Owner implements EntityComponent {
     
     private final EntityId id;
-
+    private final String tag;
+    
     public Owner(EntityId id) {
+        this(id, null);
+    }
+    public Owner(EntityId id, String tag) {
         this.id = id;
+        this.tag = tag;
     }
 
     public EntityId getId() {
         return id;
+    }
+    public String getTag() {
+        return tag;
     }
     public boolean isOwner(EntityId test) {
         return id.equals(test);

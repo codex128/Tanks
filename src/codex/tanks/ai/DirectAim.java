@@ -5,6 +5,8 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
+import codex.tanks.components.AimDirection;
+import codex.tanks.components.EntityTransform;
 
 /**
  *
@@ -23,7 +25,8 @@ public class DirectAim implements Algorithm {
     }
     @Override
     public boolean aim(AlgorithmUpdate update) {
-        update.getTank().aimAt(update.getPlayerTank().getPosition());
+        update.setComponent(new AimDirection(update.aimAt(
+                update.getPlayerTank().getEntity().get(EntityTransform.class).getTranslation().clone())));
         return true;
     }
     @Override

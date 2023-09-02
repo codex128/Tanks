@@ -4,13 +4,17 @@
  */
 package codex.tanks;
 
+import codex.tanks.components.AimDirection;
+import codex.tanks.weapons.Tank;
 import codex.tanks.components.Alive;
-import codex.tanks.systems.TankState;
-import codex.tanks.systems.VisualState;
+import codex.tanks.components.MaxSpeed;
+import codex.tanks.components.MoveVelocity;
+import codex.tanks.weapons.TankState;
 import codex.tanks.util.ESAppState;
+import codex.tanks.util.GameUtils;
+import codex.tanks.weapons.GunState;
 import com.jme3.app.Application;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.Camera;
 import com.simsilica.es.EntityId;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.AnalogFunctionListener;
@@ -23,8 +27,7 @@ import com.simsilica.lemur.input.StateFunctionListener;
  *
  * @author gary
  */
-public class PlayerAppState extends ESAppState implements
-        AnalogFunctionListener, StateFunctionListener {
+public class PlayerAppState extends ESAppState implements AnalogFunctionListener, StateFunctionListener {
     
     private final EntityId player;
     private Tank tank;
@@ -42,11 +45,7 @@ public class PlayerAppState extends ESAppState implements
         tank = getState(TankState.class).getTank(player);
         
         cam = app.getCamera();
-        //cam.setParallelProjection(true);
-        //cam.setFrustum(20f, 100f, -30f, 30f, 20f, -20f);
-        //cam.setFrustumLeft(100f);
-        //cam.setFrustumRight(100f);
-        pointer = new PointerManager(tank.getPointerMesh());
+        pointer = new PointerManager(GameUtils.getChild(visuals.getSpatial(player), "pointer"));
         
     }
     @Override
@@ -69,21 +68,18 @@ public class PlayerAppState extends ESAppState implements
     }
     @Override
     public void update(float tpf) {
-        if (!tank.getEntity().get(Alive.class).isAlive()) {
+        if (ed.getComponent(player, Alive.class) == null) {
             setEnabled(false);
             return;
         }
-        tank.update(tpf);
+        //tank.update(tpf);
         if (!inputdirection.equals(Vector3f.ZERO)) {
-            tank.drive(inputdirection.normalize());
-        }
-        else {
-            tank.stop();
+            ed.setComponent(player, new MoveVelocity(inputdirection.normalizeLocal().multLocal(ed.getComponent(player, MaxSpeed.class).getSpeed()*100)));
         }
         final float n = 35;
         cam.setLocation(new Vector3f(0f, n, -n));
         cam.lookAt(new Vector3f(), Vector3f.UNIT_Y);
-        tank.aimAt(pointer.getPointerLocation());
+        ed.setComponent(player, new AimDirection(pointer.getRelativePointer().normalizeLocal()));
         inputdirection.set(0f, 0f, 0f);
     }
     @Override
@@ -98,7 +94,7 @@ public class PlayerAppState extends ESAppState implements
     @Override
     public void valueChanged(FunctionId func, InputState value, double tpf) {
         if (func == Functions.F_SHOOT && value != InputState.Off) {
-            getState(TankState.class).shoot(player);
+            getState(GunState.class).shoot(player);
         }
     }
     

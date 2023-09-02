@@ -4,9 +4,9 @@
  */
 package codex.tanks.ai;
 
-import codex.tanks.Bullet;
+import codex.tanks.weapons.Bullet;
 import codex.tanks.PlayerAppState;
-import codex.tanks.Tank;
+import codex.tanks.weapons.Tank;
 import codex.tanks.components.Bounces;
 import codex.tanks.systems.AIManager;
 import codex.tanks.systems.BulletState;
@@ -15,9 +15,18 @@ import codex.tanks.collision.ShapeFilter;
 import codex.tanks.collision.BasicRaytest;
 import codex.tanks.collision.LaserRaytest;
 import codex.tanks.collision.OriginFilter;
+import codex.tanks.components.AimDirection;
+import codex.tanks.components.EntityTransform;
+import codex.tanks.components.Forward;
+import codex.tanks.components.MaxSpeed;
+import codex.tanks.components.MoveVelocity;
 import codex.tanks.systems.VisualState;
+import codex.tanks.weapons.GunState;
+import codex.tanks.weapons.TankState;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import java.util.Collection;
@@ -29,6 +38,7 @@ import java.util.Collection;
 public class AlgorithmUpdate {
     
     private final AIManager manager;
+    private final EntityId id;
     private final Tank tank;
     private final float tpf;
     private final boolean satisfied;
@@ -41,9 +51,10 @@ public class AlgorithmUpdate {
     private boolean playerInView;
     private boolean playerInBounce;
     
-    public AlgorithmUpdate(AIManager manager, Tank tank, float tpf) {
+    public AlgorithmUpdate(AIManager manager, EntityId id, float tpf) {
         this.manager = manager;
-        this.tank = tank;
+        this.id = id;
+        this.tank = manager.getState(TankState.class).getTank(id);
         this.tpf = tpf;
         satisfied = initialize();
     }
@@ -56,7 +67,7 @@ public class AlgorithmUpdate {
         collision = manager.getState(CollisionState.class);
         bulletState = manager.getState(BulletState.class);
         dirToPlayer = playerTank.getProbeLocation().subtract(tank.getProbeLocation()).normalizeLocal();
-        distToPlayer = playerTank.getPosition().distance(tank.getPosition());
+        distToPlayer = playerTank.getEntity().get(EntityTransform.class).getTranslation().distance(getComponent(EntityTransform.class).getTranslation());
         playerInView = calculatePlayerInView();
         playerInBounce = calculatePlayerInBounce();
         return true;
@@ -72,6 +83,25 @@ public class AlgorithmUpdate {
         return playerTank.getEntity().getId().equals(raytest.getCollisionEntity());
     }
     
+    public void drive(Vector3f direction) {
+        manager.getEntityData().setComponent(id, new MoveVelocity(
+                direction.multLocal(manager.getEntityData().getComponent(id, MaxSpeed.class).getSpeed())));
+    }
+    public boolean shoot() {
+        return manager.getState(GunState.class).shoot(id);
+    }
+    public Vector3f rotate(float angle) {
+        return new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y).mult(getComponent(Forward.class).getForward());
+    }
+    public Vector3f rotateAim(float angle) {
+        return new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y).mult(getComponent(AimDirection.class).getAim());
+    }
+    public Vector3f aimAt(Vector3f location) {
+        location.setY(0f);
+        Vector3f here = getComponent(EntityTransform.class).getTranslation().clone().setY(0f);
+        return location.subtractLocal(here);
+    }
+    
     public AIManager getManager() {
         return manager;
     }
@@ -83,6 +113,13 @@ public class AlgorithmUpdate {
     }
     public boolean isInfoSatisfied() {
         return satisfied;
+    }
+    
+    public <T extends EntityComponent> T getComponent(Class<T> type) {
+        return tank.getEntity().get(type);
+    }
+    public void setComponent(EntityComponent component) {
+        tank.getEntity().set(component);
     }
     
     public EntityId getTankId() {

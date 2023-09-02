@@ -4,13 +4,11 @@
  */
 package codex.tanks.components;
 
-import com.simsilica.es.EntityComponent;
-
 /**
  *
  * @author codex
  */
-public class BulletCapacity implements EntityComponent {
+public class BulletCapacity implements CapacityComponent {
     
     private final int max;
 
@@ -18,7 +16,8 @@ public class BulletCapacity implements EntityComponent {
         this.max = max;
     }
 
-    public int getMax() {
+    @Override
+    public int getMaxCapacity() {
         return max;
     }
     @Override

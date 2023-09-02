@@ -5,6 +5,7 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
+import codex.tanks.components.AimDirection;
 import codex.tanks.util.GameUtils;
 import com.jme3.math.FastMath;
 
@@ -36,7 +37,7 @@ public class Lookout implements Algorithm {
             distance = GameUtils.random(-FastMath.TWO_PI, FastMath.TWO_PI);
         }
         float angle = speed*FastMath.sign(distance);
-        update.getTank().rotateAim(angle);
+        update.setComponent(new AimDirection(update.rotateAim(angle)));
         distance -= angle;
         return true;
     }

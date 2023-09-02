@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanks;
+package codex.tanks.weapons;
 
 import codex.j3map.J3map;
 import codex.tanks.components.*;
@@ -30,7 +30,7 @@ public class Tank {
 
     private final Spatial spatial;
     private final Entity entity;
-    private Spatial base, turret, hitbox, pointer, probe, shield;
+    private Spatial base, turret, hitbox, probe, shield;
     private Node muzzle;
     private final Spatial[] wheels = new Spatial[4];
     private Material material;
@@ -43,18 +43,18 @@ public class Tank {
     //private float reload = 0f;
     private int drive = 1;
     
-    public Tank(Spatial spatial, Entity entity, EntityData ed) {
+    public Tank(Spatial spatial, Entity entity) {
         this.spatial = spatial;
         this.entity = entity;
-        initialize(ed);
+        initialize();
     }
     
-    private void initialize(EntityData ed) {
+    private void initialize() {
         base = GameUtils.getChild(spatial, "base");
         turret = GameUtils.getChild(spatial, "turret");
         muzzle = (Node)GameUtils.getChild(spatial, "muzzle");
         hitbox = GameUtils.getChild(spatial, "hitbox");
-        pointer = GameUtils.getChild(spatial, "pointer");
+        var pointer = GameUtils.getChild(spatial, "pointer");
         probe = GameUtils.getChild(spatial, "probe");
         //shield = GameUtils.getChild(spatial, "shield");
         wheels[0] = GameUtils.getChild(spatial, "wheel.FL");
@@ -70,15 +70,9 @@ public class Tank {
         material.setColor("MainColor", scheme.getPallete()[0]);
         material.setColor("SecondaryColor", scheme.getPallete()[1]);
         //bullets = ed.getEntities(new FunctionFilter<>(Owner.class, c -> c.isOwner(entity.getId())), Owner.class);
-        initPhysics();
-    }
-    private void initPhysics() {
         physics = new RigidBodyControl(CollisionShapeFactory.createMergedHullShape(hitbox), 2000f);
         physics.setAngularFactor(0f);
         spatial.addControl(physics);
-    }
-    public void cleanup() {
-        //bullets.release();
     }
     
     public void update(float tpf) {
@@ -86,8 +80,9 @@ public class Tank {
         //bullets.applyChanges();
         drive(entity.get(MoveVelocity.class).getMove());
         aimAtDirection(entity.get(AimDirection.class).getAim());
-        entity.set(new Forward(base.getLocalRotation().mult(Vector3f.UNIT_Y)));
+        entity.set(new Forward(getDriveDirection()));
         entity.set(new MuzzlePosition(muzzle.getWorldTranslation()));
+        //entity.set(new MoveVelocity(Vector3f.ZERO));
         if (!nextTreadMove.equals(Vector2f.ZERO)) {
             moveRightTread(nextTreadMove.y);
             moveLeftTread(nextTreadMove.x);
@@ -95,29 +90,20 @@ public class Tank {
         }
     }
     
-    public void drive(Vector3f move) {
+    private void drive(Vector3f move) {
         if (rotateTo(move)) {
             //var s = entity.get(MaxSpeed.class).getSpeed();
             setLinearVelocity(move);
             final float treadMovement = move.length()*drive*treadSpeed;
             nextTreadMove.addLocal(treadMovement, treadMovement);
         }
-        //else {
-        //    stop();
-        //}
-    }
-    @Deprecated
-    public void drive(float speed) {
-        assert speed >= 0;
-        final float treadMovement = speed*treadSpeed*drive;
-        setLinearVelocity(getDriveDirection().mult(speed));
-        nextTreadMove.addLocal(treadMovement, treadMovement);
+        else {
+            setLinearVelocity(Vector3f.ZERO);
+        }
     }
     private void setLinearVelocity(Vector3f vel) {
-        physics.setLinearVelocity(vel.clone().setY(physics.getLinearVelocity().getY()));
-        physics.activate();
-    }
-    
+        entity.set(new LinearVelocity(GameUtils.merge(vel, entity.get(LinearVelocity.class).getVelocity(), 1, -1, 1)));
+    }    
     private boolean rotateTo(Vector3f direction) {
         final float threshold = .6f;
         direction.setY(0f).normalizeLocal();
@@ -146,24 +132,9 @@ public class Tank {
         entity.set(new Forward(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y).mult(entity.get(Forward.class).getForward())));
         nextTreadMove.addLocal(treadMoveMovement*isRight, -treadMoveMovement*isRight);
     }
-    
-    @Deprecated
-    public void rotateAim(float angle) {
-        turret.rotate(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y));
-    }
-    @Deprecated
-    public void aimAt(Vector3f target) {
-        Vector3f dir = target.subtract(turret.getWorldTranslation()).setY(0f).normalizeLocal();
-        Quaternion q = new Quaternion().lookAt(dir, Vector3f.UNIT_Y);
-        turret.setLocalRotation(q);
-    }
-    public void aimAtDirection(Vector3f direction) {
+    private void aimAtDirection(Vector3f direction) {
         turret.setLocalRotation(new Quaternion().lookAt(direction, Vector3f.UNIT_Y));
-    }
-    public Ray getAimRay() {
-        return new Ray(entity.get(MuzzlePosition.class).getPosition(), entity.get(AimDirection.class).getAim());
-    }
-    
+    }    
     private void moveRightTread(float amount) {
         treadOffset.y += amount;
         material.setFloat("TreadOffset2", treadOffset.y);
@@ -179,33 +150,18 @@ public class Tank {
         wheels[1].rotate(q);
     }
     
-    @Deprecated
-    public Vector3f getPosition() {
-        return physics.getPhysicsLocation();
-    }
-    @Deprecated
-    public Vector3f getAimDirection() {
-        return turret.getLocalRotation().mult(Vector3f.UNIT_Z);
-        //muzzle.applyChanges();
-        //return muzzle.get(EntityTransform.class).getRotation().mult(Vector3f.UNIT_Z).negateLocal();
-    }
-    public Vector3f getDriveDirection() {
-        return entity.get(Forward.class).getForward().mult(drive);
-    }
-    public Vector3f getForwardDirection() {
-        return base.getLocalRotation().mult(Vector3f.UNIT_Z);
+    public Ray getAimRay() {
+        return new Ray(entity.get(MuzzlePosition.class).getPosition(), entity.get(AimDirection.class).getAim());
+    }    
+    
+    private Vector3f getDriveDirection() {
+        return base.getLocalRotation().mult(Vector3f.UNIT_Z).mult(drive);
     }
     public Vector3f getProbeLocation() {
         return probe.getWorldTranslation();
     }
     public Spatial getSpatial() {
         return spatial;
-    }
-    public Spatial getPointerMesh() {
-        return pointer;
-    }
-    public Node getMuzzleNode() {
-        return muzzle;
     }
     public RigidBodyControl getPhysics() {
         return physics;
@@ -214,31 +170,17 @@ public class Tank {
         return entity;
     }
     
-    public boolean bulletAvailable() {
-        //int max = entity.get(BulletCapacity.class).getMax();
-        //return reload <= 0 && (max < 0 || bullets.size() < max);
-        return false;
-    }
-    public boolean ownsBullet(Bullet b) {
-//        for (var e : bullets) {
-//            if (e.getId().equals(b.getEntity().getId())) {
-//                return true;
-//            }
-//        }
-        return false;
-    }
-    
     public static void applyProperties(EntityData ed, EntityId id, J3map source) {
         ed.setComponents(id,
-                new MaxSpeed(source.getFloat("speed", 6f)),
-                new Firerate(source.getFloat("rps", 1f)),
-                new BulletCapacity(source.getInteger("maxBullets", 5)),
-                new Bounces(source.getInteger("maxBounces", 1)),
-                new Power(source.getFloat("bulletSpeed", 10f)),
-                new MineCapacity(source.getInteger("maxMines", 2)),
-                new ColorScheme(
-                        source.getProperty(ColorRGBA.class, "color1", ColorRGBA.Blue),
-                        source.getProperty(ColorRGBA.class, "color2", ColorRGBA.DarkGray)));
+            new MaxSpeed(source.getFloat("speed", 6f)),
+            new Firerate(source.getFloat("rps", 1f)),
+            new BulletCapacity(source.getInteger("maxBullets", 5)),
+            new Bounces(source.getInteger("maxBounces", 1)),
+            new Power(source.getFloat("bulletSpeed", 10f)),
+            new MineCapacity(source.getInteger("maxMines", 2)),
+            new ColorScheme(
+                source.getProperty(ColorRGBA.class, "color1", ColorRGBA.Blue),
+                source.getProperty(ColorRGBA.class, "color2", ColorRGBA.DarkGray)));
     }
     
 }

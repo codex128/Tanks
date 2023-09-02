@@ -1,5 +1,7 @@
 package codex.tanks;
 
+import codex.tanks.effects.ParticleState;
+import codex.tanks.weapons.TankState;
 import codex.tanks.physics.PhysicsState;
 import codex.tanks.collision.CollisionState;
 import codex.j3map.J3mapFactory;
@@ -10,6 +12,7 @@ import codex.tanks.ai.*;
 import codex.tanks.factory.FactoryState;
 import codex.tanks.systems.*;
 import codex.tanks.util.ColorProcessor;
+import codex.tanks.weapons.GunState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.renderer.RenderManager;
@@ -47,7 +50,6 @@ public class Main extends SimpleApplication {
                 BasicShooting.class,
                 DefensivePoints.class,
                 DirectAim.class,
-                ForwardAim.class,
                 Lookout.class,
                 RandomPoints.class,
                 Sniper.class,
@@ -66,12 +68,14 @@ public class Main extends SimpleApplication {
             ,new CollisionState()
             ,new LightingState()
             ,new MovementState()
+            ,new GunState()
             ,new BulletState()
             ,new TankState()
             ,new FaceVelocityState()
             ,new DecayState()
             ,new LifeState()
             ,new OrphanState()
+            ,new OwnerState()
             ,new ParticleState()
             ,new AIManager()
         );        

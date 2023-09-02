@@ -7,6 +7,7 @@ package codex.tanks.ai;
 import codex.j3map.J3map;
 import codex.tanks.collision.PaddedRaytest;
 import codex.tanks.collision.ShapeFilter;
+import codex.tanks.components.Forward;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.FastMath;
@@ -84,7 +85,7 @@ public class Wander implements Algorithm {
     public void update(AlgorithmUpdate update) {}
     @Override
     public boolean move(AlgorithmUpdate update) {
-        Vector3f current = update.getTank().getDriveDirection();
+        Vector3f current = update.getComponent(Forward.class).getForward();
         Vector3f decision = new Vector3f();
         var collisions = new Direction[RAYCAST_DIRECTIONS.length];
         for (int i = 0; i < collisions.length; i++) {
@@ -115,14 +116,10 @@ public class Wander implements Algorithm {
         }
         decision.normalizeLocal();
         decision.set(FastMath.interpolateLinear(decisive, decision, strongest.vector)).normalizeLocal();
-        //update.getTank().drive(decision);
-        //if (current.dot(decision) < 1f) {
-            var left = decision.cross(Vector3f.UNIT_Y);
-            turnDir = turnSpeed*FastMath.sign(current.dot(left));
-            regulatedTurn = FastMath.interpolateLinear(.1f, regulatedTurn, turnDir);
-            update.getTank().rotate(regulatedTurn);
-        //}
-        update.getTank().drive(1f);
+        var left = decision.cross(Vector3f.UNIT_Y);
+        turnDir = turnSpeed*FastMath.sign(current.dot(left));
+        regulatedTurn = FastMath.interpolateLinear(.1f, regulatedTurn, turnDir);
+        update.drive(update.rotate(regulatedTurn));
         return true;
     }
     @Override

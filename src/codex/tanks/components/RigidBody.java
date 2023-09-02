@@ -10,12 +10,12 @@ import com.simsilica.es.EntityComponent;
  *
  * @author codex
  */
-public class Physics implements EntityComponent {
+public class RigidBody implements EntityComponent {
     
     private float mass = -1;
     
-    public Physics() {}
-    public Physics(float mass) {
+    public RigidBody() {}
+    public RigidBody(float mass) {
         this.mass = mass;
     }
 

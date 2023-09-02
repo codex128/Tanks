@@ -5,6 +5,7 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
+import codex.tanks.components.AimDirection;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
@@ -28,9 +29,10 @@ public class AimSkew implements Algorithm {
     
     @Override
     public void update(AlgorithmUpdate update) {
-        var forward = update.getTank().getAimDirection();
+        var forward = update.getComponent(AimDirection.class).getAim();
         var q = new Quaternion().fromAngleAxis(FastMath.sin(skew)*maxBarrelSkew, Vector3f.UNIT_Y);
-        update.getTank().aimAtDirection(q.mult(forward));
+        //update.getTank().aimAtDirection(q.mult(forward));
+        update.setComponent(new AimDirection(q.mult(forward)));
         skew += update.getTpf()*speed;
     }
     @Override

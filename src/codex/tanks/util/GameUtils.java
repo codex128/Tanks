@@ -42,9 +42,18 @@ public class GameUtils {
         }
         return results;
     }    
+    
     public static Vector3f ricochet(Vector3f vector, Vector3f normal) {
         return normal.mult(normal.dot(vector)*-2).addLocal(vector).normalizeLocal();
-    }    
+    }
+    public static Vector3f merge(Vector3f a, Vector3f b, int x, int y, int z) {
+        return new Vector3f(merge(a.x, b.x, x), merge(a.y, b.y, y), merge(a.z, b.z, z));
+    }
+    public static float merge(float a, float b, int dir) {
+        if (dir > 0) return a;
+        else if (dir < 0) return b;
+        else return 0f;
+    }
     
     public static float random(float min, float max) {
         return FastMath.rand.nextFloat()*(max-min)+min;

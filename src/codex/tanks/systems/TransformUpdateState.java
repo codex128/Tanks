@@ -60,7 +60,7 @@ public class TransformUpdateState extends ESAppState {
         var spatial = visuals.getSpatial(e.getId());
         var transform = e.get(EntityTransform.class);
         var enable = e.get(TransformMode.class);
-        var newTrans = new Transform();
+        var newTrans = transform.toJmeTransform();
         boolean change = false;
         if (!TransformMode.isPhysics(enable.getTranslation())) switch (enable.getTranslation()) {
             case TransformMode.LOCAL_TO_ENTITY -> {

@@ -5,7 +5,7 @@
 package codex.tanks.factory;
 
 import codex.j3map.J3map;
-import codex.tanks.Tank;
+import codex.tanks.weapons.Tank;
 import codex.tanks.ai.Algorithm;
 import codex.tanks.components.*;
 import com.jme3.math.ColorRGBA;
@@ -30,13 +30,19 @@ public class EntityFactory {
         ed.setComponents(tank,
             new GameObject("tank"),
             new Visual(SpatialFactory.TANK),
-            new Physics(),
+            new RigidBody(),
             new EntityTransform().setTranslation(position),
-            new TransformMode(-1, 0, 0),
+            new TransformMode(-3, -3, 0),
+            new MoveVelocity(Vector3f.ZERO),
             new CollisionShape("hitbox"),
             new ContactReaction(ContactReaction.DIE),
             new Team(team),
-            new Alive()
+            new Alive(),
+            new MuzzlePosition(Vector3f.ZERO),
+            new AimDirection(Vector3f.UNIT_Z),
+            new TurnSpeed(0.01f),
+            new Forward(),
+            new LinearVelocity(Vector3f.ZERO)
         );
         Tank.applyProperties(ed, tank, properties);
         return tank;
@@ -61,7 +67,7 @@ public class EntityFactory {
             new Bounces(bounces),
             new CollisionShape("hitbox"),
             new ContactReaction(ContactReaction.DIE),
-            new Owner(owner),
+            new Owner(owner, "bullet"),
             new Alive()
         );
         return bullet;

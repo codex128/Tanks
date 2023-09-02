@@ -2,11 +2,12 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanks.systems;
+package codex.tanks.effects;
 
 import codex.tanks.components.ColorScheme;
 import codex.tanks.components.EmitterComponent;
 import codex.tanks.components.ParticleMode;
+import codex.tanks.systems.VisualState;
 import codex.tanks.util.ESAppState;
 import com.epagagames.particles.Emitter;
 import com.epagagames.particles.influencers.ColorInfluencer;

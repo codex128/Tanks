@@ -4,6 +4,7 @@
  */
 package codex.tanks.systems;
 
+import codex.tanks.weapons.TankState;
 import codex.tanks.ai.AlgorithmUpdate;
 import codex.tanks.components.Brain;
 import codex.tanks.components.GameObject;
@@ -48,7 +49,7 @@ public class AIManager extends ESAppState {
                 aim = true,
                 shoot = true,
                 mine = true;
-        var update = new AlgorithmUpdate(this, tanks.getTank(e.getId()), tpf);
+        var update = new AlgorithmUpdate(this, e.getId(), tpf);
         if (!update.isInfoSatisfied()) {
             return;
         }

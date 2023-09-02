@@ -5,6 +5,7 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
+import codex.tanks.components.EntityTransform;
 import codex.tanks.util.GameUtils;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -31,7 +32,7 @@ public class DefensivePoints extends RandomPoints {
     @Override
     public boolean move(AlgorithmUpdate update) {
         updateOccured = true;
-        Vector3f position = update.getTank().getPosition().setY(0f);
+        Vector3f position = update.getComponent(EntityTransform.class).getTranslation().clone().setY(0f);
         if (stack.isEmpty() || position.distanceSquared(stack.getLast()) < radius*radius) {
             stack.addLast(getNextPoint(update, .1f, maxPointDistance, radius, 5));
             stack.getLast().setY(0f);
@@ -39,7 +40,7 @@ public class DefensivePoints extends RandomPoints {
         if (stack.size() > stacksize) {
             stack.removeFirst();
         }
-        update.getTank().drive(stack.getLast().subtract(position).normalizeLocal());
+        update.drive(stack.getLast().subtract(position).normalizeLocal());
 //        if (stack.size() >= 2) {
 //            var id = update.getCollisionState().raycast(update.getTank().getAimRay(), update.getTank().getEntity().getId(), 0);
 //            if (update.getPlayerTank().getEntity().getId().equals(id)) {

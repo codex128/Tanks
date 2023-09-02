@@ -38,7 +38,8 @@ public class Sniper implements Algorithm {
             if (update.getTankId().equals(test.getCollisionEntity())) {
                 return false;
             }
-            update.getTank().shoot(update.getEntityData(), update.getVisualState());
+            //update.getTank().shoot(update.getEntityData(), update.getVisualState());
+            update.shoot();
             return true;
         }
         return false;

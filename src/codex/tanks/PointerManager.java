@@ -36,8 +36,11 @@ public class PointerManager implements CursorListener {
         pointerLocation.set(cme.getCollision().getContactPoint());
     }
     
-    public Vector3f getPointerLocation() {
+    public Vector3f getGlobalPointer() {
         return pointerLocation;
+    }
+    public Vector3f getRelativePointer() {
+        return pointerLocation.subtract(collider.getWorldTranslation());
     }
     public void exit() {
         collider.removeControl(CursorEventControl.class);

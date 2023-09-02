@@ -13,17 +13,35 @@ import com.simsilica.es.EntityComponent;
 public class Firerate implements EntityComponent {
     
     private final float rate;
+    private final float reload;
     
     public Firerate(float rps) {
-        rate = 1/rps;
+        this(1/rps, 0);
+    }
+    private Firerate(float rate, float reload) {
+        this.rate = rate;
+        this.reload = reload;
     }
 
     public float getRate() {
         return rate;
     }
+    public float getCurrentReload() {
+        return reload;
+    }
+    public boolean isReady() {
+        return reload <= 0f;
+    }
     @Override
     public String toString() {
         return "Firerate{" + "rate=" + rate + '}';
+    }
+    
+    public Firerate increment(float tpf) {
+        return new Firerate(rate, reload-tpf);
+    }
+    public Firerate shoot() {
+        return new Firerate(rate, rate);
     }
     
 }

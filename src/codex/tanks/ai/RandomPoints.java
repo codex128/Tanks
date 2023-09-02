@@ -7,6 +7,7 @@ package codex.tanks.ai;
 import codex.j3map.J3map;
 import codex.tanks.collision.PaddedRaytest;
 import codex.tanks.collision.ShapeFilter;
+import codex.tanks.components.EntityTransform;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -37,7 +38,7 @@ public class RandomPoints implements Algorithm {
     }    
     @Override
     public boolean move(AlgorithmUpdate update) {
-        Vector3f position = update.getTank().getPosition().setY(0f);
+        Vector3f position = update.getComponent(EntityTransform.class).getTranslation().clone().setY(0f);
         if (stack.isEmpty() || position.distanceSquared(stack.getLast()) < radius*radius) {
             stack.addLast(getNextPoint(update, .1f, maxPointDistance, radius, 5));
             stack.getLast().setY(0f);
@@ -45,7 +46,7 @@ public class RandomPoints implements Algorithm {
         if (stack.size() > stacksize) {
             stack.removeFirst();
         }
-        update.getTank().drive(stack.getLast().subtract(position).normalizeLocal());
+        update.drive(stack.getLast().subtract(position).normalizeLocal());
         updateOccured = true;
         return true;
     }
@@ -92,7 +93,7 @@ public class RandomPoints implements Algorithm {
             }
             return ray.getOrigin().add(ray.getDirection().mult(maxDist));
         }
-        return update.getTank().getPosition();
+        return update.getComponent(EntityTransform.class).getTranslation().clone();
     }
     
 }

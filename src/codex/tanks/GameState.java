@@ -4,6 +4,8 @@
  */
 package codex.tanks;
 
+import codex.tanks.weapons.Bullet;
+import codex.tanks.weapons.Tank;
 import codex.j3map.J3map;
 import codex.tanks.ai.Algorithm;
 import codex.tanks.components.*;
@@ -48,26 +50,14 @@ public class GameState extends ESAppState {
         var floor = ed.createEntity();
         ed.setComponents(floor,
             new Visual(SpatialFactory.FLOOR),
-            new Physics(0f),
+            new RigidBody(0f),
             new EntityTransform().setTranslation(0f, -1f, 0f),
             new CollisionShape(null),
             new ContactReaction(ContactReaction.RICOCHET)
         );
         
         J3map playerSource = (J3map)app.getAssetManager().loadAsset("Properties/player.j3map");        
-        var plr = ed.createEntity();
-        ed.setComponents(plr,
-            new GameObject("tank"),
-            new Visual(SpatialFactory.TANK),
-            new Physics(),
-            new EntityTransform().setTranslation(-7f, 0f, -7f),
-            new TransformMode(-1, 0, 0),
-            new CollisionShape("hitbox"),
-            new ContactReaction(ContactReaction.DIE),
-            new Team(0),
-            new Alive()
-        );
-        Tank.applyProperties(ed, plr, playerSource);
+        var plr = factory.getEntityFactory().createTank(new Vector3f(-7f, 0f, -7f), 0, playerSource);
         player = new PlayerAppState(plr);
         getStateManager().attach(player);
         
@@ -77,14 +67,14 @@ public class GameState extends ESAppState {
             (J3map)assetManager.loadAsset("Properties/light-green.j3map"),
             (J3map)assetManager.loadAsset("Properties/black.j3map"),
         };
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 0; i++) {
             var src = enemySources[FastMath.nextRandomInt(0, enemySources.length-1)];
             //var src = enemySources[2];
             var enemy = ed.createEntity();
             ed.setComponents(enemy,
                 new GameObject("tank"),
                 new Visual(SpatialFactory.TANK),
-                new Physics(),
+                new RigidBody(),
                 new EntityTransform().setTranslation(5f+i*3, 0f, 7f),
                 new TransformMode(-1, 0, 0),
                 new CollisionShape("hitbox"),
@@ -151,7 +141,7 @@ public class GameState extends ESAppState {
         ed.setComponents(wall,
             new GameObject("wall"),
             new Visual(),
-            new Physics(0f),
+            new RigidBody(0f),
             new EntityTransform()
                 .setTranslation(location)
                 .setRotation(angle, Vector3f.UNIT_Y),

@@ -4,7 +4,7 @@
  */
 package codex.tanks.collision;
 
-import codex.tanks.Bullet;
+import codex.tanks.weapons.Bullet;
 import codex.tanks.components.ContactReaction;
 import codex.tanks.components.CollisionShape;
 import codex.tanks.components.Visual;

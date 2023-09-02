@@ -5,6 +5,7 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
+import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Owner;
 import codex.tanks.components.Velocity;
 import codex.tanks.util.GameUtils;
@@ -34,7 +35,7 @@ public class AvoidBullets implements Algorithm {
     public boolean move(AlgorithmUpdate update) {
         var dodge = getDodgeDirection(update);
         if (dodge != null) {
-            update.getTank().drive(dodge.normalizeLocal());
+            update.drive(dodge.normalizeLocal());
             return true;
         }
         return false;
@@ -59,13 +60,13 @@ public class AvoidBullets implements Algorithm {
         var bulletDir = new Vector3f();
         Vector3f dodge = null;
         for (var b : update.getBullets()) {
-            vec.set(b.getPosition()).subtractLocal(update.getTank().getPosition()).setY(0f).normalizeLocal();
+            vec.set(b.getPosition()).subtractLocal(update.getComponent(EntityTransform.class).getTranslation()).setY(0f).normalizeLocal();
             bulletDir.set(b.getEntity().get(Velocity.class).getDirection());
             var owner = update.getEntityData().getComponent(b.getEntity().getId(), Owner.class);
             if (b.getBouncesMade() == 0 && owner != null && owner.isOwner(update.getTankId())) {
                 continue;
             }
-            float dist = GameUtils.distance2D(b.getPosition(), update.getTank().getPosition(), Axis.Y);
+            float dist = GameUtils.distance2D(b.getPosition(), update.getComponent(EntityTransform.class).getTranslation(), Axis.Y);
             if (dist < alert) {
                 if (dodge == null) dodge = new Vector3f();
                 vec.negateLocal();
