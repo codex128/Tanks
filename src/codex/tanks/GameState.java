@@ -61,10 +61,10 @@ public class GameState extends ESAppState {
             (J3map)assetManager.loadAsset("Properties/light-green.j3map"),
             (J3map)assetManager.loadAsset("Properties/black.j3map"),
         };
-        for (int i = 0; i < 1; i++) {
-            //var src = enemySources[FastMath.nextRandomInt(0, enemySources.length-1)];
-            var src = enemySources[2];
-            var enemy = factory.getEntityFactory().createAITank(new Vector3f(7f+i*3, 0f, 7f), 1, src);
+        for (int i = 0; i < 4; i++) {
+            var src = enemySources[FastMath.nextRandomInt(0, enemySources.length-1)];
+            //var src = enemySources[1];
+            factory.getEntityFactory().createAITank(new Vector3f(7f+i*3, 0f, 7f), 1, src);
             //Tank.applyProperties(ed, enemy, src.getJ3map("tank"));
             //Algorithm.applyProperties(ed, enemy, src);
         }
@@ -127,16 +127,13 @@ public class GameState extends ESAppState {
             new RigidBody(0f),
             new EntityTransform()
                 .setTranslation(location)
-                .setRotation(angle, Vector3f.UNIT_Y),
+                .setRotation(angle, Vector3f.UNIT_Y)
+                .setScale(1f),
             new TransformMode(1, 1, 0),
             new CollisionShape(),
             new ContactReaction(ContactReaction.RICOCHET));
-        var mesh = new Box(size.x, size.y, size.z);
-        mesh.scaleTextureCoordinates(new Vector2f(size.x, size.z));
-        var geometry = GameUtils.createDebugGeometry(assetManager, ColorRGBA.DarkGray, size);
-        geometry.setShadowMode(RenderQueue.ShadowMode.Cast);
-        geometry.setLocalScale(size);
-        getState(VisualState.class).link(wall, geometry, true);
+        var spatial = factory.getSpatialFactory().createWall(size);
+        getState(VisualState.class).link(wall, spatial);
     }
     private void addLight(Vector3f location, ColorRGBA color, float radius) {
         rootNode.addLight(new PointLight(location, color, radius));

@@ -25,7 +25,7 @@ import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import com.jme3.texture.Texture;
+import com.jme3.scene.shape.Box;
 import java.util.LinkedList;
 
 /**
@@ -39,6 +39,7 @@ public class SpatialFactory {
         BULLET = "bullet",
         MISSILE = "missile",
         FLOOR = "floor",
+        WALL = "wall",
         BULLET_SMOKE = "bullet-smoke",
         TANK_DEBRIS = "tank-debris",
         MUZZLEFLASH = "muzzleflash",
@@ -67,6 +68,7 @@ public class SpatialFactory {
             case BULLET         -> createBullet();
             case MISSILE        -> createMissile();
             case FLOOR          -> createWorldFloor();
+            case WALL           -> createWall(Vector3f.UNIT_XYZ);
             case DEBUG          -> createDebug(ColorRGBA.Blue, 1f);
             case MUZZLEFLASH    -> createMuzzleflash();
             case BULLET_SMOKE   -> createBulletSmoke();
@@ -129,19 +131,26 @@ public class SpatialFactory {
     public Spatial createWorldFloor() {
         Spatial floor = assetManager.loadModel("Models/floor.j3o");
         floor.setShadowMode(RenderQueue.ShadowMode.Receive);
-        Material mat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        Material mat = new Material(assetManager, "Common/MatDefs/Light/PBRLighting.j3md");
         //mat.setBoolean("UseMaterialColors", true);
-        //mat.setColor("Diffuse", ColorRGBA.Green);
-        var tex = assetManager.loadTexture("Textures/testgrid.png");
-        tex.setWrap(Texture.WrapMode.Repeat);
-        mat.setTexture("DiffuseMap", tex);
+        mat.setColor("BaseColor", ColorRGBA.Green);
+        //var tex = assetManager.loadTexture("Textures/testgrid.png");
+        //tex.setWrap(Texture.WrapMode.Repeat);
+        //mat.setTexture("DiffuseMap", tex);
         floor.setMaterial(mat);
         return floor;
     }
+    public Spatial createWall(Vector3f size) {
+        var wall = new Geometry("wall", new Box(size.x, size.y, size.z));
+        var mat = new Material(assetManager, "Common/MatDefs/Light/PBRLighting.j3md");
+        wall.setMaterial(mat);
+        return wall;
+    }
     public Spatial createMuzzleflash() {
         var flash = assetManager.loadModel("Effects/muzzleflash.j3o");
-        var mat = GameUtils.fetchMaterial(flash);
+        var mat = assetManager.loadMaterial("Materials/muzzleflash.j3m");
         mat.setTransparent(true);
+        flash.setMaterial(mat);
         flash.setQueueBucket(RenderQueue.Bucket.Transparent);
         return flash;
     }

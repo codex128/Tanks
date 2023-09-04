@@ -9,6 +9,8 @@ tank: {
     bulletSpeed: 10f;
     color1: ColorRGBA(0.3, 0.0, 0.6, 1.0);
 }
+PlayerFinder: {
+}
 AvoidBullets: {
     alert: 6f;
 }

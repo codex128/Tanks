@@ -1,8 +1,8 @@
 package codex.tanks;
 
 import codex.tanks.effects.ParticleState;
-import codex.tanks.weapons.TankState;
-import codex.tanks.physics.PhysicsState;
+import codex.tanks.systems.TankState;
+import codex.tanks.systems.PhysicsState;
 import codex.tanks.collision.CollisionState;
 import codex.j3map.J3mapFactory;
 import codex.j3map.processors.FloatProcessor;
@@ -12,7 +12,7 @@ import codex.tanks.ai.*;
 import codex.tanks.factory.FactoryState;
 import codex.tanks.systems.*;
 import codex.tanks.util.ColorProcessor;
-import codex.tanks.weapons.GunState;
+import codex.tanks.systems.GunState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.renderer.RenderManager;

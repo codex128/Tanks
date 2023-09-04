@@ -22,6 +22,7 @@ public class PaddedLaserRaytest extends LaserRaytest {
     
     private float padding;
     private ShapeFilter paddingFilter;
+    private boolean merge = false;
     private boolean impeded = false;
     
     public PaddedLaserRaytest(Ray ray, EntityId ignore, float padding, ShapeFilter paddingFilter, int maxBounces) {

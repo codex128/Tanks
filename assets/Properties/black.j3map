@@ -2,12 +2,14 @@ tank: {
     color: "black";
     class: "defensive";
     speed: 9f;
-    rps: 1f;
+    rps: .8f;
     maxBullets: 1;
     maxBounces: 0;
     maxMines: 0;
     bulletSpeed: 25f;
     color1: ColorRGBA(0.0, 0.0, 0.0, 1.0);
+}
+PlayerFinder: {
 }
 AvoidBullets: {
     alert: 6f;

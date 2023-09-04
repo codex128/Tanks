@@ -66,7 +66,7 @@ public class VisualState extends ESAppState {
             else {
                 spatial = GameUtils.getChild(getSpatial(v.getParent()), v.getModel());
             }
-            link(e.getId(), spatial, true);
+            link(e.getId(), spatial);
         }
     }
     private void destroyModel(Entity e) {
@@ -80,7 +80,7 @@ public class VisualState extends ESAppState {
         return spatials.get(id);
     }
     public boolean link(EntityId id, Spatial spatial) {
-        return link(id, spatial, false);
+        return link(id, spatial, true);
     }
     public boolean link(EntityId id, Spatial spatial, boolean attach) {
         if (spatials.putIfAbsent(id, spatial) == null) {

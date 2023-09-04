@@ -9,6 +9,8 @@ tank: {
     bulletSpeed: 10f;
     color1: ColorRGBA(0.2, 0.2, 0.2, 1.0);
 }
+PlayerFinder: {
+}
 AvoidBullets: {
     alert: 2f;
 }
@@ -20,6 +22,6 @@ Wander: {
     turnSpeed: 0.05f;
     decisive: 0.5;
 }
-BasicShooting: {
+//BasicShooting: {
     minExposure: 1.2f;
-}
+//}

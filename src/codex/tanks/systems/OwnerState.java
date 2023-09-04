@@ -8,7 +8,6 @@ import codex.tanks.components.BulletCapacity;
 import codex.tanks.components.CapacityComponent;
 import codex.tanks.components.Owner;
 import codex.tanks.util.ESAppState;
-import codex.tanks.weapons.GunState;
 import codex.tanks.weapons.ShootEventListener;
 import com.jme3.app.Application;
 import com.simsilica.es.EntityId;

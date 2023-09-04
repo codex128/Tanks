@@ -5,14 +5,15 @@
 package codex.tanks.systems;
 
 import codex.boost.Timer;
-import codex.tanks.collision.BasicRaytest;
 import codex.tanks.collision.CollisionState;
+import codex.tanks.collision.PaddedRaytest;
 import codex.tanks.collision.ShapeFilter;
 import codex.tanks.components.*;
 import codex.tanks.effects.MatChange;
 import codex.tanks.factory.SpatialFactory;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
+import com.jme3.collision.CollisionResults;
 import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
 import com.jme3.shader.VarType;
@@ -28,7 +29,7 @@ public class BulletState extends ESAppState {
     public static final float MISSILE_QUALIFIER = 15f;
     
     private EntitySet entities;
-    private Timer flameUpdate = new Timer(0.03f);
+    private final Timer flameRefreshCycle = new Timer(0.03f);
     private CollisionState collision;
     
     @Override
@@ -37,7 +38,8 @@ public class BulletState extends ESAppState {
         entities = ed.getEntities(Visual.class, EntityTransform.class, Velocity.class, Bounces.class, Owner.class, Alive.class);
         visuals = getState(VisualState.class, true);
         collision = getState(CollisionState.class, true);
-        flameUpdate.setCycleMode(Timer.CycleMode.ONCE);
+        flameRefreshCycle.setCycleMode(Timer.CycleMode.ONCE);
+        flameRefreshCycle.start();
     }
     @Override
     protected void cleanup(Application app) {
@@ -49,29 +51,29 @@ public class BulletState extends ESAppState {
     protected void onDisable() {}
     @Override
     public void update(float tpf) {
-        flameUpdate.update(tpf);
+        flameRefreshCycle.update(tpf);
         entities.applyChanges();
         for (var e : entities) {
             update(e, tpf);
         }
-        if (flameUpdate.isComplete()) {
-            flameUpdate.reset();
-            flameUpdate.start();
+        if (flameRefreshCycle.isComplete()) {
+            flameRefreshCycle.reset();
+            flameRefreshCycle.start();
         }
     }
     
     private void update(Entity e, float tpf) {
-        //var bullet = bullets.get(e.getId());
-        //bullet.update(collision, tpf);
         raytest(e, tpf);        
-        if (flameUpdate.isComplete() && isMissile(e)) {
+        if (flameRefreshCycle.isComplete() && isMissile(e)) {
             ed.setComponent(e.getId(), new MaterialUpdate("flame", new MatChange("Seed", VarType.Float, FastMath.nextRandomFloat()*97.43f)));
         }
     }
     private void raytest(Entity e, float tpf) {
-        var test = new BasicRaytest(
+        var filter = ShapeFilter.notId(e.getId());
+        var test = new PaddedRaytest(
                 new Ray(e.get(EntityTransform.class).getTranslation(), e.get(Velocity.class).getDirection()),
-                ShapeFilter.notId(e.getId()));
+                filter, .15f, filter, new CollisionResults());
+        test.setResultMergingEnabled(true);
         test.cast(collision);
         var closest = test.getCollision();
         if (closest != null) {

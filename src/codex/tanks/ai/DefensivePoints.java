@@ -41,12 +41,6 @@ public class DefensivePoints extends RandomPoints {
             stack.removeFirst();
         }
         update.drive(stack.getLast().subtract(position).normalizeLocal());
-//        if (stack.size() >= 2) {
-//            var id = update.getCollisionState().raycast(update.getTank().getAimRay(), update.getTank().getEntity().getId(), 0);
-//            if (update.getPlayerTank().getEntity().getId().equals(id)) {
-//                stack.removeLast();
-//            }
-//        }
         return true;
     }
     @Override

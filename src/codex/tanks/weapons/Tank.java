@@ -11,14 +11,12 @@ import codex.tanks.effects.MaterialChangeBucket;
 import codex.tanks.util.GameUtils;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
-import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.shader.VarType;
 import com.simsilica.es.Entity;
@@ -34,9 +32,8 @@ public class Tank {
     private final Spatial spatial;
     private final Entity entity;
     private Spatial base, turret, probe, muzzle;
-    private MaterialChangeBucket matBucket = new MaterialChangeBucket();
+    private final MaterialChangeBucket matBucket = new MaterialChangeBucket();
     private final Spatial[] wheels = new Spatial[4];
-    private Material material;
     private RigidBodyControl physics;
     private final Vector2f treadOffset = new Vector2f();
     private final Vector2f nextTreadMove = new Vector2f();
@@ -73,7 +70,7 @@ public class Tank {
         drive(entity.get(MoveVelocity.class).getMove());
         aimAtDirection(entity.get(AimDirection.class).getAim());
         entity.set(new Forward(getDriveDirection()));
-        entity.set(new MuzzlePosition(muzzle.getWorldTranslation()));
+        //entity.set(new MuzzlePosition(muzzle.getWorldTranslation()));
         entity.set(new MoveVelocity(Vector3f.ZERO));
         entity.set(new ProbeLocation(probe.getWorldTranslation()));
         if (!nextTreadMove.equals(Vector2f.ZERO)) {
@@ -103,8 +100,8 @@ public class Tank {
     }
     private boolean rotateTo(Vector3f direction) {
         final float threshold = .6f;
-        direction.setY(0f).normalizeLocal();
-        var move = getDriveDirection();
+        direction.setY(0f).normalizeLocal().multLocal(drive);
+        var move = base.getLocalRotation().mult(Vector3f.UNIT_Z);
         var q = new Quaternion().lookAt(direction, Vector3f.UNIT_Y);
         var factor = move.dot(direction);
         if (factor >= 0f) {
@@ -156,6 +153,9 @@ public class Tank {
     }
     public Vector3f getProbeLocation() {
         return probe.getWorldTranslation();
+    }
+    public Vector3f getMuzzleLocation() {
+        return muzzle.getWorldTranslation();
     }
     public Spatial getSpatial() {
         return spatial;

@@ -2,12 +2,14 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanks.weapons;
+package codex.tanks.systems;
 
-import codex.tanks.physics.PhysicsState;
 import codex.tanks.components.*;
 import codex.tanks.util.ESAppState;
+import codex.tanks.weapons.Tank;
 import com.jme3.app.Application;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -27,8 +29,8 @@ public class TankState extends ESAppState {
     protected void init(Application app) {
         super.init(app);
         entities = ed.getEntities(GameObject.filter("tank"),
-                GameObject.class, Visual.class, RigidBody.class, MoveVelocity.class, MuzzlePosition.class,
-                AimDirection.class, TurnSpeed.class, Forward.class, LinearVelocity.class, ProbeLocation.class);
+                GameObject.class, Visual.class, RigidBody.class, MoveVelocity.class, TurnSpeed.class,
+                Forward.class, LinearVelocity.class, ProbeLocation.class, MuzzlePointer.class, AimDirection.class);
         physics = getState(PhysicsState.class, true);
     }
     @Override
@@ -46,9 +48,16 @@ public class TankState extends ESAppState {
             entities.getAddedEntities().forEach(e -> createTank(e));
             entities.getRemovedEntities().forEach(e -> destroyTank(e));
         }
-        for (var t : tanks.values()) {
-            t.update(tpf);
-            t.getMatChanges().applyChanges(ed, t.getEntity().getId());
+        // TODO: migrate to using MuzzlePointer instead of MuzzlePosition and AimDirection
+        // MuzzlePosition will be terminated
+        // AimDirection is for tank input only (in case I want AimDirection and the actual muzzle direction differ at all)
+        for (var e : entities) {
+            var t = tanks.get(e.getId());
+            tanks.get(e.getId()).update(tpf);
+            ed.setComponent(e.get(MuzzlePointer.class).getId(), new EntityTransform()
+                    .setTranslation(t.getMuzzleLocation())
+                    .setRotation(e.get(AimDirection.class).getAim(), Vector3f.UNIT_Y));
+            t.getMatChanges().applyChanges(ed, e.getId());
         }
     }
     

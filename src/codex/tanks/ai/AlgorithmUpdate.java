@@ -10,7 +10,7 @@ import codex.tanks.systems.BulletState;
 import codex.tanks.collision.*;
 import codex.tanks.components.*;
 import codex.tanks.systems.VisualState;
-import codex.tanks.weapons.GunState;
+import codex.tanks.systems.GunState;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
@@ -48,14 +48,9 @@ public class AlgorithmUpdate {
     }
     
     private boolean initialize() {
-        //if (tank == null) return false;
-        //playerTank = manager.getState(PlayerAppState.class).getTank();
-        //if (playerTank == null) return false;
         visuals = manager.getState(VisualState.class);
         collision = manager.getState(CollisionState.class);
         bulletState = manager.getState(BulletState.class);
-        //dirToTarget = getEntityData().getComponent(target, EntityTransform.class).getTranslation().subtract(entity.get(EntityTransform.class).getTranslation()).normalizeLocal();
-        //distToTarget = playerTank.getEntity().get(EntityTransform.class).getTranslation().distance(getComponent(EntityTransform.class).getTranslation());
         return true;
     }
     public Vector3f getDirectionToTarget() {
@@ -65,7 +60,7 @@ public class AlgorithmUpdate {
         return getTargetComponent(EntityTransform.class).getTranslation().distance(getComponent(EntityTransform.class).getTranslation());
     }
     public boolean isTargetInView() {
-        var raytest = new BasicRaytest(new Ray(entity.get(ProbeLocation.class).getLocation(), dirToTarget), ShapeFilter.none(ShapeFilter.byId(getAgentId())));
+        var raytest = new BasicRaytest(new Ray(entity.get(ProbeLocation.class).getLocation(), getDirectionToTarget()), ShapeFilter.none(ShapeFilter.byId(getAgentId())));
         raytest.cast(collision);
         return target.getId().equals(raytest.getCollisionEntity());
     }
@@ -124,25 +119,22 @@ public class AlgorithmUpdate {
         return target;
     }
     public Ray getAimRay() {
-        return new Ray(entity.get(MuzzlePosition.class).getPosition(), entity.get(AimDirection.class).getAim());
+        return new Ray(getMuzzlePosition(), getMuzzleDirection());
+    }    
+    public Vector3f getMuzzlePosition() {
+        return getEntityData().getComponent(entity.get(MuzzlePointer.class).getId(), EntityTransform.class).getTranslation();
+    }
+    public Vector3f getMuzzleDirection() {
+        return getEntityData().getComponent(entity.get(MuzzlePointer.class).getId(), EntityTransform.class).getRotation().mult(Vector3f.UNIT_Z);
     }
     public EntityData getEntityData() {
         return manager.getEntityData();
-    }
-    public VisualState getVisualState() {
-        return visuals;
     }
     public CollisionState getCollisionState() {
         return collision;
     }
     public EntitySet getBullets() {
         return bulletState.getBullets();
-    }
-    public Vector3f getDirectionToPlayer() {
-        return dirToTarget;
-    }
-    public float getDistanceToPlayer() {
-        return distToTarget;
     }
         
 }

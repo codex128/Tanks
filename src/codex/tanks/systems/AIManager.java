@@ -10,8 +10,10 @@ import codex.tanks.components.Bounces;
 import codex.tanks.components.Brain;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Forward;
-import codex.tanks.components.MuzzlePosition;
+import codex.tanks.components.MaxSpeed;
+import codex.tanks.components.MuzzlePointer;
 import codex.tanks.components.ProbeLocation;
+import codex.tanks.components.Team;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.Entity;
@@ -29,8 +31,9 @@ public class AIManager extends ESAppState {
     @Override
     protected void init(Application app) {
         super.init(app);
-        entities = ed.getEntities(Brain.class, EntityTransform.class, AimDirection.class,
-                MuzzlePosition.class, Forward.class, ProbeLocation.class, Bounces.class);
+        entities = ed.getEntities(
+                Brain.class, EntityTransform.class, AimDirection.class, MuzzlePointer.class,
+                Forward.class, ProbeLocation.class, Bounces.class, MaxSpeed.class, Team.class);
         //tanks = getState(TankState.class, true);
     }
     @Override

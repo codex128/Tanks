@@ -1,4 +1,4 @@
 speed: 6f;
-rps: 5f;
+rps: 10f;
 maxBullets: 5;
 maxBounces: 1;

@@ -9,7 +9,6 @@ import com.jme3.collision.CollisionResults;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
-import com.simsilica.es.EntityId;
 
 /**
  *
@@ -17,8 +16,8 @@ import com.simsilica.es.EntityId;
  */
 public class PaddedRaytest extends BasicRaytest {
     
-    private ShapeFilter paddingFilter;
-    private float padding;
+    private final ShapeFilter paddingFilter;
+    private final float padding;
     private boolean merge = false;
     private boolean impeded = false;
     

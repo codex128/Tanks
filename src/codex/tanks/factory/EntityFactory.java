@@ -27,8 +27,8 @@ public class EntityFactory {
     }
     
     public EntityId createTank(Vector3f position, int team, J3map properties) {
-        System.out.println("create tank");
         var tank = ed.createEntity();
+        var muzzle = ed.createEntity();
         ed.setComponents(tank,
             new GameObject("tank"),
             new Visual(SpatialFactory.TANK),
@@ -40,18 +40,22 @@ public class EntityFactory {
             new ContactReaction(ContactReaction.DIE),
             new Team(team),
             new Alive(),
-            new MuzzlePosition(Vector3f.ZERO),
             new AimDirection(Vector3f.UNIT_Z),
             new TurnSpeed(0.1f),
             new Forward(),
             new LinearVelocity(Vector3f.ZERO),
-            new ProbeLocation(Vector3f.ZERO)
+            new ProbeLocation(Vector3f.ZERO),
+            new MuzzlePointer(muzzle)
+        );
+        ed.setComponents(muzzle,
+            new EntityTransform(),
+            new Copy(tank, Copy.LIFE),
+            new Alive()
         );
         Tank.applyProperties(ed, tank, properties);
         return tank;
     }
     public EntityId createAITank(Vector3f position, int team, J3map properties) {
-        System.out.println("create AI tank");
         var tank = createTank(position, team, properties.getJ3map("tank"));
         Algorithm.applyProperties(ed, tank, properties);
         return tank;
@@ -115,14 +119,15 @@ public class EntityFactory {
         );
         return new EntityId[]{missile, light};
     }
-    public EntityId createMuzzleflash(float scale) {
+    public EntityId createMuzzleflash(EntityId parent, float scale) {
         var flash = ed.createEntity();
         ed.setComponents(flash,
             new GameObject("light"),
             new Visual(SpatialFactory.MUZZLEFLASH),
             new EntityLight(EntityLight.POINT),
             new EntityTransform().setScale(scale),
-            new TransformMode(0, 0, 1),
+            new TransformMode(1, 1, 0),
+            new Copy(parent, Copy.TRANSFORM),
             new Power(50f),
             new Decay(.03f),
             new Alive(),

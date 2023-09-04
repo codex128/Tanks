@@ -103,7 +103,8 @@ public class TransformUpdateState extends ESAppState {
         }
     }
     private void updateCopy(Entity e) {
-        var copy = ed.getComponent(e.get(Copy.class).getCopy(), EntityTransform.class);
+        var component = e.get(Copy.class);
+        var copy = ed.getComponent(component.getCopy(), EntityTransform.class);
         if (copy == null) return;
         var transform = e.get(EntityTransform.class);
         var enable = e.get(TransformMode.class);

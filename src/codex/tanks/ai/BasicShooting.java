@@ -65,7 +65,7 @@ public class BasicShooting implements Algorithm {
     @Override
     public boolean shoot(AlgorithmUpdate update) {
         if (update.isTargetInView() && exposure > minExposure-0.01f
-                && update.getDirectionToPlayer().dot(update.getComponent(AimDirection.class).getAim()) >= 1f-maxBarrelOffset) {
+                && update.getDirectionToTarget().dot(update.getMuzzleDirection()) >= 1f-maxBarrelOffset) {
             var raytest = new PaddedLaserRaytest(
                     update.getAimRay(), update.getAgentId(), 1f,
                     ShapeFilter.and(ShapeFilter.byTeam(update.getComponent(Team.class).getTeam()), ShapeFilter.notId(update.getAgentId())),

@@ -2,19 +2,21 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanks.weapons;
+package codex.tanks.systems;
 
 import codex.boost.Listenable;
-import codex.tanks.components.AimDirection;
 import codex.tanks.components.Bounces;
 import codex.tanks.components.BulletCapacity;
+import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Firerate;
-import codex.tanks.components.MuzzlePosition;
+import codex.tanks.components.MuzzlePointer;
 import codex.tanks.components.Power;
 import codex.tanks.components.Team;
 import codex.tanks.systems.OwnerState;
 import codex.tanks.util.ESAppState;
+import codex.tanks.weapons.ShootEventListener;
 import com.jme3.app.Application;
+import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -35,7 +37,7 @@ public class GunState extends ESAppState implements Listenable<ShootEventListene
     @Override
     protected void init(Application app) {
         super.init(app);
-        entities = ed.getEntities(Power.class, Bounces.class, Team.class, MuzzlePosition.class, AimDirection.class);
+        entities = ed.getEntities(Power.class, Bounces.class, Team.class, MuzzlePointer.class);
         firerate = ed.getEntities(Firerate.class);
         owners = getState(OwnerState.class, true);
         addListener(this);
@@ -88,12 +90,18 @@ public class GunState extends ESAppState implements Listenable<ShootEventListene
         return false;
     }
     private boolean shoot(Entity e) {
+        var muzzle = e.get(MuzzlePointer.class);
+        var transform = ed.getComponent(muzzle.getId(), EntityTransform.class);
+        if (transform == null) {
+            throw new NullPointerException("MuzzlePointer must have transform!");
+        }
         factory.getEntityFactory().createProjectile(
             e.getId(),
-            e.get(MuzzlePosition.class).getPosition(),
-            e.get(AimDirection.class).getAim(),
+            transform.getTranslation(),
+            transform.getRotation().mult(Vector3f.UNIT_Z),
             e.get(Power.class).getPower(),
             e.get(Bounces.class).getRemaining());
+        factory.getEntityFactory().createMuzzleflash(muzzle.getId(), .7f);
         return true;
     }
     private boolean queryEventListeners(EntityId id) {

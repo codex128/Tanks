@@ -4,7 +4,7 @@
  */
 package codex.tanks.components;
 
-import codex.tanks.weapons.TankState;
+import codex.tanks.systems.TankState;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityComponent;
 

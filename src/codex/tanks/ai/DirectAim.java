@@ -25,8 +25,7 @@ public class DirectAim implements Algorithm {
     }
     @Override
     public boolean aim(AlgorithmUpdate update) {
-        update.setComponent(new AimDirection(update.aimAt(
-                update.getTargetComponent(EntityTransform.class).getTranslation().clone())));
+        update.setComponent(new AimDirection(update.aimAt(update.getTargetComponent(EntityTransform.class).getTranslation().clone())));
         return true;
     }
     @Override

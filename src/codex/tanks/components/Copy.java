@@ -16,8 +16,8 @@ import com.simsilica.es.EntityId;
 public class Copy implements EntityComponent {
     
     public static final String
-            LIFE = "life", 
-            TRANSFORM = "transform";
+        LIFE = "copy:life", 
+        TRANSFORM = "copy:transform";
     
     private final EntityId copy;
     private final String[] modes;
@@ -39,6 +39,14 @@ public class Copy implements EntityComponent {
         }
         return false;
     }
+    public boolean supportsAny(String... m) {
+        for (var mode : modes) {
+            for (var check : m) {
+                if (mode.equals(check)) return true;
+            }
+        }
+        return false;
+    }
     @Override
     public String toString() {
         return "Copy{" + "copy=" + copy + ", mode=" + modes + '}';
@@ -46,6 +54,9 @@ public class Copy implements EntityComponent {
     
     public static ComponentFilter<Copy> filter(String mode) {
         return new FunctionFilter<>(Copy.class, c -> c.supports(mode));
+    }
+    public static ComponentFilter<Copy> filter(String... mode) {
+        return new FunctionFilter<>(Copy.class, c -> c.supportsAny(mode));
     }
     
 }

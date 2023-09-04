@@ -78,7 +78,7 @@ public class RandomPoints implements Algorithm {
         var ray = new Ray();
         while (attempts-- > 0) {
             ray.setOrigin(update.getComponent(ProbeLocation.class).getLocation());
-            ray.setDirection(getNextDirection(update.getDirectionToPlayer()));
+            ray.setDirection(getNextDirection(update.getDirectionToTarget()));
             var filter = ShapeFilter.notId(update.getAgentId());
             var test = new PaddedRaytest(ray, filter, 1f, filter, new CollisionResults());
             test.setResultMergingEnabled(true);

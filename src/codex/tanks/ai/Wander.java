@@ -98,7 +98,7 @@ public class Wander implements Algorithm {
             direction.weight += (current.dot(direction.vector)+1)*(directionFactor/2);
             direction.weight += FastMath.nextRandomFloat()*randomFactor;
             direction.weight += direction.collision.getDistance()*distanceFactor;
-            direction.weight += (direction.vector.dot(update.getDirectionToPlayer())+1)/2*aggressiveFactor;
+            direction.weight += (direction.vector.dot(update.getDirectionToTarget())+1)/2*aggressiveFactor;
             if (direction.collision.getDistance() < wallAversion) {
                 var opposite = collisions[getOppositeDirectionIndex(i)];
                 if (opposite.weight >= 0f) opposite.weight += (1f/direction.collision.getDistance())*100;
@@ -121,6 +121,7 @@ public class Wander implements Algorithm {
         turnDir = turnSpeed*FastMath.sign(current.dot(left));
         regulatedTurn = FastMath.interpolateLinear(.1f, regulatedTurn, turnDir);
         update.drive(update.rotate(regulatedTurn));
+        //update.drive(decision);
         return true;
     }
     @Override
