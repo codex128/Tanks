@@ -4,6 +4,7 @@
  */
 package codex.tanks.collision;
 
+import codex.tanks.systems.CollisionState;
 import codex.tanks.components.ContactReaction;
 import codex.tanks.systems.VisualState;
 import codex.tanks.util.GameUtils;

@@ -13,24 +13,33 @@ import com.simsilica.es.EntityComponent;
  */
 public class Velocity implements EntityComponent {
     
-    private final Vector3f velocity = new Vector3f();
+    private final Vector3f direction = new Vector3f();
+    private final float speed;
     
     public Velocity(Vector3f velocity) {
-        this.velocity.set(velocity);
+        direction.set(velocity).normalizeLocal();
+        speed = velocity.length();
+    }
+    public Velocity(Vector3f direction, float speed) {
+        this.direction.set(direction).normalizeLocal();
+        this.speed = speed;
     }
 
     public Vector3f getVelocity() {
-        return velocity;
+        return direction.mult(speed);
     }
     public Vector3f getDirection() {
-        return velocity.normalize();
+        return direction.clone();
     }
     public float getSpeed() {
-        return velocity.length();
+        return speed;
+    }
+    public boolean isSpeedConstrained() {
+        return speed >= 0;
     }
     @Override
     public String toString() {
-        return "Velocity{" + "velocity=" + velocity + '}';
+        return "Velocity{" + "velocity=" + getVelocity() + '}';
     }
     
 }

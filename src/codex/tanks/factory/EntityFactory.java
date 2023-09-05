@@ -7,8 +7,9 @@ package codex.tanks.factory;
 import codex.j3map.J3map;
 import codex.tanks.weapons.Tank;
 import codex.tanks.ai.Algorithm;
+import codex.tanks.collision.ContactEventPipeline;
 import codex.tanks.components.*;
-import codex.tanks.systems.BulletState;
+import codex.tanks.systems.ProjectileState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityData;
@@ -19,6 +20,9 @@ import com.simsilica.es.EntityId;
  * @author codex
  */
 public class EntityFactory {
+    
+    public static final String
+            TANK_DEATH_EXPLOSION = "tank-death-explosion";
     
     private final EntityData ed;
     
@@ -37,7 +41,9 @@ public class EntityFactory {
             new TransformMode(-3, -3, 0),
             new MoveVelocity(Vector3f.ZERO),
             new CollisionShape("hitbox"),
-            new ContactReaction(ContactReaction.DIE),
+            new ContactReaction(
+                ContactEventPipeline.KILL_BULLET.getPipelineName(),
+                ContactEventPipeline.DIE.getPipelineName()),
             new Team(team),
             new Alive(),
             new AimDirection(Vector3f.UNIT_Z),
@@ -45,7 +51,8 @@ public class EntityFactory {
             new Forward(),
             new LinearVelocity(Vector3f.ZERO),
             new ProbeLocation(Vector3f.ZERO),
-            new MuzzlePointer(muzzle)
+            new MuzzlePointer(muzzle),
+            new CreateOnDeath(EntityFactory.TANK_DEATH_EXPLOSION)
         );
         ed.setComponents(muzzle,
             new EntityTransform(),
@@ -62,7 +69,7 @@ public class EntityFactory {
     }
     
     public EntityId createProjectile(EntityId owner, Vector3f position, Vector3f direction, float speed, int bounces) {
-        if (!BulletState.isMissile(speed)) {
+        if (!ProjectileState.isMissile(speed)) {
             return createBullet(owner, position, direction.mult(speed), bounces);
         }
         else {
@@ -84,6 +91,16 @@ public class EntityFactory {
             new CollisionShape("hitbox"),
             new ContactReaction(ContactReaction.DIE),
             new Owner(owner, "bullet"),
+            new Alive()
+        );
+        var smoke = ed.createEntity();
+        ed.setComponents(smoke,
+            new Visual(SpatialFactory.BULLET_SMOKE),
+            new Particles(),
+            new EntityTransform(),
+            new TransformMode(1, 0, 0),
+            new Copy(bullet, Copy.TRANSFORM),
+            new OrphanBucket(bullet, new Decay(1f), new EmissionsPerSecond(0)),
             new Alive()
         );
         return bullet;
@@ -128,12 +145,43 @@ public class EntityFactory {
             new EntityTransform().setScale(scale),
             new TransformMode(1, 1, 0),
             new Copy(parent, Copy.TRANSFORM),
+            new CollisionShape(),
             new Power(50f),
             new Decay(.03f),
             new Alive(),
             new ColorScheme(ColorRGBA.Orange)
         );
         return flash;
+    }
+    
+    public EntityId createTankShards(Vector3f position, ColorRGBA color) {
+        var shards = ed.createEntity();
+        ed.setComponents(shards,
+            new Visual(SpatialFactory.TANK_SHARDS),
+            new EntityTransform().setTranslation(position),
+            new ColorScheme(color),
+            new Decay(1f),
+            new Alive()
+        );
+        return shards;
+    }
+    public EntityId createExplosion1(Vector3f position) {
+        var explosion = ed.createEntity();
+        // todo: set explosion components
+        return explosion;
+    }
+    
+    public void create(String model, EntityId id) {
+        switch (model) {
+            case TANK_DEATH_EXPLOSION -> createTankDeathExplosion(id);
+        }
+    }
+    
+    public void createTankDeathExplosion(EntityId id) {
+        var position = ed.getComponent(id, EntityTransform.class).getTranslation();
+        var color = ed.getComponent(id, ColorScheme.class).getPallete()[0];
+        createTankShards(position, color);
+        createExplosion1(position);
     }
     
 }

@@ -41,12 +41,12 @@ public class SpatialFactory {
         FLOOR = "floor",
         WALL = "wall",
         BULLET_SMOKE = "bullet-smoke",
-        TANK_DEBRIS = "tank-debris",
+        TANK_SHARDS = "tank-shards",
         MUZZLEFLASH = "muzzleflash",
         DEBUG = "debug";
     
     private final AssetManager assetManager;
-    private LinkedList<UserDataIterator> preprocessors = new LinkedList<>();
+    private final LinkedList<UserDataIterator> preprocessors = new LinkedList<>();
     
     public SpatialFactory(AssetManager assetManager) {
         this.assetManager = assetManager;
@@ -72,7 +72,7 @@ public class SpatialFactory {
             case DEBUG          -> createDebug(ColorRGBA.Blue, 1f);
             case MUZZLEFLASH    -> createMuzzleflash();
             case BULLET_SMOKE   -> createBulletSmoke();
-            case TANK_DEBRIS    -> createTankDebris();
+            case TANK_SHARDS    -> createTankShards();
             default             -> createNode();
         };
     }
@@ -89,7 +89,7 @@ public class SpatialFactory {
     public Emitter createEmitter(String model) {
         return switch (model) {
             case BULLET_SMOKE   -> createBulletSmoke();
-            case TANK_DEBRIS    -> createTankDebris();
+            case TANK_SHARDS    -> createTankShards();
             default             -> null;
         };
     }
@@ -169,8 +169,8 @@ public class SpatialFactory {
         //smoke.setShape(new PointEmissionShape());
         smoke.setShape(new EmitterSphere(.3f));
         smoke.setQueueBucket(RenderQueue.Bucket.Transparent);
-        smoke.setStartSpeed(new ValueType(.5f));
-        smoke.setStartSize(new ValueType(.2f));
+        smoke.setStartSpeed(new ValueType(0f));
+        smoke.setStartSize(new ValueType(.5f));
         smoke.setLifeFixedDuration(2.0f);
         smoke.setEmissionsPerSecond(40);
         smoke.setParticlesPerEmission(1);
@@ -178,25 +178,26 @@ public class SpatialFactory {
         smoke.setLifeMinMax(life, life);
         smoke.setParticlesFollowEmitter(false);
         var color = new ColorInfluencer();
-        color.setStartEndColor(new ColorRGBA(.3f, .3f, .3f, .5f), new ColorRGBA(.1f, .1f, .1f, 0f));
+        color.setStartEndColor(new ColorRGBA(.3f, .3f, .3f, .05f), new ColorRGBA(.1f, .1f, .1f, 0f));
         smoke.addInfluencer(color);
         var sprite = new SpriteInfluencer();
         smoke.addInfluencer(sprite);
-        sprite.setSpriteRows(15);
-        sprite.setSpriteCols(1);
+        sprite.setSpriteRows(1);
+        sprite.setSpriteCols(15);
+        sprite.setAnimate(false);
         //sprite.setUseRandomImage(true);
         return smoke;
     }
-    public Emitter createTankDebris() {
-        return createTankDebris(ColorRGBA.Gray, .2f);
+    public Emitter createTankShards() {
+        return SpatialFactory.this.createTankShards(ColorRGBA.Gray, .2f);
     }
-    public Emitter createTankDebris(ColorRGBA color, float radius) {
+    public Emitter createTankShards(ColorRGBA color, float radius) {
         var mat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
         mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
         mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         mat.setTransparent(true);
-        mat.setTexture("Texture", assetManager.loadTexture("Effects/Debris.png"));
-        var debris = new Emitter("bullet-smoke", mat, 100);
+        mat.setTexture("Texture", assetManager.loadTexture("Effects/Shards.png"));
+        var debris = new Emitter("tank-debris", mat, 100);
         //smoke.setShape(new PointEmissionShape());
         debris.setShape(new EmitterSphere(radius));
         debris.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -204,8 +205,8 @@ public class SpatialFactory {
         debris.setStartSize(new ValueType(.2f));
         debris.setStartColor(new ColorValueType(color));
         debris.setLifeFixedDuration(2.0f);
-        debris.setEmissionsPerSecond(40);
-        debris.setParticlesPerEmission(1);
+        debris.setEmissionsPerSecond(0);
+        debris.setParticlesPerEmission(40);
         final ValueType life = new ValueType(.5f);
         debris.setLifeMinMax(life, life);
         debris.setParticlesFollowEmitter(false);
@@ -214,6 +215,7 @@ public class SpatialFactory {
         sprite.setSpriteRows(3);
         sprite.setSpriteCols(3);
         sprite.setUseRandomImage(true);
+        debris.emitAllParticles();
         return debris;
     }
     

@@ -4,6 +4,7 @@
  */
 package codex.tanks.collision;
 
+import codex.tanks.systems.CollisionState;
 import codex.tanks.systems.VisualState;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;

@@ -10,20 +10,20 @@ import com.simsilica.es.EntityComponent;
  *
  * @author codex
  */
-public class EmitterComponent implements EntityComponent {
+public class EmissionsPerSecond implements EntityComponent {
     
-    private final String model;
-    
-    public EmitterComponent(String model) {
-        this.model = model;
+    private final float eps;
+
+    public EmissionsPerSecond(float eps) {
+        this.eps = eps;
     }
-    
-    public String getModel() {
-        return model;
+
+    public float getEps() {
+        return eps;
     }
     @Override
     public String toString() {
-        return "EmitterComponent{" + "model=" + model + '}';
+        return "EmissionsPerSecond{" + "eps=" + eps + '}';
     }
     
 }

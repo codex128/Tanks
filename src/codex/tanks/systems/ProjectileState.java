@@ -5,15 +5,18 @@
 package codex.tanks.systems;
 
 import codex.boost.Timer;
-import codex.tanks.collision.CollisionState;
+import codex.tanks.collision.ContactEvent;
+import codex.tanks.collision.ContactEventPipeline;
 import codex.tanks.collision.PaddedRaytest;
 import codex.tanks.collision.ShapeFilter;
 import codex.tanks.components.*;
 import codex.tanks.effects.MatChange;
 import codex.tanks.factory.SpatialFactory;
 import codex.tanks.util.ESAppState;
+import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
 import com.jme3.collision.CollisionResults;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
 import com.jme3.shader.VarType;
@@ -24,7 +27,7 @@ import com.simsilica.es.EntitySet;
  *
  * @author codex
  */
-public class BulletState extends ESAppState {
+public class ProjectileState extends ESAppState {
     
     public static final float MISSILE_QUALIFIER = 15f;
     
@@ -35,7 +38,7 @@ public class BulletState extends ESAppState {
     @Override
     protected void init(Application app) {
         super.init(app);
-        entities = ed.getEntities(Visual.class, EntityTransform.class, Velocity.class, Bounces.class, Owner.class, Alive.class);
+        entities = ed.getEntities(EntityTransform.class, Velocity.class, Bounces.class, Alive.class);
         visuals = getState(VisualState.class, true);
         collision = getState(CollisionState.class, true);
         flameRefreshCycle.setCycleMode(Timer.CycleMode.ONCE);
@@ -68,11 +71,11 @@ public class BulletState extends ESAppState {
             ed.setComponent(e.getId(), new MaterialUpdate("flame", new MatChange("Seed", VarType.Float, FastMath.nextRandomFloat()*97.43f)));
         }
     }
-    private void raytest(Entity e, float tpf) {
+    public void raytest(Entity e, float tpf) {
         var filter = ShapeFilter.notId(e.getId());
         var test = new PaddedRaytest(
                 new Ray(e.get(EntityTransform.class).getTranslation(), e.get(Velocity.class).getDirection()),
-                filter, .15f, filter, new CollisionResults());
+                filter, e.get(EntityTransform.class).getScale().x, filter, new CollisionResults());
         test.setResultMergingEnabled(true);
         test.cast(collision);
         var closest = test.getCollision();
@@ -80,10 +83,13 @@ public class BulletState extends ESAppState {
             if (closest.getDistance() < e.get(Velocity.class).getSpeed()*tpf*2) {
                 var id = test.getCollisionEntity();
                 if (id != null) {
-                    collision.bulletCollision(id, e, closest);
+                    collision.bulletContact(id, e, closest);
                 }
             }
         }
+    }
+    public void raytest(Entity e, ShapeFilter filter, float tpf) {
+        
     }
     
     public EntitySet getBullets() {

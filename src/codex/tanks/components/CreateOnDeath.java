@@ -7,23 +7,23 @@ package codex.tanks.components;
 import com.simsilica.es.EntityComponent;
 
 /**
- *
+ * 
  * @author codex
  */
-public class ContactReaction implements EntityComponent {
+public class CreateOnDeath implements EntityComponent {
     
-    private final String[] pipelines;
-
-    public ContactReaction(String... pipelines) {
-        this.pipelines = pipelines;
+    private final String model;
+    
+    public CreateOnDeath(String model) {
+        this.model = model;
     }
-
-    public String[] getPipelines() {
-        return pipelines;
+    
+    public String getModel() {
+        return model;
     }
     @Override
     public String toString() {
-        return "ContactReaction{" + "pipeline=" + pipelines + '}';
+        return "CreateOnDeath{" + "model=" + model + '}';
     }
     
 }

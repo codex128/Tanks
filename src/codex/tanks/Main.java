@@ -1,9 +1,8 @@
 package codex.tanks;
 
-import codex.tanks.effects.ParticleState;
 import codex.tanks.systems.TankState;
 import codex.tanks.systems.PhysicsState;
-import codex.tanks.collision.CollisionState;
+import codex.tanks.systems.CollisionState;
 import codex.j3map.J3mapFactory;
 import codex.j3map.processors.FloatProcessor;
 import codex.j3map.processors.IntegerProcessor;
@@ -59,8 +58,7 @@ public class Main extends SimpleApplication {
         BulletAppState bulletapp = new BulletAppState();
         //bulletapp.setDebugEnabled(true);
         
-        stateManager.attachAll(
-            new EntityState(),
+        stateManager.attachAll(new EntityState(),
             bulletapp,
             new FactoryState(),
             new VisualState(),
@@ -70,7 +68,7 @@ public class Main extends SimpleApplication {
             new LightingState(),
             new MovementState(),
             new GunState(),
-            new BulletState(),
+            new ProjectileState(),
             new TankState(),
             new FaceVelocityState(),
             new DecayState(),
@@ -78,7 +76,7 @@ public class Main extends SimpleApplication {
             new OrphanState(),
             new OwnerState(),
             new MaterialState(),
-            new ParticleState(),
+            new EmitterState(),
             new AIManager()
         );        
         stateManager.attach(new GameState());

@@ -6,7 +6,7 @@ package codex.tanks.systems;
 
 import codex.tanks.components.Alive;
 import codex.tanks.components.Copy;
-import codex.tanks.components.GameObject;
+import codex.tanks.components.CreateOnDeath;
 import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.Entity;
@@ -19,6 +19,7 @@ import com.simsilica.es.EntitySet;
 public class LifeState extends ESAppState {
     
     private EntitySet alive;
+    private EntitySet createOnDeath;
     private EntitySet copy;
     
     @Override
@@ -47,13 +48,17 @@ public class LifeState extends ESAppState {
             }
         }
         if (alive.applyChanges()) {
-            alive.getChangedEntities().forEach(e -> update(e));
+            alive.getAddedEntities().forEach(e -> update(e));
             alive.getChangedEntities().forEach(e -> update(e));
         }
     }
     
     private void update(Entity e) {
         if (!e.get(Alive.class).isAlive()) {
+            var cod = ed.getComponent(e.getId(), CreateOnDeath.class);
+            if (cod != null) {
+                factory.getEntityFactory().create(cod.getModel(), e.getId());
+            }
             ed.removeEntity(e.getId());
         }
     }

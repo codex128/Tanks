@@ -6,11 +6,9 @@ package codex.tanks.systems;
 
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Visual;
-import codex.tanks.factory.SpatialFactory;
 import codex.tanks.util.ESAppState;
 import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
-import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;
@@ -23,26 +21,21 @@ import java.util.HashMap;
  */
 public class VisualState extends ESAppState {
     
-    public static final String USERDATA = "entityId";
+    public static final String USERDATA = "EntityId";
     
-    private EntitySet visuals;
+    private EntitySet entities;
     private final HashMap<EntityId, Spatial> spatials = new HashMap<>();
-    private final HashMap<String, Node> scenes = new HashMap<>();
     
     @Override
     protected void init(Application app) {
         super.init(app);
-        visuals = ed.getEntities(Visual.class);
-        addScene(rootNode);
-        addScene(guiNode);
+        entities = ed.getEntities(Visual.class);
     }
     @Override
     protected void cleanup(Application app) {
-        visuals.release();
+        entities.release();
         spatials.values().forEach(s -> s.removeFromParent());
         spatials.clear();
-        scenes.values().forEach(s -> s.removeFromParent());
-        scenes.clear();
     }
     @Override
     protected void onEnable() {}
@@ -50,9 +43,9 @@ public class VisualState extends ESAppState {
     protected void onDisable() {}
     @Override
     public void update(float tpf) {
-        if (visuals.applyChanges()) {
-            visuals.getAddedEntities().forEach(e -> createModel(e));
-            visuals.getRemovedEntities().forEach(e -> destroyModel(e));
+        if (entities.applyChanges()) {
+            entities.getAddedEntities().forEach(e -> createModel(e));
+            entities.getRemovedEntities().forEach(e -> destroyModel(e));
         }
     }
     
@@ -79,22 +72,29 @@ public class VisualState extends ESAppState {
     public Spatial getSpatial(EntityId id) {
         return spatials.get(id);
     }
+    public <T extends Spatial> T getSpatial(EntityId id, Class<T> type) {
+        var s = getSpatial(id);
+        if (s != null && type.isAssignableFrom(s.getClass())) {
+            return (T)s;
+        }
+        return null;
+    }
     public boolean link(EntityId id, Spatial spatial) {
         return link(id, spatial, true);
     }
     public boolean link(EntityId id, Spatial spatial, boolean attach) {
-        if (spatials.putIfAbsent(id, spatial) == null) {
-            assignId(spatial, id);
-            if (spatial.getParent() == null && attach) {
-                rootNode.attachChild(spatial);
-            }
-            var transform = ed.getComponent(id, EntityTransform.class);
-            if (transform != null) {
-                transform.assignToSpatial(spatial);
-            }
-            return true;
+        if (spatials.putIfAbsent(id, spatial) != null) {
+            return false;
         }
-        return false;
+        assignId(spatial, id);
+        if (spatial.getParent() == null && attach) {
+            rootNode.attachChild(spatial);
+        }
+        var transform = ed.getComponent(id, EntityTransform.class);
+        if (transform != null) {
+            transform.assignToSpatial(spatial);
+        }
+        return true;
     }
     private Spatial unlink(EntityId id) {
         var spatial = spatials.remove(id);
@@ -102,16 +102,6 @@ public class VisualState extends ESAppState {
             assignId(spatial, null);
         }
         return spatial;
-    }
-    
-    public boolean addScene(Node scene) {
-        return scenes.putIfAbsent(scene.getName(), scene) == null;
-    }
-    public Node removeScene(String scene) {
-        return scenes.remove(scene);
-    }
-    public Node getScene(String scene) {
-        return scenes.get(scene);
     }
     
     private static void assignId(Spatial spatial, EntityId id) {

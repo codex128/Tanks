@@ -4,9 +4,10 @@
  */
 package codex.tanks.ai;
 
+import codex.tanks.systems.CollisionState;
 import codex.tanks.components.Bounces;
 import codex.tanks.systems.AIManager;
-import codex.tanks.systems.BulletState;
+import codex.tanks.systems.ProjectileState;
 import codex.tanks.collision.*;
 import codex.tanks.components.*;
 import codex.tanks.systems.VisualState;
@@ -35,7 +36,7 @@ public class AlgorithmUpdate {
     private Entity target;
     private VisualState visuals;
     private CollisionState collision;
-    private BulletState bulletState;
+    private ProjectileState bulletState;
     private Vector3f dirToTarget;
     private float distToTarget;
     
@@ -50,7 +51,7 @@ public class AlgorithmUpdate {
     private boolean initialize() {
         visuals = manager.getState(VisualState.class);
         collision = manager.getState(CollisionState.class);
-        bulletState = manager.getState(BulletState.class);
+        bulletState = manager.getState(ProjectileState.class);
         return true;
     }
     public Vector3f getDirectionToTarget() {

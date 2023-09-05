@@ -2,12 +2,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanks.collision;
+package codex.tanks.systems;
 
+import codex.tanks.collision.ContactEvent;
+import codex.tanks.collision.ShapeFilter;
 import codex.tanks.components.ContactReaction;
 import codex.tanks.components.CollisionShape;
 import codex.tanks.components.Visual;
-import codex.tanks.systems.VisualState;
 import codex.tanks.util.ESAppState;
 import codex.tanks.util.EntityAccess;
 import codex.tanks.util.GameUtils;
@@ -17,7 +18,12 @@ import com.jme3.scene.Spatial;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import java.util.HashMap;
 import java.util.Iterator;
+import codex.tanks.collision.ContactEventPipeline;
+import codex.tanks.components.Alive;
+import codex.tanks.components.Bounces;
+import codex.tanks.components.Velocity;
 
 /**
  *
@@ -26,13 +32,11 @@ import java.util.Iterator;
 public class CollisionState extends ESAppState implements Iterable<Spatial> {
     
     private EntitySet shapes;
-    private VisualState visuals;
     
     @Override
     protected void init(Application app) {
         super.init(app);
         shapes = ed.getEntities(Visual.class, CollisionShape.class);
-        visuals = getState(VisualState.class, true);
     }
     @Override
     protected void cleanup(Application app) {
@@ -55,9 +59,8 @@ public class CollisionState extends ESAppState implements Iterable<Spatial> {
         return new ShapeIterator(filter);
     }
     
-    public void bulletCollision(EntityId target, Entity bullet, CollisionResult collision) {
-        var r = ed.getComponent(target, ContactReaction.class);
-        if (r != null) r.react(ed, target, bullet, collision);
+    public void bulletContact(EntityId target, Entity bullet, CollisionResult collision) {
+        // todo: fill in this method
     }
     
     private class ShapeIterator implements Iterator<Spatial> {

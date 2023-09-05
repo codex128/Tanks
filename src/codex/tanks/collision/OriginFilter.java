@@ -39,5 +39,8 @@ public class OriginFilter implements ShapeFilter {
     public EntityId getRoot() {
         return root;
     }
+    public ShapeFilter getChildFilter() {
+        return child;
+    }
     
 }
