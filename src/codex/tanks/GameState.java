@@ -6,24 +6,21 @@ package codex.tanks;
 
 import codex.tanks.weapons.Tank;
 import codex.j3map.J3map;
+import codex.tanks.blueprints.ContactMethods;
 import codex.tanks.components.*;
-import codex.tanks.factory.SpatialFactory;
+import codex.tanks.blueprints.SpatialFactory;
 import codex.tanks.systems.VisualState;
 import codex.tanks.util.ESAppState;
-import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.light.PointLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
 import com.jme3.post.ssao.SSAOFilter;
-import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.scene.shape.Box;
 
 /**
  *
@@ -46,7 +43,7 @@ public class GameState extends ESAppState {
             new RigidBody(0f),
             new EntityTransform().setTranslation(0f, -1f, 0f),
             new CollisionShape(null),
-            new ContactReaction(ContactReaction.RICOCHET)
+            new ContactResponse(ContactMethods.RICOCHET)
         );
         
         J3map playerSource = (J3map)app.getAssetManager().loadAsset("Properties/player.j3map");        
@@ -61,12 +58,10 @@ public class GameState extends ESAppState {
             (J3map)assetManager.loadAsset("Properties/light-green.j3map"),
             (J3map)assetManager.loadAsset("Properties/black.j3map"),
         };
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 0; i++) {
             var src = enemySources[FastMath.nextRandomInt(0, enemySources.length-1)];
-            //var src = enemySources[1];
+            //var src = enemySources[2];
             factory.getEntityFactory().createAITank(new Vector3f(7f+i*3, 0f, 7f), 1, src);
-            //Tank.applyProperties(ed, enemy, src.getJ3map("tank"));
-            //Algorithm.applyProperties(ed, enemy, src);
         }
         
         float r = 20f;
@@ -131,7 +126,7 @@ public class GameState extends ESAppState {
                 .setScale(1f),
             new TransformMode(1, 1, 0),
             new CollisionShape(),
-            new ContactReaction(ContactReaction.RICOCHET));
+            new ContactResponse(ContactMethods.RICOCHET));
         var spatial = factory.getSpatialFactory().createWall(size);
         getState(VisualState.class).link(wall, spatial);
     }

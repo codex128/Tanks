@@ -18,6 +18,10 @@ public class Bounces implements EntityComponent {
     public Bounces(int remaining) {
         this(remaining, 0);
     }
+    public Bounces(Bounces b) {
+        remaining = b.remaining;
+        bounces = b.bounces;
+    }
     private Bounces(int remaining, int bounces) {
         this.remaining = remaining;
         this.bounces = bounces;

@@ -138,7 +138,7 @@ public class Tank {
     }
     private void moveLeftTread(float amount) {
         treadOffset.x += amount;
-        matBucket.add(new MatChange("TreadOffset2", VarType.Float, treadOffset.y));
+        matBucket.add(new MatChange("TreadOffset1", VarType.Float, treadOffset.y));
         Quaternion q = new Quaternion().fromAngleAxis(amount*wheelSpeedRatio, Vector3f.UNIT_X);
         wheels[0].rotate(q);
         wheels[1].rotate(q);
@@ -171,6 +171,8 @@ public class Tank {
     }
     
     public static void applyProperties(EntityData ed, EntityId id, J3map source) {
+        var colors = new ColorScheme(source.getProperty(ColorRGBA.class, "color1", ColorRGBA.Blue),
+                source.getProperty(ColorRGBA.class, "color2", ColorRGBA.DarkGray));
         ed.setComponents(id,
             new MaxSpeed(source.getFloat("speed", 6f)),
             new Firerate(source.getFloat("rps", 1f)),
@@ -178,9 +180,10 @@ public class Tank {
             new Bounces(source.getInteger("maxBounces", 1)),
             new Power(source.getFloat("bulletSpeed", 10f)),
             new MineCapacity(source.getInteger("maxMines", 2)),
+            colors,
             new MaterialUpdate(
-                new MatChange("MainColor", VarType.Vector4, source.getProperty(ColorRGBA.class, "color1", ColorRGBA.Blue)),
-                new MatChange("SecondaryColor", VarType.Vector4, source.getProperty(ColorRGBA.class, "color2", ColorRGBA.DarkGray))));
+                new MatChange("MainColor", VarType.Vector4, colors.getPallete()[0]),
+                new MatChange("SecondaryColor", VarType.Vector4, colors.getPallete()[1])));
     }
     
 }

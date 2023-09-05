@@ -2,8 +2,8 @@ tank: {
     color: "light-green";
     class: "base";
     speed: 0f;
-    rps: .7f;
-    maxBullets: 2;
+    rps: 3f;
+    maxBullets: 100;
     maxBounces: 2;
     maxMines: 0;
     bulletSpeed: 25f;

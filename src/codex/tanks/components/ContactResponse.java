@@ -10,11 +10,11 @@ import com.simsilica.es.EntityComponent;
  *
  * @author codex
  */
-public class ContactReaction implements EntityComponent {
+public class ContactResponse implements EntityComponent {
     
     private final String[] pipelines;
 
-    public ContactReaction(String... pipelines) {
+    public ContactResponse(String... pipelines) {
         this.pipelines = pipelines;
     }
 
@@ -23,7 +23,7 @@ public class ContactReaction implements EntityComponent {
     }
     @Override
     public String toString() {
-        return "ContactReaction{" + "pipeline=" + pipelines + '}';
+        return "ContactReaction{" + "pipeline=" + pipelines.length + '}';
     }
     
 }

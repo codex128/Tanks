@@ -5,6 +5,7 @@
 package codex.tanks.components;
 
 import com.jme3.math.Quaternion;
+import com.jme3.math.Ray;
 import com.jme3.math.Transform;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
@@ -34,6 +35,10 @@ public class EntityTransform implements EntityComponent {
         transform.getTranslation(translation);
         transform.getRotation(rotation);
         transform.getScale(scale);
+    }
+    public EntityTransform(Ray ray) {
+        translation.set(ray.getOrigin());
+        rotation.set(new Quaternion().lookAt(ray.getDirection(), Vector3f.UNIT_Y));
     }
     
     public EntityTransform setTranslation(Vector3f location) {
@@ -93,6 +98,9 @@ public class EntityTransform implements EntityComponent {
     }
     public Transform toJmeTransform() {
         return new Transform(translation, rotation, scale);
+    }
+    public Ray toRay() {
+        return new Ray(translation, rotation.mult(Vector3f.UNIT_Z));
     }
 
     @Override

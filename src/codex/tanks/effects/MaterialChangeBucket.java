@@ -5,6 +5,7 @@
 package codex.tanks.effects;
 
 import codex.tanks.components.MaterialUpdate;
+import com.jme3.math.FastMath;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import java.util.LinkedList;

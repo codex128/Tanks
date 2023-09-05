@@ -6,30 +6,25 @@ package codex.tanks.systems;
 
 import codex.tanks.collision.ContactEvent;
 import codex.tanks.collision.ShapeFilter;
-import codex.tanks.components.ContactReaction;
+import codex.tanks.components.Bounces;
 import codex.tanks.components.CollisionShape;
+import codex.tanks.components.ContactResponse;
+import codex.tanks.components.Owner;
 import codex.tanks.components.Visual;
 import codex.tanks.util.ESAppState;
 import codex.tanks.util.EntityAccess;
 import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
-import com.jme3.collision.CollisionResult;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.Entity;
-import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import java.util.HashMap;
 import java.util.Iterator;
-import codex.tanks.collision.ContactEventPipeline;
-import codex.tanks.components.Alive;
-import codex.tanks.components.Bounces;
-import codex.tanks.components.Velocity;
 
 /**
  *
  * @author codex
  */
-public class CollisionState extends ESAppState implements Iterable<Spatial> {
+public class ContactState extends ESAppState implements Iterable<Spatial> {
     
     private EntitySet shapes;
     
@@ -59,8 +54,17 @@ public class CollisionState extends ESAppState implements Iterable<Spatial> {
         return new ShapeIterator(filter);
     }
     
-    public void bulletContact(EntityId target, Entity bullet, CollisionResult collision) {
-        // todo: fill in this method
+    public void triggerContactEvent(ContactEvent event) {
+        if (authorizeContactEvent(event)) {
+            var reaction = ed.getComponent(event.target, ContactResponse.class);
+            if (reaction != null) {
+                factory.getContactMethods().respond(reaction, event);
+            }
+        }
+    }
+    private boolean authorizeContactEvent(ContactEvent event) {
+        var owner = ed.getComponent(event.projectile.getId(), Owner.class);
+        return owner == null || !owner.isOwner(event.target) || event.projectile.get(Bounces.class).getBouncesMade() > 0;
     }
     
     private class ShapeIterator implements Iterator<Spatial> {

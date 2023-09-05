@@ -4,13 +4,12 @@
  */
 package codex.tanks.ai;
 
-import codex.tanks.systems.CollisionState;
+import codex.tanks.systems.ContactState;
 import codex.tanks.components.Bounces;
 import codex.tanks.systems.AIManager;
 import codex.tanks.systems.ProjectileState;
 import codex.tanks.collision.*;
 import codex.tanks.components.*;
-import codex.tanks.systems.VisualState;
 import codex.tanks.systems.GunState;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
@@ -28,17 +27,12 @@ import com.simsilica.es.EntitySet;
 public class AlgorithmUpdate {
     
     private final AIManager manager;
-    //private final EntityId id;
     private final Entity entity;
-    //private final Tank tank;
     private final float tpf;
     private final boolean satisfied;
     private Entity target;
-    private VisualState visuals;
-    private CollisionState collision;
-    private ProjectileState bulletState;
-    private Vector3f dirToTarget;
-    private float distToTarget;
+    private ContactState collision;
+    private ProjectileState projectileState;
     
     public AlgorithmUpdate(AIManager manager, Entity entity, float tpf) {
         this.manager = manager;
@@ -49,9 +43,8 @@ public class AlgorithmUpdate {
     }
     
     private boolean initialize() {
-        visuals = manager.getState(VisualState.class);
-        collision = manager.getState(CollisionState.class);
-        bulletState = manager.getState(ProjectileState.class);
+        collision = manager.getState(ContactState.class);
+        projectileState = manager.getState(ProjectileState.class);
         return true;
     }
     public Vector3f getDirectionToTarget() {
@@ -59,16 +52,6 @@ public class AlgorithmUpdate {
     }
     public float getDistanceToTarget() {
         return getTargetComponent(EntityTransform.class).getTranslation().distance(getComponent(EntityTransform.class).getTranslation());
-    }
-    public boolean isTargetInView() {
-        var raytest = new BasicRaytest(new Ray(entity.get(ProbeLocation.class).getLocation(), getDirectionToTarget()), ShapeFilter.none(ShapeFilter.byId(getAgentId())));
-        raytest.cast(collision);
-        return target.getId().equals(raytest.getCollisionEntity());
-    }
-    public boolean isTargetInBounce() {
-        var raytest = new LaserRaytest(getAimRay(), new OriginFilter(getAgentId(), null), getComponent(Bounces.class).getRemaining());
-        raytest.cast(collision);
-        return target.getId().equals(raytest.getCollisionEntity());
     }
     
     public void drive(Vector3f direction) {
@@ -87,6 +70,44 @@ public class AlgorithmUpdate {
         location.setY(0f);
         Vector3f here = getComponent(EntityTransform.class).getTranslation().clone().setY(0f);
         return location.subtractLocal(here);
+    }
+    
+    public Entity createRaycastEntity(Ray ray) {
+        var tester = getEntityData().createEntity();
+        getEntityData().setComponents(tester,
+            new EntityTransform(),
+            new Velocity(ray.direction, -1f),
+            new Damage(0f),
+            new Bounces(entity.get(Bounces.class)),
+            new Alive()
+        );
+        return getEntityData().getEntity(tester, ProjectileState.COMPONENT_TYPES);
+    }
+    public boolean isTargetInView() {
+        var raytest = new BasicRaytest(new Ray(entity.get(ProbeLocation.class).getLocation(), getDirectionToTarget()), ShapeFilter.none(ShapeFilter.byId(getAgentId())));
+        raytest.cast(collision);
+        return target.getId().equals(raytest.getCollisionEntity());
+    }
+    public boolean checkIsEndangeringTeam() {
+        var e = createRaycastEntity(getAimRay());
+        var margin = ShapeFilter.and(ShapeFilter.none(ShapeFilter.byTeam(getComponent(Team.class).getTeam())), ShapeFilter.byGameObject("tank"));
+        SegmentedRaytest raytest = new SegmentedRaytest(getCollisionState());
+        raytest.setRay(e.get(EntityTransform.class).toRay());
+        raytest.setDistance(-1f);
+        raytest.setFirstCastFilter(ShapeFilter.notId(getAgentId()));
+        raytest.setOriginEntity(getAgentId());
+        var iterator = getProjectileState().raytest(e, raytest);
+        getEntityData().removeEntity(e.getId());
+//        if (iterator.getMarginTestResults().size() > 0) {
+//            return true;
+//        }
+        if (iterator.getCollisionEntity() != null) {
+            var team = getEntityData().getComponent(iterator.getCollisionEntity(), Team.class);
+            if (team != null && team.getTeam() == getComponent(Team.class).getTeam()) {
+                return true;
+            }
+        }
+        return false;
     }
     
     public AIManager getManager() {
@@ -131,11 +152,14 @@ public class AlgorithmUpdate {
     public EntityData getEntityData() {
         return manager.getEntityData();
     }
-    public CollisionState getCollisionState() {
+    public ContactState getCollisionState() {
         return collision;
     }
+    public ProjectileState getProjectileState() {
+        return projectileState;
+    }
     public EntitySet getBullets() {
-        return bulletState.getBullets();
+        return projectileState.getBullets();
     }
         
 }

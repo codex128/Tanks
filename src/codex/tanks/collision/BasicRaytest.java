@@ -4,7 +4,7 @@
  */
 package codex.tanks.collision;
 
-import codex.tanks.systems.CollisionState;
+import codex.tanks.systems.ContactState;
 import codex.tanks.systems.VisualState;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
@@ -34,7 +34,7 @@ public class BasicRaytest implements Raytest {
     }
 
     @Override
-    public void cast(CollisionState state) {
+    public void cast(ContactState state) {
         results.clear();
         Raytest.raycast(state, ray, filter, results);
     }

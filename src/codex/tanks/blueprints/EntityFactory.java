@@ -2,12 +2,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanks.factory;
+package codex.tanks.blueprints;
 
 import codex.j3map.J3map;
 import codex.tanks.weapons.Tank;
 import codex.tanks.ai.Algorithm;
-import codex.tanks.collision.ContactEventPipeline;
 import codex.tanks.components.*;
 import codex.tanks.systems.ProjectileState;
 import com.jme3.math.ColorRGBA;
@@ -41,9 +40,7 @@ public class EntityFactory {
             new TransformMode(-3, -3, 0),
             new MoveVelocity(Vector3f.ZERO),
             new CollisionShape("hitbox"),
-            new ContactReaction(
-                ContactEventPipeline.KILL_BULLET.getPipelineName(),
-                ContactEventPipeline.DIE.getPipelineName()),
+            new ContactResponse(ContactMethods.DIE, ContactMethods.KILL_PROJECTILE),
             new Team(team),
             new Alive(),
             new AimDirection(Vector3f.UNIT_Z),
@@ -83,13 +80,14 @@ public class EntityFactory {
             new Visual(SpatialFactory.BULLET),
             new EntityTransform()
                 .setTranslation(position)
-                .setScale(.17f),
+                .setScale(.2f),
             new TransformMode(1, 1, 0),
             new Velocity(velocity),
             new FaceVelocity(),
             new Bounces(bounces),
+            new Damage(1f),
             new CollisionShape("hitbox"),
-            new ContactReaction(ContactReaction.DIE),
+            new ContactResponse(ContactMethods.DIE, ContactMethods.KILL_PROJECTILE),
             new Owner(owner, "bullet"),
             new Alive()
         );
@@ -117,8 +115,9 @@ public class EntityFactory {
             new Velocity(velocity),
             new FaceVelocity(),
             new Bounces(bounces),
+            new Damage(1f),
             new CollisionShape("hitbox"),
-            new ContactReaction(ContactReaction.DIE),
+            new ContactResponse(ContactMethods.DIE, ContactMethods.KILL_PROJECTILE),
             new Owner(owner),
             new Alive()
         );
@@ -145,7 +144,6 @@ public class EntityFactory {
             new EntityTransform().setScale(scale),
             new TransformMode(1, 1, 0),
             new Copy(parent, Copy.TRANSFORM),
-            new CollisionShape(),
             new Power(50f),
             new Decay(.03f),
             new Alive(),
@@ -160,7 +158,7 @@ public class EntityFactory {
             new Visual(SpatialFactory.TANK_SHARDS),
             new EntityTransform().setTranslation(position),
             new ColorScheme(color),
-            new Decay(1f),
+            new Decay(5f),
             new Alive()
         );
         return shards;
@@ -175,8 +173,7 @@ public class EntityFactory {
         switch (model) {
             case TANK_DEATH_EXPLOSION -> createTankDeathExplosion(id);
         }
-    }
-    
+    }    
     public void createTankDeathExplosion(EntityId id) {
         var position = ed.getComponent(id, EntityTransform.class).getTranslation();
         var color = ed.getComponent(id, ColorScheme.class).getPallete()[0];

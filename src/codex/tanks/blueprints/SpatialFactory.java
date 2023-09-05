@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Interface.java to edit this template
  */
-package codex.tanks.factory;
+package codex.tanks.blueprints;
 
 import codex.boost.scene.UserDataIterator;
 import codex.tanks.util.GameUtils;
@@ -34,6 +34,15 @@ import java.util.LinkedList;
  */
 public class SpatialFactory {
     
+    public static final UserDataIterator[] BASIC_PREPROCESSORS = {
+        new UserDataIterator<>("CullHint", String.class) {
+            @Override
+            public void accept(Spatial spatial, String userdata) {
+                spatial.setCullHint(Spatial.CullHint.valueOf(userdata));
+            }
+        }
+    };
+    
     public static final String
         TANK = "tank",
         BULLET = "bullet",
@@ -50,6 +59,7 @@ public class SpatialFactory {
     
     public SpatialFactory(AssetManager assetManager) {
         this.assetManager = assetManager;
+        provideBasicSpatialPreProcessors();
     }
     
     public Spatial create(String model) {
@@ -103,6 +113,7 @@ public class SpatialFactory {
         mat.setColor("SecondaryColor", new ColorRGBA(.3f, .5f, 1f, 1f));
         tank.setMaterial(mat);
         tank.setShadowMode(RenderQueue.ShadowMode.Cast);
+        //GameUtils.getChildNode(tank, "muzzle").attachChild(GameUtils.createDebugGeometry(assetManager, ColorRGBA.Blue, .5f));
         return tank;
     }
     public Spatial createBullet() {
@@ -143,6 +154,7 @@ public class SpatialFactory {
     public Spatial createWall(Vector3f size) {
         var wall = new Geometry("wall", new Box(size.x, size.y, size.z));
         var mat = new Material(assetManager, "Common/MatDefs/Light/PBRLighting.j3md");
+        //mat.getAdditionalRenderState().setWireframe(true);
         wall.setMaterial(mat);
         return wall;
     }
@@ -227,6 +239,11 @@ public class SpatialFactory {
     }
     public void clearAllPreProcessors() {
         preprocessors.clear();
+    }
+    private void provideBasicSpatialPreProcessors() {
+        for (var p : BASIC_PREPROCESSORS) {
+            addSpatialPreProcessor(p);
+        }
     }
     
 }

@@ -4,7 +4,7 @@
  */
 package codex.tanks.collision;
 
-import codex.tanks.systems.CollisionState;
+import codex.tanks.systems.ContactState;
 import codex.tanks.systems.VisualState;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
@@ -17,93 +17,87 @@ import java.util.Iterator;
  *
  * @author codex
  */
-public class SegmentedRaytest implements Raytest, Iterable<CollisionResult> {
+public class SegmentedRaytest implements Iterable<CollisionResult> {
     
-    private final CollisionState collisionState;
+    private final ContactState collisionState;
     private Ray ray;
     private EntityId origin;
     private ShapeFilter filter;
-    private ShapeFilter paddingFilter;
-    private float distance; // >0 = distanced, <=0 = not distanced
-    private float padding; // >0 = padding, <=0 = no padding
-    private int bounces; // >=0 = bounce constrained, <0 = not bounce constrained
-    private boolean mergeResults = true;
+    private ShapeFilter firstCastFilter;
+    private float distance;
+    private int maxConsecutiveBounces = 10;
     
-    public SegmentedRaytest(CollisionState collisionState, Ray ray, EntityId origin, ShapeFilter filter,
-            ShapeFilter paddingFilter, float distance, float padding, int bounces) {
+    public SegmentedRaytest(ContactState collisionState) {
         this.collisionState = collisionState;
+    }
+
+    public void setRay(Ray ray) {
         this.ray = ray;
+    }
+    public void setOriginEntity(EntityId origin) {
         this.origin = origin;
+    }
+    public void setFilter(ShapeFilter filter) {
         this.filter = filter;
-        this.paddingFilter = paddingFilter;
+    }
+    public void setFirstCastFilter(ShapeFilter filter) {
+        this.firstCastFilter = filter;
+    }
+    public void setDistance(float distance) {
         this.distance = distance;
-        this.padding = padding;
-        this.bounces = bounces;
+    }
+    public void setMaxConsecutiveBounces(int maxConsecutiveBounces) {
+        this.maxConsecutiveBounces = maxConsecutiveBounces;
     }
     
     @Override
-    public void cast(CollisionState state) {}
-    @Override
-    public Iterator<CollisionResult> iterator() {
+    public SegmentIterator iterator() {
         return new SegmentIterator(this);
     }
     
     public class SegmentIterator implements Iterator<CollisionResult> {
-
-        private static final int LEFT = -1, MIDDLE = 0, RIGHT = 1;
         
-        private Ray ray = new Ray();
+        private final Ray ray = new Ray();
         private EntityId origin;
         private float distance;
-        private int bounces;
-        private int alignment = MIDDLE;
         private CollisionResults results;
+        private int hits = 0;
         
         private SegmentIterator(SegmentedRaytest parent) {
             ray.set(parent.ray);
             origin = parent.origin;
             distance = parent.distance;
-            bounces = parent.bounces;
         }
         
         @Override
         public boolean hasNext() {
-            return bounces >= 0 && distance > 0;
+            return distance != 0 && hits < maxConsecutiveBounces;
         }
         @Override
         public CollisionResult next() {
             results = new CollisionResults();
-            var across = ray.getDirection().cross(Vector3f.UNIT_Y).normalizeLocal().multLocal(padding); // this might point left instead of right
-            var padRight = new Ray(Vector3f.ZERO, ray.direction);
-            ray.getOrigin().add(across.mult(alignment-RIGHT), padRight.origin);
-            var padLeft = new Ray(Vector3f.ZERO, ray.direction);
-            ray.getOrigin().add(across.mult(alignment-LEFT), padLeft.origin);
-            Raytest.raycast(collisionState, padRight, new OriginFilter(origin, paddingFilter), results);
-            Raytest.raycast(collisionState, padLeft, new OriginFilter(origin, paddingFilter), results);
-            ray.origin.addLocal(across.mult(alignment));
-            Raytest.raycast(collisionState, ray, new OriginFilter(origin, filter), results);
+            ShapeFilter f = new OriginFilter(origin, filter);
+            if (hits == 0 && firstCastFilter != null) {
+                f = ShapeFilter.and(f, firstCastFilter);
+            }
+            Raytest.raycast(collisionState, ray, f, results);
             if (results.size() > 0) {
                 var closest = results.getClosestCollision();
-                if (closest.getDistance() > distance) {
+                if (distance > 0 && closest.getDistance() > distance) {
                     results.clear();
-                    return null;
                 }
                 else {
-                    // configure next alignment
-                    var dotMiddle = ray.direction.dot(closest.getContactPoint().subtract(ray.origin).normalizeLocal());
-                    var dotRight = padRight.direction.dot(closest.getContactPoint().subtract(padRight.origin).normalizeLocal());
-                    var dotLeft = padLeft.direction.dot(closest.getContactPoint().subtract(padLeft.origin).normalizeLocal());
-                    if (dotMiddle >= dotRight && dotMiddle >= dotLeft) alignment = MIDDLE;
-                    else if (dotRight >= dotLeft) alignment = RIGHT;
-                    else alignment = LEFT;
-                    // fetch collision entity
                     origin = VisualState.fetchId(closest.getGeometry(), -1);
-                    // close distance
-                    distance -= closest.getDistance();
-                    bounces--;
+                    ray.origin.set(closest.getContactPoint());
+                    if (distance > 0) {
+                        distance = Math.max(distance-closest.getDistance(), 0f);
+                    }
+                    hits++;
                     return closest;
                 }
             }
+            ray.origin.addLocal(ray.direction.mult(distance));
+            distance = 0;
             return null;
         }
         
@@ -122,6 +116,12 @@ public class SegmentedRaytest implements Raytest, Iterable<CollisionResult> {
         }
         public EntityId getCollisionEntity() {
             return origin;
+        }
+        public Vector3f getPosition() {
+            return ray.origin.clone();
+        }
+        public int getHitsMade() {
+            return hits;
         }
         
     }

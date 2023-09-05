@@ -4,7 +4,7 @@
  */
 package codex.tanks.collision;
 
-import codex.tanks.systems.CollisionState;
+import codex.tanks.systems.ContactState;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.Quaternion;
@@ -29,7 +29,7 @@ public class PaddedRaytest extends BasicRaytest {
     }
     
     @Override
-    public void cast(CollisionState state) {
+    public void cast(ContactState state) {
         Ray pad1 = new Ray(), pad2 = new Ray();
         var left = new Vector3f();
         new Quaternion().lookAt(ray.getDirection(), Vector3f.UNIT_Y).getRotationColumn(0, left);

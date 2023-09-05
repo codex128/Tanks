@@ -12,7 +12,6 @@ import codex.tanks.components.Firerate;
 import codex.tanks.components.MuzzlePointer;
 import codex.tanks.components.Power;
 import codex.tanks.components.Team;
-import codex.tanks.systems.OwnerState;
 import codex.tanks.util.ESAppState;
 import codex.tanks.weapons.ShootEventListener;
 import com.jme3.app.Application;

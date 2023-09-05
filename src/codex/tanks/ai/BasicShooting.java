@@ -5,11 +5,9 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
-import codex.tanks.collision.PaddedLaserRaytest;
-import codex.tanks.components.Bounces;
-import codex.tanks.components.Team;
+import codex.tanks.collision.SegmentedRaytest;
 import codex.tanks.collision.ShapeFilter;
-import codex.tanks.components.AimDirection;
+import codex.tanks.components.Team;
 
 /**
  *
@@ -64,17 +62,10 @@ public class BasicShooting implements Algorithm {
     }
     @Override
     public boolean shoot(AlgorithmUpdate update) {
-        if (update.isTargetInView() && exposure > minExposure-0.01f
-                && update.getDirectionToTarget().dot(update.getMuzzleDirection()) >= 1f-maxBarrelOffset) {
-            var raytest = new PaddedLaserRaytest(
-                    update.getAimRay(), update.getAgentId(), 1f,
-                    ShapeFilter.and(ShapeFilter.byTeam(update.getComponent(Team.class).getTeam()), ShapeFilter.notId(update.getAgentId())),
-                    update.getComponent(Bounces.class).getRemaining());
-            raytest.cast(update.getCollisionState());
-            if (raytest.isImpeded()) {
+        if (update.isTargetInView() && exposure > minExposure-0.01f && update.getDirectionToTarget().dot(update.getMuzzleDirection()) >= 1f-maxBarrelOffset) {
+            if (update.checkIsEndangeringTeam()) {
                 return false;
             }
-            //update.getTank().shoot(update.getEntityData(), update.getVisualState());
             update.shoot();
             return true;
         }

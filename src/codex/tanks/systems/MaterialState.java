@@ -42,6 +42,7 @@ public class MaterialState extends ESAppState {
     public void update(float tpf) {
         if (entities.applyChanges()) {
             entities.getAddedEntities().forEach(e -> updateMaterial(e));
+            entities.getChangedEntities().forEach(e -> updateMaterial(e));
         }
     }
     

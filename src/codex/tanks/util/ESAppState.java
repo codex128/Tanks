@@ -5,7 +5,7 @@
 package codex.tanks.util;
 
 import codex.boost.GameAppState;
-import codex.tanks.factory.FactoryState;
+import codex.tanks.blueprints.FactoryState;
 import codex.tanks.systems.EntityState;
 import codex.tanks.systems.VisualState;
 import com.jme3.app.Application;

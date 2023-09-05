@@ -4,13 +4,10 @@
  */
 package codex.tanks.systems;
 
-import codex.tanks.collision.ContactEvent;
-import codex.tanks.collision.ContactEventPipeline;
 import codex.tanks.components.*;
 import codex.tanks.util.ESAppState;
 import codex.tanks.weapons.Tank;
 import com.jme3.app.Application;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;
@@ -21,9 +18,7 @@ import java.util.HashMap;
  *
  * @author codex
  */
-public class TankState extends ESAppState implements ContactEventPipeline {
-    
-    private static final String CONTACT_PIPELINE = "contact:tank";
+public class TankState extends ESAppState {
     
     private EntitySet entities;
     private final HashMap<EntityId, Tank> tanks = new HashMap<>();
@@ -37,27 +32,16 @@ public class TankState extends ESAppState implements ContactEventPipeline {
                 Forward.class, LinearVelocity.class, ProbeLocation.class, MuzzlePointer.class, AimDirection.class,
                 Alive.class);
         physics = getState(PhysicsState.class, true);
-        getState(CollisionState.class).addContactPipeline(CONTACT_PIPELINE, this);
     }
     @Override
     protected void cleanup(Application app) {
         entities.release();
         tanks.clear();
-        getState(CollisionState.class).removeContactPipeline(CONTACT_PIPELINE);
     }
     @Override
     protected void onEnable() {}
     @Override
     protected void onDisable() {}
-    @Override
-    public void contact(ContactEvent event) {
-        event.bullet.set(new Alive(false));
-        if (!event.isProbe) {
-            ed.setComponent(event.target, new Alive(false));
-            Vector3f location = ed.getComponent(event.target, EntityTransform.class).getTranslation();
-            factory.getEntityFactory().createTankShards(location, ColorRGBA.Blue);
-        }
-    }
     @Override
     public void update(float tpf) {
         if (entities.applyChanges()) {

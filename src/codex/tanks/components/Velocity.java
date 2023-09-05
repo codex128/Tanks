@@ -42,4 +42,11 @@ public class Velocity implements EntityComponent {
         return "Velocity{" + "velocity=" + getVelocity() + '}';
     }
     
+    public Velocity setDirection(Vector3f direction) {
+        return new Velocity(direction, speed);
+    }
+    public Velocity setSpeed(float speed) {
+        return new Velocity(direction, speed);
+    }
+    
 }

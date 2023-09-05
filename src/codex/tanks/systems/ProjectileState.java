@@ -5,18 +5,14 @@
 package codex.tanks.systems;
 
 import codex.boost.Timer;
-import codex.tanks.collision.ContactEvent;
-import codex.tanks.collision.ContactEventPipeline;
-import codex.tanks.collision.PaddedRaytest;
+import codex.tanks.collision.SegmentedRaytest;
 import codex.tanks.collision.ShapeFilter;
 import codex.tanks.components.*;
 import codex.tanks.effects.MatChange;
-import codex.tanks.factory.SpatialFactory;
+import codex.tanks.blueprints.SpatialFactory;
+import codex.tanks.collision.ContactEvent;
 import codex.tanks.util.ESAppState;
-import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
-import com.jme3.collision.CollisionResults;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
 import com.jme3.shader.VarType;
@@ -29,18 +25,18 @@ import com.simsilica.es.EntitySet;
  */
 public class ProjectileState extends ESAppState {
     
-    public static final float MISSILE_QUALIFIER = 15f;
+    public static final float MISSILE_QUALIFIER = 20f;
+    public static final Class[] COMPONENT_TYPES = {EntityTransform.class, Velocity.class, Damage.class, Bounces.class, Alive.class};
     
     private EntitySet entities;
     private final Timer flameRefreshCycle = new Timer(0.03f);
-    private CollisionState collision;
+    private ContactState collision;
     
     @Override
     protected void init(Application app) {
         super.init(app);
-        entities = ed.getEntities(EntityTransform.class, Velocity.class, Bounces.class, Alive.class);
-        visuals = getState(VisualState.class, true);
-        collision = getState(CollisionState.class, true);
+        entities = ed.getEntities(COMPONENT_TYPES);
+        collision = getState(ContactState.class, true);
         flameRefreshCycle.setCycleMode(Timer.CycleMode.ONCE);
         flameRefreshCycle.start();
     }
@@ -71,25 +67,39 @@ public class ProjectileState extends ESAppState {
             ed.setComponent(e.getId(), new MaterialUpdate("flame", new MatChange("Seed", VarType.Float, FastMath.nextRandomFloat()*97.43f)));
         }
     }
-    public void raytest(Entity e, float tpf) {
-        var filter = ShapeFilter.notId(e.getId());
-        var test = new PaddedRaytest(
-                new Ray(e.get(EntityTransform.class).getTranslation(), e.get(Velocity.class).getDirection()),
-                filter, e.get(EntityTransform.class).getScale().x, filter, new CollisionResults());
-        test.setResultMergingEnabled(true);
-        test.cast(collision);
-        var closest = test.getCollision();
-        if (closest != null) {
-            if (closest.getDistance() < e.get(Velocity.class).getSpeed()*tpf*2) {
-                var id = test.getCollisionEntity();
-                if (id != null) {
-                    collision.bulletContact(id, e, closest);
-                }
-            }
-        }
+    public SegmentedRaytest.SegmentIterator raytest(Entity e, float tpf) {
+        return raytest(e, ShapeFilter.notId(e.getId()), tpf);
     }
-    public void raytest(Entity e, ShapeFilter filter, float tpf) {
-        
+    public SegmentedRaytest.SegmentIterator raytest(Entity e, ShapeFilter filter, float tpf) {
+        var v = e.get(Velocity.class);
+        var raytest = new SegmentedRaytest(collision);
+        raytest.setRay(new Ray(e.get(EntityTransform.class).getTranslation(), e.get(Velocity.class).getDirection()));
+        raytest.setFilter(filter);
+        raytest.setDistance(v.getSpeed()*tpf);
+        raytest.setOriginEntity(e.getId());
+        return raytest(e, raytest);
+    }
+    public SegmentedRaytest.SegmentIterator raytest(Entity e, SegmentedRaytest raytest) {
+        var iterator = raytest.iterator();
+        while (iterator.hasNext()) {
+            // step the raytest
+            var closest = iterator.next();
+            // fetch step results
+            var id = iterator.getCollisionEntity();
+            if (closest != null) {
+                // collision occured, do something
+                collision.triggerContactEvent(new ContactEvent(id, e, closest));
+            }
+            if (!e.get(Alive.class).isAlive()) {
+                break;
+            }
+            // Set the next raytest direction.
+            // Changes to the direction in the collision reaction are propagated through the entity.
+            iterator.setNextDirection(e.get(Velocity.class).getDirection());
+        }
+        // set projectile translation
+        e.set(new EntityTransform(e.get(EntityTransform.class)).setTranslation(iterator.getPosition()));
+        return iterator;
     }
     
     public EntitySet getBullets() {

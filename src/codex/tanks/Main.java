@@ -2,13 +2,13 @@ package codex.tanks;
 
 import codex.tanks.systems.TankState;
 import codex.tanks.systems.PhysicsState;
-import codex.tanks.systems.CollisionState;
+import codex.tanks.systems.ContactState;
 import codex.j3map.J3mapFactory;
 import codex.j3map.processors.FloatProcessor;
 import codex.j3map.processors.IntegerProcessor;
 import codex.j3map.processors.StringProcessor;
 import codex.tanks.ai.*;
-import codex.tanks.factory.FactoryState;
+import codex.tanks.blueprints.FactoryState;
 import codex.tanks.systems.*;
 import codex.tanks.util.ColorProcessor;
 import codex.tanks.systems.GunState;
@@ -64,12 +64,12 @@ public class Main extends SimpleApplication {
             new VisualState(),
             new TransformUpdateState(),
             new PhysicsState(),
-            new CollisionState(),
+            new ContactState(),
             new LightingState(),
-            new MovementState(),
             new GunState(),
             new ProjectileState(),
             new TankState(),
+            //new MovementState(),
             new FaceVelocityState(),
             new DecayState(),
             new LifeState(),

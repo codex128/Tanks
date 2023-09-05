@@ -5,10 +5,11 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
-import codex.tanks.collision.OriginFilter;
-import codex.tanks.collision.LaserRaytest;
+import codex.tanks.collision.SegmentedRaytest;
 import codex.tanks.collision.ShapeFilter;
-import codex.tanks.components.Bounces;
+import codex.tanks.components.EntityTransform;
+import codex.tanks.components.Team;
+import com.jme3.math.Ray;
 
 /**
  *
@@ -31,18 +32,30 @@ public class SniperShooting implements Algorithm {
     }
     @Override
     public boolean shoot(AlgorithmUpdate update) {
-        if (update.isTargetInBounce()) {
-            var filter = new OriginFilter(update.getAgentId(), ShapeFilter.or(ShapeFilter.byId(update.getAgentId()), ShapeFilter.none(ShapeFilter.byGameObject("tank"))));
-            var test = new LaserRaytest(update.getAimRay(), filter, update.getComponent(Bounces.class).getRemaining());
-            test.cast(update.getCollisionState());
-            if (update.getAgentId().equals(test.getCollisionEntity())) {
+        var e = update.createRaycastEntity(update.getAimRay());
+        SegmentedRaytest raytest = new SegmentedRaytest(update.getCollisionState());
+        raytest.setRay(update.getAimRay());
+        //raytest.setMarginFilter(margin);
+        raytest.setDistance(-1f);
+        //raytest.setMargin(AlgorithmUpdate.SAFETY_MARGIN);
+        //raytest.setFirstCastFilter(ShapeFilter.notId(update.getAgentId()));
+        raytest.setOriginEntity(update.getAgentId());
+        var iterator = update.getProjectileState().raytest(e, raytest);
+        update.getEntityData().removeEntity(e.getId());
+        if (iterator.getCollisionEntity() != null) {
+            if (iterator.getCollisionEntity().equals(update.getAgentId())) {
                 return false;
             }
-            //update.getTank().shoot(update.getEntityData(), update.getVisualState());
-            update.shoot();
-            return true;
+            var team = update.getEntityData().getComponent(iterator.getCollisionEntity(), Team.class);
+            if (team == null || team.getTeam() == update.getComponent(Team.class).getTeam()) {
+                return false;
+            }
         }
-        return false;
+        else {
+            return false;
+        }
+        update.shoot();
+        return true;
     }
     @Override
     public boolean mine(AlgorithmUpdate update) {
