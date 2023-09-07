@@ -55,15 +55,13 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
     @Override
     protected void onEnable() {
         InputMapper im = GuiGlobals.getInstance().getInputMapper();
-        im.addAnalogListener(this, Functions.F_VERTICAL, Functions.F_HORIZONTAL);
-        im.addStateListener(this, Functions.F_SHOOT);
+        im.addAnalogListener(this, Functions.F_VERTICAL, Functions.F_HORIZONTAL, Functions.F_SHOOT);
         im.activateGroup(Functions.MAIN_GROUP);
     }
     @Override
     protected void onDisable() {
         InputMapper im = GuiGlobals.getInstance().getInputMapper();
-        im.removeAnalogListener(this, Functions.F_VERTICAL, Functions.F_HORIZONTAL);
-        im.removeStateListener(this, Functions.F_SHOOT);
+        im.removeAnalogListener(this, Functions.F_VERTICAL, Functions.F_HORIZONTAL, Functions.F_SHOOT);
         im.deactivateGroup(Functions.MAIN_GROUP);
     }
     @Override
@@ -90,12 +88,13 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
         else if (func == Functions.F_HORIZONTAL) {
             inputdirection.x = (float)Math.signum(value);
         }
+        else if (func == Functions.F_SHOOT) {
+            getState(GunState.class).shoot(player);
+        }
     }
     @Override
     public void valueChanged(FunctionId func, InputState value, double tpf) {
-        if (func == Functions.F_SHOOT && value != InputState.Off) {
-            getState(GunState.class).shoot(player);
-        }
+        
     }
     
     public Tank getTank() {

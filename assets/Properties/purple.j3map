@@ -1,22 +1,24 @@
 tank: {
     color: "purple";
     class: "aggressive";
-    speed: 8f;
-    rps: 1.5f;
+    speed: 7.5f;
+    rps: 1.8f;
     maxBullets: 3;
     maxBounces: 1;
     maxMines: 1;
-    bulletSpeed: 10f;
+    bulletSpeed: 12f;
     color1: ColorRGBA(0.3, 0.0, 0.6, 1.0);
 }
 PlayerFinder: {
 }
 AvoidBullets: {
-    alert: 6f;
+    alert: 2.8f;
 }
 DirectAim: {
 }
 Wander: {
+    aggressiveFactor: 1f;
+    distanceFactory: 2f;
 }
 AimSkew: {
 }

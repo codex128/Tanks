@@ -95,6 +95,7 @@ public class Wander implements Algorithm {
         }
         for (int i = 0; i < collisions.length; i++) {
             var direction = collisions[i];
+            if (direction.collision == null) continue;
             direction.weight += (current.dot(direction.vector)+1)*(directionFactor/2);
             direction.weight += FastMath.nextRandomFloat()*randomFactor;
             direction.weight += direction.collision.getDistance()*distanceFactor;

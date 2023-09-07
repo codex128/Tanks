@@ -5,13 +5,20 @@
 package codex.tanks.blueprints;
 
 import codex.boost.scene.UserDataIterator;
+import codex.tanks.components.ColorScheme;
+import codex.tanks.effects.ColorDistanceInfluencer;
 import codex.tanks.util.GameUtils;
 import com.epagagames.particles.Emitter;
 import com.epagagames.particles.emittershapes.EmitterSphere;
 import com.epagagames.particles.influencers.ColorInfluencer;
+import com.epagagames.particles.influencers.GravityInfluencer;
+import com.epagagames.particles.influencers.RotationLifetimeInfluencer;
+import com.epagagames.particles.influencers.SizeInfluencer;
 import com.epagagames.particles.influencers.SpriteInfluencer;
 import com.epagagames.particles.valuetypes.ColorValueType;
+import com.epagagames.particles.valuetypes.Gradient;
 import com.epagagames.particles.valuetypes.ValueType;
+import com.epagagames.particles.valuetypes.VectorValueType;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.light.AmbientLight;
@@ -20,12 +27,15 @@ import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import java.util.LinkedList;
 
 /**
@@ -51,19 +61,23 @@ public class SpatialFactory {
         WALL = "wall",
         BULLET_SMOKE = "bullet-smoke",
         TANK_SHARDS = "tank-shards",
+        TANK_FLAME = "tank-flame",
+        TANK_SMOKE = "tank-smoke",
         MUZZLEFLASH = "muzzleflash",
         DEBUG = "debug";
     
+    private final EntityData ed;
     private final AssetManager assetManager;
     private final LinkedList<UserDataIterator> preprocessors = new LinkedList<>();
     
-    public SpatialFactory(AssetManager assetManager) {
+    public SpatialFactory(EntityData ed, AssetManager assetManager) {
+        this.ed = ed;
         this.assetManager = assetManager;
         provideBasicSpatialPreProcessors();
     }
     
-    public Spatial create(String model) {
-        var spatial = createSpatial(model);
+    public Spatial create(String model, EntityId id) {
+        var spatial = createSpatial(model, id);
         if (spatial != null) for (var pre : preprocessors) {
             pre.setSpatial(spatial);
             for (var i = pre.iterator(); i.hasNext();) {
@@ -72,7 +86,7 @@ public class SpatialFactory {
         }
         return spatial;
     }
-    private Spatial createSpatial(String model) {
+    private Spatial createSpatial(String model, EntityId id) {
         return switch (model) {
             case TANK           -> createTank();
             case BULLET         -> createBullet();
@@ -82,26 +96,14 @@ public class SpatialFactory {
             case DEBUG          -> createDebug(ColorRGBA.Blue, 1f);
             case MUZZLEFLASH    -> createMuzzleflash();
             case BULLET_SMOKE   -> createBulletSmoke();
-            case TANK_SHARDS    -> createTankShards();
+            case TANK_SHARDS    -> createTankShards(id, .2f);
+            case TANK_FLAME     -> createTankFlame(id, .5f);
             default             -> createNode();
         };
     }
     
     public Node createNode() {
         return new Node();
-    }
-    public Geometry createGeometry(String model) {
-        return switch (model) {
-            case DEBUG          -> createDebug(ColorRGBA.Blue, 1f);
-            default             -> null;
-        };
-    }
-    public Emitter createEmitter(String model) {
-        return switch (model) {
-            case BULLET_SMOKE   -> createBulletSmoke();
-            case TANK_SHARDS    -> createTankShards();
-            default             -> null;
-        };
     }
     
     public Spatial createTank() {
@@ -200,35 +202,111 @@ public class SpatialFactory {
         //sprite.setUseRandomImage(true);
         return smoke;
     }
-    public Emitter createTankShards() {
-        return SpatialFactory.this.createTankShards(ColorRGBA.Gray, .2f);
-    }
-    public Emitter createTankShards(ColorRGBA color, float radius) {
+    public Emitter createTankShards(EntityId id, float radius) {
         var mat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
         mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
         mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
         mat.setTransparent(true);
         mat.setTexture("Texture", assetManager.loadTexture("Effects/Shards.png"));
-        var debris = new Emitter("tank-debris", mat, 100);
+        var shards = new Emitter("tank-shards", mat, 30);
         //smoke.setShape(new PointEmissionShape());
-        debris.setShape(new EmitterSphere(radius));
-        debris.setQueueBucket(RenderQueue.Bucket.Transparent);
-        debris.setStartSpeed(new ValueType(.5f));
-        debris.setStartSize(new ValueType(.2f));
-        debris.setStartColor(new ColorValueType(color));
-        debris.setLifeFixedDuration(2.0f);
-        debris.setEmissionsPerSecond(0);
-        debris.setParticlesPerEmission(40);
-        final ValueType life = new ValueType(.5f);
-        debris.setLifeMinMax(life, life);
-        debris.setParticlesFollowEmitter(false);
+        shards.setShape(new EmitterSphere(radius));
+        shards.setQueueBucket(RenderQueue.Bucket.Transparent);
+        shards.setStartSpeed(new ValueType(15f));
+        shards.setStartSize(new ValueType(.4f));
+        shards.setStartColor(new ColorValueType(ColorRGBA.DarkGray));
+        shards.setLifeFixedDuration(2.0f);
+        shards.setEmissionsPerSecond(0);
+        //shards.setParticlesPerEmission(5);
+        final ValueType life = new ValueType(5f);
+        shards.setLifeMinMax(life, life);
+        shards.setParticlesFollowEmitter(false);
+        var coloring = new ColorInfluencer();
+        var color = ed.getComponent(id, ColorScheme.class).getPallete()[0];
+        coloring.setStartEndColor(color, color.clone().setAlpha(1f));
+        shards.addInfluencer(coloring);
+        var gravity = new GravityInfluencer();
+        gravity.setGravity(0f, 30f, 0f);
+        shards.addInfluencer(gravity);
+        var rotation = new RotationLifetimeInfluencer();
+        rotation.setSpeedOverLifetime(new VectorValueType(new Vector3f(1f, 1f, 1f), new Vector3f(-1f, -1f, -1f)));
+        shards.addInfluencer(rotation);
         var sprite = new SpriteInfluencer();
-        debris.addInfluencer(sprite);
+        shards.addInfluencer(sprite);
         sprite.setSpriteRows(3);
         sprite.setSpriteCols(3);
+        sprite.setAnimate(true);
+        sprite.setFixedDuration(.03f);
         sprite.setUseRandomImage(true);
-        debris.emitAllParticles();
-        return debris;
+        //debris.emitAllParticles();
+        return shards;
+    }
+    public Emitter createTankFlame(EntityId id, float radius) {
+        var mat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
+        mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        mat.setTransparent(true);
+        mat.setTexture("Texture", assetManager.loadTexture("Effects/flame-burst.png"));
+        var flame = new Emitter("tank-flame", mat, 100);
+        //smoke.setShape(new PointEmissionShape());
+        flame.setShape(new EmitterSphere(.01f));
+        flame.setQueueBucket(RenderQueue.Bucket.Transparent);
+        flame.setStartSpeed(new ValueType(0f, 4f));
+        flame.setStartSize(new ValueType(2f));
+        //flame.setStartColor(new ColorValueType(new Gradient().addGradPoint(ColorRGBA.Orange, 0f).addGradPoint(ColorRGBA.DarkGray, 1f)));
+        //flame.setLifeFixedDuration(10.0f);
+        flame.setEmissionsPerSecond(0);
+        //flame.setParticlesPerEmission(40);
+        final ValueType life = new ValueType(.7f);
+        flame.setLifeMinMax(life, life);
+        flame.setParticlesFollowEmitter(false);
+        var coloring = new ColorInfluencer();
+        var color = ed.getComponent(id, ColorScheme.class).getPallete()[0];
+        coloring.setStartEndColor(color, color.clone().setAlpha(0f));
+        //flame.addInfluencer(coloring);
+        var dist = new ColorDistanceInfluencer(new Vector2f(.1f, .5f), new Gradient().addGradPoint(new ColorRGBA(1f, .1f, 0f, 1f), 0f).addGradPoint(new ColorRGBA(.01f, .01f, .01f, 1f), 1f));
+        flame.addInfluencer(dist);
+        var sizing = new SizeInfluencer();
+        sizing.setSizeOverTime(new ValueType(-1f));
+        flame.addInfluencer(sizing);
+        var gravity = new GravityInfluencer();
+        gravity.setGravity(0f, 30f, 0f);
+        //flame.addInfluencer(gravity);
+        var rotation = new RotationLifetimeInfluencer();
+        rotation.setSpeedOverLifetime(new VectorValueType(new Vector3f(2f, 2f, 2f), new Vector3f(-2f, -2f, -2f)));
+        flame.addInfluencer(rotation);
+        var sprite = new SpriteInfluencer();
+        flame.addInfluencer(sprite);
+        sprite.setSpriteRows(2);
+        sprite.setSpriteCols(2);
+        sprite.setAnimate(false);
+        sprite.setUseRandomImage(true);
+        //debris.emitAllParticles();
+        return flame;
+    }
+    public Emitter createShockwave(float start, float end, ColorRGBA color) {
+        var mat = new Material(assetManager, "Common/MatDefs/Misc/Particle.j3md");
+        mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        mat.getAdditionalRenderState().setBlendMode(RenderState.BlendMode.Alpha);
+        mat.setTransparent(true);
+        mat.setTexture("Texture", assetManager.loadTexture("Effects/flame-burst.png"));
+        var shock = new Emitter("shockwave", mat, 1);
+        //smoke.setShape(new PointEmissionShape());
+        shock.setShape(new EmitterSphere(.01f));
+        shock.setQueueBucket(RenderQueue.Bucket.Transparent);
+        shock.setStartSpeed(new ValueType(0f, 4f));
+        shock.setStartSize(new ValueType(.2f));
+        shock.setStartColor(new ColorValueType(color));
+        //flame.setLifeFixedDuration(10.0f);
+        shock.setEmissionsPerSecond(0);
+        //flame.setParticlesPerEmission(40);
+        final ValueType life = new ValueType(.7f);
+        shock.setLifeMinMax(life, life);
+        shock.setParticlesFollowEmitter(false);
+        var sizing = new SizeInfluencer();
+        sizing.setSizeOverTime(new ValueType(5f));
+        shock.addInfluencer(sizing);
+        return shock;
     }
     
     public void addSpatialPreProcessor(UserDataIterator pre) {

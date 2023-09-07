@@ -6,13 +6,13 @@ tank: {
     maxBullets: 1;
     maxBounces: 0;
     maxMines: 0;
-    bulletSpeed: 25f;
+    bulletSpeed: 27f;
     color1: ColorRGBA(0.0, 0.0, 0.0, 1.0);
 }
 PlayerFinder: {
 }
 AvoidBullets: {
-    alert: 6f;
+    alert: 4f;
 }
 DirectAim: {
 }

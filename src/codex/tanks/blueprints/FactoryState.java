@@ -22,7 +22,7 @@ public class FactoryState extends GameAppState {
     protected void init(Application app) {
         var ed = getState(EntityState.class, true).getEntityData();
         entityFactory = new EntityFactory(ed);
-        spatialFactory = new SpatialFactory(assetManager);
+        spatialFactory = new SpatialFactory(ed, assetManager);
         contactMethods = new ContactMethods(ed);
     }
     @Override

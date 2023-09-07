@@ -118,7 +118,7 @@ public class EntityFactory {
             new Damage(1f),
             new CollisionShape("hitbox"),
             new ContactResponse(ContactMethods.DIE, ContactMethods.KILL_PROJECTILE),
-            new Owner(owner),
+            new Owner(owner, "bullet"),
             new Alive()
         );
         var light = ed.createEntity();
@@ -129,7 +129,7 @@ public class EntityFactory {
             new TransformMode(1, 1, 1),
             new Copy(missile, Copy.TRANSFORM),
             new Alive(),
-            new Power(100f),
+            new Power(40f),
             new ColorScheme(ColorRGBA.Orange),
             new OrphanBucket(missile, new Decay(.3f))
         );
@@ -156,16 +156,28 @@ public class EntityFactory {
         var shards = ed.createEntity();
         ed.setComponents(shards,
             new Visual(SpatialFactory.TANK_SHARDS),
+            new Particles(),
             new EntityTransform().setTranslation(position),
+            new TransformMode(1, 0, 0),
+            new SingleEmission(),
             new ColorScheme(color),
             new Decay(5f),
             new Alive()
         );
         return shards;
     }
-    public EntityId createExplosion1(Vector3f position) {
+    public EntityId createExplosion1(Vector3f position, ColorRGBA color) {
         var explosion = ed.createEntity();
-        // todo: set explosion components
+        ed.setComponents(explosion,
+            new Visual(SpatialFactory.TANK_FLAME),
+            new Particles(),
+            new EntityTransform().setTranslation(position),
+            new TransformMode(1, 0, 0),
+            new SingleEmission(),
+            new ColorScheme(color),
+            new Decay(5f),
+            new Alive()
+        );
         return explosion;
     }
     
@@ -175,10 +187,22 @@ public class EntityFactory {
         }
     }    
     public void createTankDeathExplosion(EntityId id) {
-        var position = ed.getComponent(id, EntityTransform.class).getTranslation();
+        var position = ed.getComponent(id, EntityTransform.class).getTranslation().clone();
+        position.addLocal(0f, 1f, 0f);
         var color = ed.getComponent(id, ColorScheme.class).getPallete()[0];
         createTankShards(position, color);
-        createExplosion1(position);
+        createExplosion1(position, new ColorRGBA(1f, .2f, 0f, 1f));
+        var light = ed.createEntity();
+        ed.setComponents(light,
+            new GameObject("light"),
+            new EntityLight(EntityLight.POINT),
+            new EntityTransform().setTranslation(position),
+            new TransformMode(1, 0, 0),
+            new Power(1000f),
+            new ColorScheme(new ColorRGBA(1f, .25f, 0f, 1f)),
+            new Decay(.3f),
+            new Alive()
+        );
     }
     
 }

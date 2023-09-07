@@ -1,5 +1,6 @@
-speed: 6f;
-rps: 10f;
-maxBullets: 5;
+speed: 7f;
+rps: 7f;
+maxBullets: 10;
 maxBounces: 1;
-bulletSpeed: 15f;
+bulletSpeed: 17f;
+color1: ColorRGBA(0.0, 0.0, 1.0, 1.0);

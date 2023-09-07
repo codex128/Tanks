@@ -54,7 +54,7 @@ public class VisualState extends ESAppState {
         if (v.getModel() != null) {
             Spatial spatial;
             if (v.getParent() == null) {
-                spatial = factory.getSpatialFactory().create(v.getModel());
+                spatial = factory.getSpatialFactory().create(v.getModel(), e.getId());
             }
             else {
                 spatial = GameUtils.getChild(getSpatial(v.getParent()), v.getModel());

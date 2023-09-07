@@ -54,6 +54,9 @@ public class TransformUpdateState extends ESAppState {
         for (var e : entityCopy) {
             updateCopy(e);
         }
+        if (spatialUpdate.applyChanges()) {
+            spatialUpdate.getChangedEntities().forEach(e -> updateSpatial(e));
+        }
     }
     
     private void updateSpatial(Entity e) {

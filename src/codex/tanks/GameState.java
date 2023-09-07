@@ -58,10 +58,14 @@ public class GameState extends ESAppState {
             (J3map)assetManager.loadAsset("Properties/light-green.j3map"),
             (J3map)assetManager.loadAsset("Properties/black.j3map"),
         };
-        for (int i = 0; i < 0; i++) {
-            var src = enemySources[FastMath.nextRandomInt(0, enemySources.length-1)];
-            //var src = enemySources[2];
-            factory.getEntityFactory().createAITank(new Vector3f(7f+i*3, 0f, 7f), 1, src);
+        for (int a = -1; a < 2; a += 2) {
+            for (int j = 0; j < 3; j++) {
+                var src = enemySources[FastMath.rand.nextInt(enemySources.length)];
+                //var src = enemySources[1];
+                for (int i = 0; i < 4; i++) {
+                    factory.getEntityFactory().createAITank(new Vector3f(-a*7f-i*3*a, 0f, 12f-j*3), 1, src);
+                }
+            }
         }
         
         float r = 20f;

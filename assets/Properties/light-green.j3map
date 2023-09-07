@@ -2,11 +2,11 @@ tank: {
     color: "light-green";
     class: "base";
     speed: 0f;
-    rps: 3f;
-    maxBullets: 100;
+    rps: 2f;
+    maxBullets: 2;
     maxBounces: 2;
     maxMines: 0;
-    bulletSpeed: 25f;
+    bulletSpeed: 35f;
     color1: ColorRGBA(0.0, 1.0, 0.0, 1.0);
 }
 PlayerFinder: {

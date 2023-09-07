@@ -178,7 +178,7 @@ public class Tank {
             new Firerate(source.getFloat("rps", 1f)),
             new BulletCapacity(source.getInteger("maxBullets", 5)),
             new Bounces(source.getInteger("maxBounces", 1)),
-            new Power(source.getFloat("bulletSpeed", 10f)),
+            new Power(source.getFloat("bulletSpeed", 12f)),
             new MineCapacity(source.getInteger("maxMines", 2)),
             colors,
             new MaterialUpdate(

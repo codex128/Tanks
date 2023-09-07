@@ -26,6 +26,8 @@ public class Main extends SimpleApplication {
 
     public static void main(String[] args) {
         Main app = new Main();
+        app.setDisplayFps(false);
+        app.setDisplayStatView(false);
         app.start();
     }
 
@@ -63,9 +65,10 @@ public class Main extends SimpleApplication {
             new FactoryState(),
             new VisualState(),
             new TransformUpdateState(),
+            new LightingState(),
+            new EmitterState(),
             new PhysicsState(),
             new ContactState(),
-            new LightingState(),
             new GunState(),
             new ProjectileState(),
             new TankState(),
@@ -76,7 +79,6 @@ public class Main extends SimpleApplication {
             new OrphanState(),
             new OwnerState(),
             new MaterialState(),
-            new EmitterState(),
             new AIManager()
         );        
         stateManager.attach(new GameState());

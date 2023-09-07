@@ -22,6 +22,6 @@ Wander: {
     turnSpeed: 0.05f;
     decisive: 0.5;
 }
-//BasicShooting: {
+BasicShooting: {
     minExposure: 1.2f;
-//}
+}
