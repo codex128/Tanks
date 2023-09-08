@@ -6,12 +6,12 @@ package codex.tanks.systems;
 
 import codex.tanks.components.Copy;
 import codex.tanks.components.EntityTransform;
+import codex.tanks.components.Rotate;
 import codex.tanks.components.TransformMode;
 import codex.tanks.components.Visual;
 import codex.tanks.util.ESAppState;
 import codex.tanks.util.FunctionFilter;
 import com.jme3.app.Application;
-import com.jme3.math.Transform;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;
 
@@ -23,6 +23,7 @@ public class TransformUpdateState extends ESAppState {
     
     private EntitySet spatialUpdate;
     private EntitySet entityCopy;
+    private EntitySet rotate;
     
     @Override
     protected void init(Application app) {
@@ -33,6 +34,7 @@ public class TransformUpdateState extends ESAppState {
         entityCopy = ed.getEntities(
                 Copy.filter(Copy.TRANSFORM),
                 EntityTransform.class, TransformMode.class, Copy.class);
+        rotate = ed.getEntities(EntityTransform.class, Rotate.class);
     }
     @Override
     protected void cleanup(Application app) {
@@ -46,6 +48,10 @@ public class TransformUpdateState extends ESAppState {
     protected void onDisable() {}
     @Override
     public void update(float tpf) {
+        rotate.applyChanges();
+        for (var e : rotate) {
+            updateRotation(e);
+        }
         spatialUpdate.applyChanges();
         for (var e : spatialUpdate) {
             updateSpatial(e);
@@ -54,8 +60,8 @@ public class TransformUpdateState extends ESAppState {
         for (var e : entityCopy) {
             updateCopy(e);
         }
-        if (spatialUpdate.applyChanges()) {
-            spatialUpdate.getChangedEntities().forEach(e -> updateSpatial(e));
+        if (spatialUpdate.applyChanges()) for (var e : spatialUpdate) {
+            updateSpatial(e);
         }
     }
     
@@ -120,6 +126,10 @@ public class TransformUpdateState extends ESAppState {
             if (!TransformMode.isNone(enable.getScale())) transform.setScale(copy.getScale());
             e.set(new EntityTransform(transform));
         }
+    }
+    private void updateRotation(Entity e) {
+        var t = e.get(EntityTransform.class);
+        e.set(new EntityTransform(t).setRotation(t.getRotation().mult(e.get(Rotate.class).getRotation())));
     }
     
 }

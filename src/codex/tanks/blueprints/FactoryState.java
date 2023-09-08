@@ -4,15 +4,15 @@
  */
 package codex.tanks.blueprints;
 
-import codex.boost.GameAppState;
 import codex.tanks.systems.EntityState;
+import codex.tanks.util.ESAppState;
 import com.jme3.app.Application;
 
 /**
  *
  * @author codex
  */
-public class FactoryState extends GameAppState {
+public class FactoryState extends ESAppState {
     
     private EntityFactory entityFactory;
     private SpatialFactory spatialFactory;
@@ -20,9 +20,9 @@ public class FactoryState extends GameAppState {
 
     @Override
     protected void init(Application app) {
-        var ed = getState(EntityState.class, true).getEntityData();
-        entityFactory = new EntityFactory(ed);
-        spatialFactory = new SpatialFactory(ed, assetManager);
+        super.init(app);
+        entityFactory = new EntityFactory(this);
+        spatialFactory = new SpatialFactory(this, assetManager);
         contactMethods = new ContactMethods(ed);
     }
     @Override

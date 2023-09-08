@@ -7,6 +7,7 @@ package codex.tanks;
 import codex.tanks.components.AimDirection;
 import codex.tanks.weapons.Tank;
 import codex.tanks.components.Alive;
+import codex.tanks.components.EntityTransform;
 import codex.tanks.components.MaxSpeed;
 import codex.tanks.components.MoveVelocity;
 import codex.tanks.systems.TankState;
@@ -56,12 +57,14 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
     protected void onEnable() {
         InputMapper im = GuiGlobals.getInstance().getInputMapper();
         im.addAnalogListener(this, Functions.F_VERTICAL, Functions.F_HORIZONTAL, Functions.F_SHOOT);
+        im.addStateListener(this, Functions.F_MINE);
         im.activateGroup(Functions.MAIN_GROUP);
     }
     @Override
     protected void onDisable() {
         InputMapper im = GuiGlobals.getInstance().getInputMapper();
         im.removeAnalogListener(this, Functions.F_VERTICAL, Functions.F_HORIZONTAL, Functions.F_SHOOT);
+        im.removeStateListener(this, Functions.F_MINE);
         im.deactivateGroup(Functions.MAIN_GROUP);
     }
     @Override
@@ -94,7 +97,10 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
     }
     @Override
     public void valueChanged(FunctionId func, InputState value, double tpf) {
-        
+        if (func == Functions.F_MINE && value != InputState.Off) {
+            // quick'n'dirty
+            factory.getEntityFactory().createMine(player, ed.getComponent(player, EntityTransform.class).getTranslation());
+        }
     }
     
     public Tank getTank() {

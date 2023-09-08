@@ -4,41 +4,33 @@
  */
 package codex.tanks.components;
 
-import com.simsilica.es.EntityComponent;
+import codex.tanks.util.AbstractFloatComponent;
+import com.jme3.math.FastMath;
 
 /**
  *
  * @author codex
  */
-public class Decay implements EntityComponent {
-    
-    private final float original;
-    private final float decay;
-    
-    public Decay(float decay) {
-        this.original = decay;
-        this.decay = decay;
+public class Decay extends AbstractFloatComponent {
+
+    public Decay(float value) {
+        setValue(value);
+        setRange(0f, value);
     }
-    private Decay(float original, float decay) {
-        this.original = original;
-        this.decay = decay;
+    public Decay(float value, float max) {
+        setValue(value);
+        setRange(0f, max);
     }
     
-    public float getDecay() {
-        return decay;
-    }
-    public float getOriginalValue() {
-        return original;
-    }
     public boolean isExhausted() {
-        return decay <= 0;
+        return value <= 0;
     }
     public Decay increment(float tpf) {
-        return new Decay(original, decay-tpf);
+        return new Decay(value-tpf, range.y);
     }
     @Override
-    public String toString() {
-        return "Decay{" + "original=" + original + ", decay=" + decay + '}';
+    public Decay setPercent(float percent) {
+        return new Decay(interpolate(percent), range.y);
     }
     
 }

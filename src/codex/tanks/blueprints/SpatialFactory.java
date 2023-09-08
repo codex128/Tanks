@@ -6,21 +6,17 @@ package codex.tanks.blueprints;
 
 import codex.boost.scene.UserDataIterator;
 import codex.tanks.components.ColorScheme;
+import codex.tanks.components.Points;
 import codex.tanks.effects.ColorDistanceInfluencer;
 import codex.tanks.util.GameUtils;
+import codex.tanks.util.PathMesh;
 import com.epagagames.particles.Emitter;
 import com.epagagames.particles.emittershapes.EmitterSphere;
-import com.epagagames.particles.influencers.ColorInfluencer;
-import com.epagagames.particles.influencers.GravityInfluencer;
-import com.epagagames.particles.influencers.RotationLifetimeInfluencer;
-import com.epagagames.particles.influencers.SizeInfluencer;
-import com.epagagames.particles.influencers.SpriteInfluencer;
-import com.epagagames.particles.valuetypes.ColorValueType;
-import com.epagagames.particles.valuetypes.Gradient;
-import com.epagagames.particles.valuetypes.ValueType;
-import com.epagagames.particles.valuetypes.VectorValueType;
+import com.epagagames.particles.influencers.*;
+import com.epagagames.particles.valuetypes.*;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
+import com.jme3.bounding.BoundingBox;
 import com.jme3.light.AmbientLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
@@ -63,15 +59,21 @@ public class SpatialFactory {
         TANK_SHARDS = "tank-shards",
         TANK_FLAME = "tank-flame",
         TANK_SMOKE = "tank-smoke",
+        LASER = "laser",
+        MINE = "mine",
         MUZZLEFLASH = "muzzleflash",
-        DEBUG = "debug";
+        EXPLOSION_SPHERE = "explosion-sphere",
+        DEBUG_CUBE = "debug-cube",
+        DEBUG_SPHERE = "debug-sphere";
     
+    private final FactoryState factory;
     private final EntityData ed;
     private final AssetManager assetManager;
     private final LinkedList<UserDataIterator> preprocessors = new LinkedList<>();
     
-    public SpatialFactory(EntityData ed, AssetManager assetManager) {
-        this.ed = ed;
+    public SpatialFactory(FactoryState factory, AssetManager assetManager) {
+        this.factory = factory;
+        this.ed = factory.getEntityData();
         this.assetManager = assetManager;
         provideBasicSpatialPreProcessors();
     }
@@ -88,17 +90,21 @@ public class SpatialFactory {
     }
     private Spatial createSpatial(String model, EntityId id) {
         return switch (model) {
-            case TANK           -> createTank();
-            case BULLET         -> createBullet();
-            case MISSILE        -> createMissile();
-            case FLOOR          -> createWorldFloor();
-            case WALL           -> createWall(Vector3f.UNIT_XYZ);
-            case DEBUG          -> createDebug(ColorRGBA.Blue, 1f);
-            case MUZZLEFLASH    -> createMuzzleflash();
-            case BULLET_SMOKE   -> createBulletSmoke();
-            case TANK_SHARDS    -> createTankShards(id, .2f);
-            case TANK_FLAME     -> createTankFlame(id, .5f);
-            default             -> createNode();
+            case TANK             -> createTank();
+            case BULLET           -> createBullet();
+            case MISSILE          -> createMissile();
+            case FLOOR            -> createWorldFloor();
+            case WALL             -> createWall(Vector3f.UNIT_XYZ);
+            case DEBUG_CUBE       -> GameUtils.createDebugCube(assetManager, ColorRGBA.Blue, 1f);
+            case DEBUG_SPHERE     -> GameUtils.createDebugSphere(assetManager, ColorRGBA.Blue, 1f);
+            case MUZZLEFLASH      -> createMuzzleflash();
+            case LASER            -> createLaser(id);
+            case MINE             -> createMine();
+            case BULLET_SMOKE     -> createBulletSmoke();
+            case EXPLOSION_SPHERE -> createExplosionSphere();
+            case TANK_SHARDS      -> createTankShards(id, .2f);
+            case TANK_FLAME       -> createTankFlame(id, .5f);
+            default               -> createNode();
         };
     }
     
@@ -115,7 +121,7 @@ public class SpatialFactory {
         mat.setColor("SecondaryColor", new ColorRGBA(.3f, .5f, 1f, 1f));
         tank.setMaterial(mat);
         tank.setShadowMode(RenderQueue.ShadowMode.Cast);
-        //GameUtils.getChildNode(tank, "muzzle").attachChild(GameUtils.createDebugGeometry(assetManager, ColorRGBA.Blue, .5f));
+        //GameUtils.getChildNode(tank, "muzzle").attachChild(GameUtils.createDebugCube(assetManager, ColorRGBA.Blue, .5f));
         return tank;
     }
     public Spatial createBullet() {
@@ -168,9 +174,28 @@ public class SpatialFactory {
         flash.setQueueBucket(RenderQueue.Bucket.Transparent);
         return flash;
     }
+    public Spatial createLaser(EntityId id) {
+        var mesh = new PathMesh();
+        mesh.setPoints(ed.getComponent(id, Points.class).getPoints());
+        var color = ed.getComponent(id, ColorScheme.class).getPallete()[0];
+        var geometry = new Geometry("laser", mesh);
+        var material = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        material.setColor("Color", color);
+        material.setColor("GlowColor", color);
+        geometry.setMaterial(material);
+        return geometry;
+    }
+    public Spatial createMine() {
+        return assetManager.loadModel("Models/mine.j3o");
+    }
+    public Spatial createExplosionSphere() {
+        var sphere = GameUtils.createDebugSphere(assetManager, ColorRGBA.Blue, 1f);
+        sphere.setMaterial(assetManager.loadMaterial("Materials/explosion.j3m"));
+        return sphere;
+    }
     
     public Geometry createDebug(ColorRGBA color, float size) {
-        return GameUtils.createDebugGeometry(assetManager, color, size);
+        return GameUtils.createDebugCube(assetManager, color, size);
     }
     
     public Emitter createBulletSmoke() {

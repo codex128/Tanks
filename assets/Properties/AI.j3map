@@ -1,0 +1,109 @@
+index: {
+    0: "black";
+    1: "grey";
+    2: "light-green";
+    3: "purple";
+}
+black: {
+    tank: {
+        color: "black";
+        class: "defensive";
+        speed: 9f;
+        rps: .8f;
+        maxBullets: 1;
+        maxBounces: 0;
+        maxMines: 0;
+        bulletSpeed: 27f;
+        color1: ColorRGBA(0.0, 0.0, 0.0, 1.0);
+    }
+    PlayerFinder: {
+    }
+    AvoidBullets: {
+        alert: 4f;
+    }
+    DirectAim: {
+    }
+    DefensivePoints: {
+    }
+    AimSkew: {
+        maxBarrelSkew: 0.1f;
+    }
+    BasicShooting: {
+    }
+}
+grey: {
+    tank: {
+        color: "grey";
+        class: "passive";
+        speed: 5f;
+        rps: .3f;
+        maxBullets: 2;
+        maxBounces: 1;
+        maxMines: 0;
+        bulletSpeed: 10f;
+        color1: ColorRGBA(0.2, 0.2, 0.2, 1.0);
+    }
+    PlayerFinder: {
+    }
+    AvoidBullets: {
+        alert: 2f;
+    }
+    DirectAim: {
+    }
+    Wander: {
+        aggressiveFactor: -0.2f;
+        randomFactor: 20f;
+        turnSpeed: 0.05f;
+        decisive: 0.5f;
+    }
+    BasicShooting: {
+        minExposure: 1.2f;
+    }
+}
+light-green: {
+    tank: {
+        color: "light-green";
+        class: "base";
+        speed: 0f;
+        rps: 2f;
+        maxBullets: 2;
+        maxBounces: 2;
+        maxMines: 0;
+        bulletSpeed: 35f;
+        color1: ColorRGBA(0.0, 1.0, 0.0, 1.0);
+    }
+    PlayerFinder: {
+    }
+    Lookout: {
+    }
+    SniperShooting: {
+    }
+}
+purple: {
+    tank: {
+        color: "purple";
+        class: "aggressive";
+        speed: 7.5f;
+        rps: 1.9f;
+        maxBullets: 3;
+        maxBounces: 1;
+        maxMines: 1;
+        bulletSpeed: 12f;
+        color1: ColorRGBA(0.3, 0.0, 0.6, 1.0);
+    }
+    PlayerFinder: {
+    }
+    AvoidBullets: {
+        alert: 2.8f;
+    }
+    DirectAim: {
+    }
+    Wander: {
+        aggressiveFactor: 1f;
+        distanceFactory: 2f;
+    }
+    AimSkew: {
+    }
+    BasicShooting: {
+    }
+}

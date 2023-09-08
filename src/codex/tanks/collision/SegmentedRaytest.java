@@ -12,6 +12,7 @@ import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityId;
 import java.util.Iterator;
+import java.util.LinkedList;
 
 /**
  *
@@ -44,7 +45,8 @@ public class SegmentedRaytest implements Iterable<CollisionResult> {
         this.firstCastFilter = filter;
     }
     public void setDistance(float distance) {
-        this.distance = distance;
+        if (distance < 0) this.distance = -1f;
+        else this.distance = distance;
     }
     public void setMaxConsecutiveBounces(int maxConsecutiveBounces) {
         this.maxConsecutiveBounces = maxConsecutiveBounces;
@@ -60,7 +62,8 @@ public class SegmentedRaytest implements Iterable<CollisionResult> {
         private final Ray ray = new Ray();
         private EntityId origin;
         private float distance;
-        private CollisionResults results;
+        private CollisionResults results = new CollisionResults();
+        private LinkedList<CollisionResult> path = new LinkedList<>();
         private int hits = 0;
         
         private SegmentIterator(SegmentedRaytest parent) {
@@ -75,7 +78,7 @@ public class SegmentedRaytest implements Iterable<CollisionResult> {
         }
         @Override
         public CollisionResult next() {
-            results = new CollisionResults();
+            results.clear();
             ShapeFilter f = new OriginFilter(origin, filter);
             if (hits == 0 && firstCastFilter != null) {
                 f = ShapeFilter.and(f, firstCastFilter);
@@ -87,6 +90,7 @@ public class SegmentedRaytest implements Iterable<CollisionResult> {
                     results.clear();
                 }
                 else {
+                    path.addLast(closest);
                     origin = VisualState.fetchId(closest.getGeometry(), -1);
                     ray.origin.set(closest.getContactPoint());
                     if (distance > 0) {
@@ -122,6 +126,9 @@ public class SegmentedRaytest implements Iterable<CollisionResult> {
         }
         public int getHitsMade() {
             return hits;
+        }
+        public LinkedList<CollisionResult> getCollisions() {
+            return path;
         }
         
     }

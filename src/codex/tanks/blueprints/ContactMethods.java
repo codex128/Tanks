@@ -11,7 +11,6 @@ import codex.tanks.components.ContactResponse;
 import codex.tanks.components.Damage;
 import codex.tanks.components.Velocity;
 import codex.tanks.util.GameUtils;
-import com.jme3.math.FastMath;
 import com.simsilica.es.EntityData;
 
 /**
@@ -66,7 +65,7 @@ public class ContactMethods {
         }
     }
     public void killProjectile(ContactEvent event) {
-        event.projectile.set(new Alive(false));
+        event.projectile.set(event.projectile.get(Alive.class).kill());
     }
     public void ricochetProjectile(ContactEvent event) {
         var b = event.projectile.get(Bounces.class);

@@ -12,12 +12,16 @@ import codex.tanks.effects.MatChange;
 import codex.tanks.blueprints.SpatialFactory;
 import codex.tanks.collision.ContactEvent;
 import codex.tanks.util.ESAppState;
+import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
+import com.jme3.math.Vector3f;
 import com.jme3.shader.VarType;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;
+import java.util.ArrayList;
 
 /**
  *
@@ -26,7 +30,8 @@ import com.simsilica.es.EntitySet;
 public class ProjectileState extends ESAppState {
     
     public static final float MISSILE_QUALIFIER = 20f;
-    public static final Class[] COMPONENT_TYPES = {EntityTransform.class, Velocity.class, Damage.class, Bounces.class, Alive.class};
+    public static final Class[] COMPONENT_TYPES = {
+        EntityTransform.class, Velocity.class, Damage.class, Bounces.class, Alive.class};
     
     private EntitySet entities;
     private final Timer flameRefreshCycle = new Timer(0.03f);
@@ -111,6 +116,12 @@ public class ProjectileState extends ESAppState {
     }
     public static boolean isMissile(float speed) {
         return speed >= MISSILE_QUALIFIER;
+    }
+    public static boolean isLaser(Entity e) {
+        return isLaser(e.get(Velocity.class).getSpeed());
+    }
+    public static boolean isLaser(float speed) {
+        return speed < 0;
     }
     public static String getBulletModelId(float speed) {
         if (speed < MISSILE_QUALIFIER) return SpatialFactory.BULLET;

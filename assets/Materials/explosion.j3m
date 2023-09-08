@@ -1,0 +1,10 @@
+Material Explosion : Common/MatDefs/Misc/Unshaded.j3md {
+     MaterialParameters {
+        BackfaceShadows :  false
+        PointSize :  1.0
+        ColorMap : Repeat "Textures/inferno.png"
+        GlowMap : "Textures/inferno.png"
+     }
+    AdditionalRenderState {
+    }
+}

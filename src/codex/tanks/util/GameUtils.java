@@ -16,8 +16,10 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
-import com.simsilica.es.EntityId;
+import com.jme3.scene.shape.Sphere;
 import com.simsilica.lemur.Axis;
+import java.util.Collection;
+import java.util.function.BiConsumer;
 
 /**
  *
@@ -63,16 +65,34 @@ public class GameUtils {
         return (float)FastMath.rand.nextGaussian()*radius+mean;
     }
     
-    public static Geometry createDebugGeometry(AssetManager assetManager, ColorRGBA color, Vector3f size) {
-        Geometry g = new Geometry("debug", new Box(size.x, size.y, size.z));
+    public static Geometry createDebugCube(AssetManager assetManager, ColorRGBA color, Vector3f size) {
+        Geometry g = new Geometry("debug-cube", new Box(size.x, size.y, size.z));
         Material m = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         m.setBoolean("UseMaterialColors", true);
         m.setColor("Diffuse", color);
         g.setMaterial(m);
         return g;
     }
-    public static Geometry createDebugGeometry(AssetManager assetManager, ColorRGBA color, float radius) {
-        return createDebugGeometry(assetManager, color, new Vector3f(radius, radius, radius));
+    public static Geometry createDebugCube(AssetManager assetManager, ColorRGBA color, float radius) {
+        return GameUtils.createDebugCube(assetManager, color, new Vector3f(radius, radius, radius));
+    }
+    public static Geometry createDebugSphere(AssetManager assetManager, ColorRGBA color, float radius) {
+        var sphere = new Sphere(8, 10, radius);
+        var geometry = new Geometry("debug-sphere", sphere);
+        Material m = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        m.setBoolean("UseMaterialColors", true);
+        m.setColor("Diffuse", color);
+        geometry.setMaterial(m);
+        return geometry;
+    }
+    
+    public static Geometry fetchGeometry(Spatial spatial) {
+        for (Spatial s : new SceneGraphIterator(spatial)) {
+            if (s instanceof Geometry) {
+                return (Geometry)s;
+            }
+        }
+        return null;
     }
     public static Material fetchMaterial(Spatial spatial) {
         for (Spatial s : new SceneGraphIterator(spatial)) {
@@ -112,6 +132,12 @@ public class GameUtils {
     }
     private static float distance2D(float x1, float y1, float x2, float y2) {
         return FastMath.sqrt(FastMath.sqr(x1-x2)+FastMath.sqr(y1-y2));
+    }
+    
+    public static <T, R> void extract(Collection<T> in, Collection<R> out, BiConsumer<Collection<R>, T> apply) {
+        for (T e : in) {
+            apply.accept(out, e);
+        }
     }
     
 }

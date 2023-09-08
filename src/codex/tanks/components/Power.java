@@ -4,26 +4,31 @@
  */
 package codex.tanks.components;
 
-import com.simsilica.es.EntityComponent;
+import codex.tanks.util.AbstractFloatComponent;
+import com.jme3.math.Vector2f;
 
 /**
  *
  * @author codex
  */
-public class Power implements EntityComponent {
+public class Power extends AbstractFloatComponent {
+
+    public Power(float value) {
+        setValue(value);
+        setRange(0.001f, value);
+    }
+    public Power(float min, float value) {
+        setValue(value);
+        setRange(min, value);
+    }
+    public Power(float value, Vector2f range) {
+        setValue(value);
+        setRange(range);
+    }
     
-    private final float power;
-
-    public Power(float power) {
-        this.power = power;
-    }
-
-    public float getPower() {
-        return power;
-    }
     @Override
-    public String toString() {
-        return "Power{" + "power=" + power + '}';
+    public Power setPercent(float percent) {
+        return new Power(interpolate(percent), range);
     }
     
 }

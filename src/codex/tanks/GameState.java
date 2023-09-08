@@ -17,6 +17,7 @@ import com.jme3.bullet.PhysicsSpace;
 import com.jme3.light.PointLight;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
+import com.jme3.math.Triangle;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
@@ -52,18 +53,13 @@ public class GameState extends ESAppState {
         player = new PlayerAppState(plr);
         getStateManager().attach(player);
         
-        J3map[] enemySources = {
-            (J3map)assetManager.loadAsset("Properties/purple.j3map"),
-            (J3map)assetManager.loadAsset("Properties/grey.j3map"),
-            (J3map)assetManager.loadAsset("Properties/light-green.j3map"),
-            (J3map)assetManager.loadAsset("Properties/black.j3map"),
-        };
+        J3map enemySources = (J3map)assetManager.loadAsset("Properties/AI.j3map");
+        J3map index = enemySources.getJ3map("index");
         for (int a = -1; a < 2; a += 2) {
-            for (int j = 0; j < 3; j++) {
-                var src = enemySources[FastMath.rand.nextInt(enemySources.length)];
-                //var src = enemySources[1];
+            for (int j = 0; j < 4; j++) {
+                J3map src = enemySources.getJ3map(index.getString(""+FastMath.rand.nextInt(index.getOrderedPropertyList().size())));
                 for (int i = 0; i < 4; i++) {
-                    factory.getEntityFactory().createAITank(new Vector3f(-a*7f-i*3*a, 0f, 12f-j*3), 1, src);
+                    factory.getEntityFactory().createAITank(new Vector3f(-a*7f-i*3*a, 0f, 12f*a-j*3*a), a < 0 ? 0 : 1, src);
                 }
             }
         }
@@ -75,7 +71,7 @@ public class GameState extends ESAppState {
         createWall(new Vector3f(0f, 0f, r), 0f, new Vector3f(r, 1f, 1f));
         createWall(new Vector3f(0f, 0f, 0f), FastMath.PI/4, new Vector3f(3f, 1f, 3f));        
         createWall(new Vector3f(12f, 0f, 0f), 0f, new Vector3f(4f, 1f, 1f));   
-        createWall(new Vector3f(-12f, 0f, 0f), 0f, new Vector3f(4f, 1f, 1f));   
+        createWall(new Vector3f(-12f, 0f, 0f), 0f, new Vector3f(4f, 1f, 1f));
         createWall(new Vector3f(0f, 0f, 12f), 0f, new Vector3f(1f, 1f, 4f));
         createWall(new Vector3f(0f, 0f, -12f), 0f, new Vector3f(1f, 1f, 4f));
         //createWall(new Vector3f(0f, 0f, 0f), 0f, new Vector3f(20f, 1f, 1f));

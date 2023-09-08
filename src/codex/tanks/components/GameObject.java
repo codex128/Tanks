@@ -31,5 +31,8 @@ public class GameObject implements EntityComponent {
     public static ComponentFilter<GameObject> filter(String type) {
         return new FunctionFilter<>(GameObject.class, c -> c.getType().equals(type));
     }
+    public static ComponentFilter<GameObject> filter(String type, boolean equals) {
+        return new FunctionFilter<>(GameObject.class, c -> c.getType().equals(type) == equals);
+    }
     
 }

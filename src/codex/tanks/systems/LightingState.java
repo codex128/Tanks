@@ -117,7 +117,7 @@ public class LightingState extends ESAppState {
     private void updatePoint(Entity e) {
         var light = getPointLight(e.getId());
         light.setPosition(e.get(EntityTransform.class).getTranslation());
-        light.setRadius(e.get(Power.class).getPower());
+        light.setRadius(e.get(Power.class).getValue());
         light.setColor(e.get(ColorScheme.class).getPallete()[0]);
     }
     private void updateSpot(Entity e) {
@@ -126,7 +126,7 @@ public class LightingState extends ESAppState {
         light.setPosition(transform.getTranslation());
         light.setDirection(transform.getRotation().mult(Vector3f.UNIT_Z));
         light.setColor(e.get(ColorScheme.class).getPallete()[0]);     
-        light.setSpotRange(e.get(Power.class).getPower());
+        light.setSpotRange(e.get(Power.class).getValue());
         e.get(InfluenceCone.class).applyToSpotLight(light);
     }
     private void updateAmbient(Entity e) {

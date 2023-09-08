@@ -12,13 +12,23 @@ import com.simsilica.es.EntityComponent;
  */
 public class Alive implements EntityComponent {
     
+    public static final int NORMAL = 0, UNAFFECTED = 1;
+    
     private final boolean alive;
+    private final int level;
     
     public Alive() {
-        this(true);
+        this(true, 0);
     }
     public Alive(boolean alive) {
+        this(alive, 0);
+    }
+    public Alive(int level) {
+        this(true, level);
+    }
+    public Alive(boolean alive, int level) {
         this.alive = alive;
+        this.level = level;
     }
 
     public boolean isAlive() {
@@ -26,6 +36,10 @@ public class Alive implements EntityComponent {
     }
     public Alive kill() {
         return new Alive(false);
+    }
+    public Alive kill(int level) {
+        if (this.level > level) return this;
+        else return new Alive(false, this.level);
     }
     @Override
     public String toString() {

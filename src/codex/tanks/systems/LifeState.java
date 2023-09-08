@@ -19,7 +19,6 @@ import com.simsilica.es.EntitySet;
 public class LifeState extends ESAppState {
     
     private EntitySet alive;
-    private EntitySet createOnDeath;
     private EntitySet copy;
     
     @Override
@@ -57,10 +56,14 @@ public class LifeState extends ESAppState {
         if (!e.get(Alive.class).isAlive()) {
             var cod = ed.getComponent(e.getId(), CreateOnDeath.class);
             if (cod != null) {
-                factory.getEntityFactory().create(cod.getModel(), e.getId());
+                factory.getEntityFactory().createAfterEffect(cod.getModel(), e.getId());
             }
             ed.removeEntity(e.getId());
         }
+    }
+    
+    public EntitySet getAliveEntities() {
+        return alive;
     }
     
 }

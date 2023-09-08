@@ -4,11 +4,8 @@
  */
 package codex.tanks.systems;
 
-import codex.tanks.components.Alive;
-import codex.tanks.components.Decay;
-import codex.tanks.components.Power;
+import codex.tanks.components.Relative;
 import codex.tanks.util.ESAppState;
-import codex.tanks.util.FunctionFilter;
 import com.jme3.app.Application;
 import com.simsilica.es.EntitySet;
 
@@ -16,20 +13,18 @@ import com.simsilica.es.EntitySet;
  *
  * @author codex
  */
-public class DecayState extends ESAppState {
+public class RelationState extends ESAppState {
     
-    private EntitySet decay;
-    private EntitySet life;
+    private EntitySet entities;
     
     @Override
     protected void init(Application app) {
         super.init(app);
-        decay = ed.getEntities(Decay.class);
-        life = ed.getEntities(new FunctionFilter<>(Alive.class, c -> c.isAlive()), Decay.class, Alive.class);
+        entities = ed.getEntities(Relative.class);
     }
     @Override
     protected void cleanup(Application app) {
-        life.release();
+        entities.release();
     }
     @Override
     protected void onEnable() {}
@@ -37,14 +32,11 @@ public class DecayState extends ESAppState {
     protected void onDisable() {}
     @Override
     public void update(float tpf) {
-        decay.applyChanges();
-        life.applyChanges();
-        for (var e : decay) {
-            e.set(e.get(Decay.class).increment(tpf));
-        }
-        for (var e : life) {
-            if (e.get(Decay.class).isExhausted()) {
-                e.set(new Alive(false));
+        entities.applyChanges();
+        for (var e : entities) {
+            var r = e.get(Relative.class);
+            for (var c : r.getRelations()) {
+                c.update(ed, e.getId());
             }
         }
     }

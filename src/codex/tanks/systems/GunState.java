@@ -98,7 +98,7 @@ public class GunState extends ESAppState implements Listenable<ShootEventListene
             e.getId(),
             transform.getTranslation(),
             transform.getRotation().mult(Vector3f.UNIT_Z),
-            e.get(Power.class).getPower(),
+            e.get(Power.class).getValue(),
             e.get(Bounces.class).getRemaining());
         factory.getEntityFactory().createMuzzleflash(muzzle.getId(), .7f);
         return true;

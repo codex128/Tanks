@@ -4,22 +4,26 @@
  */
 package codex.tanks.components;
 
+import codex.tanks.util.FloatComponent;
+import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Transform;
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
-import com.simsilica.es.EntityComponent;
 
 /**
- *
+ * Defines the transform of the entity.
+ * 
  * @author codex
  */
-public class EntityTransform implements EntityComponent {
+public class EntityTransform implements FloatComponent {
     
     private final Vector3f translation = new Vector3f();
     private final Quaternion rotation = new Quaternion();
     private final Vector3f scale = new Vector3f(1f, 1f, 1f);
+    private final Vector2f scaleRange = new Vector2f(0f, 1f);
     private boolean applyOnAssign = true;
     
     public EntityTransform() {}
@@ -30,6 +34,7 @@ public class EntityTransform implements EntityComponent {
         translation.set(transform.translation);
         rotation.set(transform.rotation);
         scale.set(transform.scale);
+        scaleRange.set(transform.scaleRange);
     }
     public EntityTransform(Transform transform) {
         transform.getTranslation(translation);
@@ -41,6 +46,7 @@ public class EntityTransform implements EntityComponent {
         rotation.set(new Quaternion().lookAt(ray.getDirection(), Vector3f.UNIT_Y));
     }
     
+    // should be used during initialization only
     public EntityTransform setTranslation(Vector3f location) {
         this.translation.set(location);
         return this;
@@ -69,7 +75,10 @@ public class EntityTransform implements EntityComponent {
         this.scale.set(scalar, scalar, scalar);
         return this;
     }
-    
+    public EntityTransform setScaleRange(float min, float max) {
+        scaleRange.set(min, max);
+        return this;
+    }
     public EntityTransform move(Vector3f move) {
         translation.addLocal(move);
         return this;
@@ -87,6 +96,9 @@ public class EntityTransform implements EntityComponent {
     }
     public Vector3f getScale() {
         return scale;
+    }
+    public float getAverageScale() {
+        return (scale.x+scale.y+scale.z)/3;
     }
     
     public void assignToSpatial(Spatial spatial) {
@@ -106,6 +118,15 @@ public class EntityTransform implements EntityComponent {
     @Override
     public String toString() {
         return "EntityTransform{" + "location=" + translation + ", rotation=" + rotation + ", scale=" + scale + '}';
+    }
+    @Override
+    public EntityTransform setPercent(float percent) {
+        float s = FastMath.interpolateLinear(percent, scaleRange.x, scaleRange.y);
+        return new EntityTransform(this).setScale(s);
+    }    
+    @Override
+    public float getPercent() {
+        return (getAverageScale()-scaleRange.x)/(scaleRange.y-scaleRange.x);
     }
     
 }

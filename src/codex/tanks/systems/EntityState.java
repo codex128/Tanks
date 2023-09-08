@@ -17,7 +17,6 @@ import com.simsilica.es.base.DefaultEntityData;
 public class EntityState extends BaseAppState {
     
     private final EntityData ed;
-    private EntityFactory factory;
     
     public EntityState() {
         this(new DefaultEntityData());
@@ -27,9 +26,7 @@ public class EntityState extends BaseAppState {
     }
     
     @Override
-    protected void initialize(Application app) {
-        factory = new EntityFactory(ed);
-    }
+    protected void initialize(Application app) {}
     @Override
     protected void cleanup(Application app) {
         ed.close();
@@ -41,9 +38,6 @@ public class EntityState extends BaseAppState {
     
     public EntityData getEntityData() {
         return ed;
-    }
-    public EntityFactory getEntityFactory() {
-        return factory;
     }
     
 }
