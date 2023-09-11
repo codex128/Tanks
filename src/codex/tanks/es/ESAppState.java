@@ -2,14 +2,17 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanks.util;
+package codex.tanks.es;
 
 import codex.boost.GameAppState;
 import codex.tanks.blueprints.FactoryState;
+import codex.tanks.components.RoomCondition;
+import codex.tanks.dungeon.DungeonMaster;
 import codex.tanks.systems.EntityState;
 import codex.tanks.systems.VisualState;
 import com.jme3.app.Application;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 
 /**
  *
@@ -33,6 +36,17 @@ public abstract class ESAppState extends GameAppState {
     }
     public FactoryState getFactory() {
         return factory;
+    }
+    public VisualState getVisualState() {
+        return visuals;
+    }
+    public DungeonMaster getDungeonMaster() {
+        return getState(DungeonMaster.class);
+    }
+    
+    public boolean isEntityRoomActive(EntityId id) {
+        var asleep = ed.getComponent(id, RoomCondition.class);
+        return asleep != null && asleep.getCondition() == RoomCondition.ACTIVE;
     }
     
 }

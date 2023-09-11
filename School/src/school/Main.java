@@ -9,15 +9,11 @@ package school;
  * @author codex
  */
 public class Main {
-
-    /**
-     * @param args the command line arguments
-     */
+    
     public static void main(String[] args) {
         
-        Vector3 a = new Vector3(2, 3, 4);
-        Vector3 b = new Vector3(3, 1, 3);
-        System.out.println(a.magnitude()+"   "+b.magnitude());
+        Vector3 a = new Vector3().fromAngle(33, 30);
+        System.out.println(a);
         
     }
     

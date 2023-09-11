@@ -12,7 +12,7 @@ import codex.tanks.components.Firerate;
 import codex.tanks.components.MuzzlePointer;
 import codex.tanks.components.Power;
 import codex.tanks.components.Team;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import codex.tanks.weapons.ShootEventListener;
 import com.jme3.app.Application;
 import com.jme3.math.Vector3f;
@@ -66,7 +66,8 @@ public class GunState extends ESAppState implements Listenable<ShootEventListene
     @Override
     public boolean approveShootEvent(EntityId id) {
         var rate = ed.getComponent(id, Firerate.class);
-        return (rate == null || rate.isReady()) && owners.isBelowCapacity(id, BulletCapacity.class, "bullet");
+        return !isEntityRoomActive(id) && (rate == null || rate.isReady())
+                && owners.isBelowCapacity(id, BulletCapacity.class, "bullet");
     }
     @Override
     public void onShootEventPassed(EntityId id) {

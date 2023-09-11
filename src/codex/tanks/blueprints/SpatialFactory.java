@@ -16,7 +16,6 @@ import com.epagagames.particles.influencers.*;
 import com.epagagames.particles.valuetypes.*;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
-import com.jme3.bounding.BoundingBox;
 import com.jme3.light.AmbientLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
@@ -50,6 +49,7 @@ public class SpatialFactory {
     };
     
     public static final String
+        NODE = "node",
         TANK = "tank",
         BULLET = "bullet",
         MISSILE = "missile",
@@ -90,6 +90,7 @@ public class SpatialFactory {
     }
     private Spatial createSpatial(String model, EntityId id) {
         return switch (model) {
+            case NODE             -> new Node(""+id);
             case TANK             -> createTank();
             case BULLET           -> createBullet();
             case MISSILE          -> createMissile();

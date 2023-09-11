@@ -4,11 +4,9 @@
  */
 package codex.tanks.systems;
 
-import codex.tanks.components.BulletCapacity;
 import codex.tanks.components.CapacityComponent;
 import codex.tanks.components.Owner;
-import codex.tanks.util.ESAppState;
-import codex.tanks.weapons.ShootEventListener;
+import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -49,8 +47,7 @@ public class OwnerState extends ESAppState {
     }
     public <T extends CapacityComponent> boolean isBelowCapacity(EntityId id, Class<T> type, String tag) {
         var cap = ed.getComponent(id, type);
-        if (cap == null) return true;
-        return cap.getMaxCapacity() > getNumOwnedEntities(id, tag);
+        return cap == null || cap.getMaxCapacity() > getNumOwnedEntities(id, tag);
     }
     
 }

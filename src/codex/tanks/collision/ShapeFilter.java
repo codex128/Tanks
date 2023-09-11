@@ -7,7 +7,7 @@ package codex.tanks.collision;
 import codex.tanks.components.CollisionShape;
 import codex.tanks.components.GameObject;
 import codex.tanks.components.Team;
-import codex.tanks.util.EntityAccess;
+import codex.tanks.es.EntityAccess;
 import com.simsilica.es.EntityId;
 
 /**

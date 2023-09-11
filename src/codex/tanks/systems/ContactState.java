@@ -11,8 +11,8 @@ import codex.tanks.components.CollisionShape;
 import codex.tanks.components.ContactResponse;
 import codex.tanks.components.Owner;
 import codex.tanks.components.Visual;
-import codex.tanks.util.ESAppState;
-import codex.tanks.util.EntityAccess;
+import codex.tanks.es.ESAppState;
+import codex.tanks.es.EntityAccess;
 import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
 import com.jme3.scene.Spatial;
@@ -84,6 +84,9 @@ public class ContactState extends ESAppState implements Iterable<Spatial> {
             if (next != null) return true;
             while (delegate.hasNext()) {
                 var e = delegate.next();
+                if (isEntityRoomActive(e.getId())) {
+                    continue;
+                }
                 access.setEntityId(e.getId());
                 var shape = e.get(CollisionShape.class);
                 if (filter != null && !filter.filter(access, shape)) {

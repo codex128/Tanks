@@ -5,7 +5,7 @@
 package codex.tanks.systems;
 
 import codex.tanks.components.*;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import codex.tanks.weapons.Tank;
 import com.jme3.app.Application;
 import com.jme3.math.Vector3f;
@@ -49,6 +49,9 @@ public class TankState extends ESAppState {
             entities.getRemovedEntities().forEach(e -> destroyTank(e));
         }
         for (var e : entities) {
+            if (isEntityRoomActive(e.getId())) {
+                continue;
+            }
             var t = tanks.get(e.getId());
             tanks.get(e.getId()).update(tpf);
             ed.setComponent(e.get(MuzzlePointer.class).getId(), new EntityTransform()

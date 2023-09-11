@@ -10,7 +10,7 @@ import codex.tanks.blueprints.ContactMethods;
 import codex.tanks.components.*;
 import codex.tanks.blueprints.SpatialFactory;
 import codex.tanks.systems.VisualState;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
@@ -48,7 +48,7 @@ public class GameState extends ESAppState {
         );
         
         J3map playerSource = (J3map)app.getAssetManager().loadAsset("Properties/player.j3map");        
-        var plr = factory.getEntityFactory().createTank(new Vector3f(-7f, 0f, -7f), 0, playerSource);
+        var plr = factory.getEntityFactory().createTank(new Vector3f(-7f, 0f, -7f), 0, new PropertySource("Properties/player.j3map"));
         ed.setComponents(plr, new Player(0));
         player = new PlayerAppState(plr);
         getStateManager().attach(player);
@@ -57,9 +57,9 @@ public class GameState extends ESAppState {
         J3map index = enemySources.getJ3map("index");
         for (int a = -1; a < 2; a += 2) {
             for (int j = 0; j < 4; j++) {
-                J3map src = enemySources.getJ3map(index.getString(""+FastMath.rand.nextInt(index.getOrderedPropertyList().size())));
+                var src = index.getString(""+FastMath.rand.nextInt(index.getOrderedPropertyList().size()));
                 for (int i = 0; i < 4; i++) {
-                    factory.getEntityFactory().createAITank(new Vector3f(-a*7f-i*3*a, 0f, 12f*a-j*3*a), a < 0 ? 0 : 1, src);
+                    factory.getEntityFactory().createAITank(new Vector3f(-a*7f-i*3*a, 0f, 12f-j*3), 1, new PropertySource("Properties/AI.j3map", src));
                 }
             }
         }

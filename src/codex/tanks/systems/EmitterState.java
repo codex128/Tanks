@@ -8,7 +8,7 @@ import codex.tanks.components.EmissionsPerSecond;
 import codex.tanks.components.Particles;
 import codex.tanks.components.SingleEmission;
 import codex.tanks.components.Visual;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import com.epagagames.particles.Emitter;
 import com.jme3.app.Application;
 import com.simsilica.es.Entity;

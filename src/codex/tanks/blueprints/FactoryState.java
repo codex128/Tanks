@@ -4,9 +4,9 @@
  */
 package codex.tanks.blueprints;
 
-import codex.tanks.systems.EntityState;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
+import com.jme3.asset.AssetManager;
 
 /**
  *
@@ -34,6 +34,9 @@ public class FactoryState extends ESAppState {
     @Override
     protected void onDisable() {}
 
+    public AssetManager getAssetManager() {
+        return assetManager;
+    }
     public EntityFactory getEntityFactory() {
         return entityFactory;
     }

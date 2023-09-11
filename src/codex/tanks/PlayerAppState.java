@@ -11,7 +11,7 @@ import codex.tanks.components.EntityTransform;
 import codex.tanks.components.MaxSpeed;
 import codex.tanks.components.MoveVelocity;
 import codex.tanks.systems.TankState;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import codex.tanks.util.GameUtils;
 import codex.tanks.systems.GunState;
 import com.jme3.app.Application;

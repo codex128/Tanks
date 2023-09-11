@@ -4,7 +4,7 @@
  */
 package codex.tanks.components;
 
-import codex.tanks.util.FunctionFilter;
+import codex.tanks.es.FunctionFilter;
 import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityId;

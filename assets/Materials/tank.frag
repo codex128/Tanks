@@ -1,5 +1,6 @@
 
-#import "Materials/PBR.glsllib"
+#import "Common/ShaderLib/GLSLCompat.glsllib"
+#import "ShaderBoost/glsl/PBR.glsllib"
 
 uniform sampler2D m_DiffuseMap;
 uniform vec4 m_MainColor;

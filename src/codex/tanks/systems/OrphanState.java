@@ -6,7 +6,7 @@ package codex.tanks.systems;
 
 import codex.tanks.components.GameObject;
 import codex.tanks.components.OrphanBucket;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.EntitySet;
 

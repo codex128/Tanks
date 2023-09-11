@@ -7,7 +7,7 @@ package codex.tanks.systems;
 import codex.tanks.components.MaterialUpdate;
 import codex.tanks.components.Visual;
 import codex.tanks.effects.MatChange;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
 import com.jme3.material.Material;
@@ -47,6 +47,9 @@ public class MaterialState extends ESAppState {
     }
     
     private void updateMaterial(Entity e) {
+        if (isEntityRoomActive(e.getId())) {
+            return;
+        }
         var update = e.get(MaterialUpdate.class);
         for (var param : update.getUpdates()) {
             var mat = locateMaterial(e.getId(), update, param);

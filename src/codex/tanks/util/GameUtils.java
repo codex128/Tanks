@@ -17,6 +17,8 @@ import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.jme3.scene.shape.Sphere;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.lemur.Axis;
 import java.util.Collection;
 import java.util.function.BiConsumer;
@@ -138,6 +140,10 @@ public class GameUtils {
         for (T e : in) {
             apply.accept(out, e);
         }
+    }
+    
+    public static void removeAllComponents(EntityData ed, EntityId id) {
+        
     }
     
 }

@@ -4,7 +4,7 @@
  */
 package codex.tanks.components;
 
-import codex.tanks.util.FloatComponent;
+import codex.tanks.es.FloatComponent;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;

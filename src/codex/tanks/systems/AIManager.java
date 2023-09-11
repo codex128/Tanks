@@ -14,7 +14,7 @@ import codex.tanks.components.MaxSpeed;
 import codex.tanks.components.MuzzlePointer;
 import codex.tanks.components.ProbeLocation;
 import codex.tanks.components.Team;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;
@@ -52,6 +52,9 @@ public class AIManager extends ESAppState {
             }
         }
         for (var e : entities) {
+            if (isEntityRoomActive(e.getId())) {
+                continue;
+            }
             update(e, tpf);
         }
     }

@@ -4,11 +4,15 @@
  */
 package codex.tanks.systems;
 
+import codex.tanks.components.OnSleep;
 import codex.tanks.components.EntityTransform;
+import codex.tanks.components.RoomCondition;
 import codex.tanks.components.Visual;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import codex.tanks.util.GameUtils;
 import com.jme3.app.Application;
+import com.jme3.math.ColorRGBA;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;
@@ -24,16 +28,20 @@ public class VisualState extends ESAppState {
     public static final String USERDATA = "EntityId";
     
     private EntitySet entities;
+    private EntitySet sleepDetach;
     private final HashMap<EntityId, Spatial> spatials = new HashMap<>();
     
     @Override
     protected void init(Application app) {
         super.init(app);
         entities = ed.getEntities(Visual.class);
+        sleepDetach = ed.getEntities(OnSleep.filter(OnSleep.DETACH_SPATIAL),
+                Visual.class, RoomCondition.class, OnSleep.class);
     }
     @Override
     protected void cleanup(Application app) {
         entities.release();
+        sleepDetach.release();
         spatials.values().forEach(s -> s.removeFromParent());
         spatials.clear();
     }
@@ -47,25 +55,47 @@ public class VisualState extends ESAppState {
             entities.getAddedEntities().forEach(e -> createModel(e));
             entities.getRemovedEntities().forEach(e -> destroyModel(e));
         }
+        if (sleepDetach.applyChanges()) {
+            sleepDetach.getAddedEntities().forEach(e -> updateCondition(e, true));
+            sleepDetach.getChangedEntities().forEach(e -> updateCondition(e, false));
+        }
     }
     
     private void createModel(Entity e) {
+        if (getSpatial(e.getId()) != null) return;
         var v = e.get(Visual.class);
+        Spatial spatial = null;
         if (v.getModel() != null) {
-            Spatial spatial;
-            if (v.getParent() == null) {
-                spatial = factory.getSpatialFactory().create(v.getModel(), e.getId());
-            }
-            else {
-                spatial = GameUtils.getChild(getSpatial(v.getParent()), v.getModel());
-            }
-            link(e.getId(), spatial);
+            spatial = factory.getSpatialFactory().create(v.getModel(), e.getId());
         }
+        if (spatial == null) {
+            spatial = GameUtils.createDebugCube(assetManager, ColorRGBA.Blue, 1f);
+        }
+        if (v.getScene() != null) {
+            ((Node)getSpatial(v.getScene())).attachChild(spatial);
+        }
+        link(e.getId(), spatial);
     }
     private void destroyModel(Entity e) {
         var spatial = unlink(e.getId());
         if (spatial != null) {
             spatial.removeFromParent();
+        }
+    }
+    private void updateCondition(Entity e, boolean force) {
+        var spatial = getSpatial(e.getId());
+        if (spatial == null) return;
+        if (e.get(RoomCondition.class).getCondition() == RoomCondition.SLEEPING) {
+            spatial.removeFromParent();
+        }
+        else if (force || spatial.getParent() == null) {
+            var v = e.get(Visual.class);
+            if (v.getScene() == null) {
+                rootNode.attachChild(spatial);
+            }
+            else {
+                ((Node)getSpatial(e.getId())).attachChild(spatial);
+            }
         }
     }
     

@@ -4,7 +4,7 @@
  */
 package codex.tanks.components;
 
-import codex.tanks.util.ComponentRelation;
+import codex.tanks.es.ComponentRelation;
 import com.simsilica.es.EntityComponent;
 
 /**

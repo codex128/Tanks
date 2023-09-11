@@ -11,17 +11,13 @@ import codex.tanks.components.*;
 import codex.tanks.effects.MatChange;
 import codex.tanks.blueprints.SpatialFactory;
 import codex.tanks.collision.ContactEvent;
-import codex.tanks.util.ESAppState;
-import codex.tanks.util.GameUtils;
+import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
-import com.jme3.math.Vector3f;
 import com.jme3.shader.VarType;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;
-import java.util.ArrayList;
 
 /**
  *
@@ -58,6 +54,9 @@ public class ProjectileState extends ESAppState {
         flameRefreshCycle.update(tpf);
         entities.applyChanges();
         for (var e : entities) {
+            if (isEntityRoomActive(e.getId())) {
+                continue;
+            }
             update(e, tpf);
         }
         if (flameRefreshCycle.isComplete()) {

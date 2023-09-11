@@ -5,7 +5,7 @@
 package codex.tanks.systems;
 
 import codex.tanks.components.Relative;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.EntitySet;
 

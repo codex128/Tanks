@@ -7,7 +7,7 @@ package codex.tanks.systems;
 import codex.tanks.components.AimLaser;
 import codex.tanks.components.Bounces;
 import codex.tanks.components.MuzzlePointer;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;

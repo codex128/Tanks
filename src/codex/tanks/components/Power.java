@@ -4,7 +4,7 @@
  */
 package codex.tanks.components;
 
-import codex.tanks.util.AbstractFloatComponent;
+import codex.tanks.es.AbstractFloatComponent;
 import com.jme3.math.Vector2f;
 
 /**

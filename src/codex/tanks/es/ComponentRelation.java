@@ -2,8 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanks.util;
+package codex.tanks.es;
 
+import codex.tanks.es.FloatComponent;
+import codex.tanks.util.Interpolator;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 

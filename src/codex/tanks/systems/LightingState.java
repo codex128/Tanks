@@ -9,7 +9,7 @@ import codex.tanks.components.EntityLight;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.InfluenceCone;
 import codex.tanks.components.Power;
-import codex.tanks.util.ESAppState;
+import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;

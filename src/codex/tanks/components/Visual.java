@@ -14,31 +14,38 @@ import com.simsilica.es.EntityId;
 public class Visual implements EntityComponent {
     
     private final String model;
-    private EntityId parent;
+    private final EntityId scene;
     
     public Visual() {
-        this(null);
+        this.model = null;
+        this.scene = null;
     }
     public Visual(String model) {
         this.model = model;
+        this.scene = null;
     }
-    public Visual(EntityId parent, String model) {
-        this.parent = parent;
+    public Visual(EntityId scene) {
+        this.model = null;
+        this.scene = scene;
+    }
+    public Visual(String model, EntityId scene) {
         this.model = model;
+        this.scene = scene;
     }
     
     public String getModel() {
         return model;
     }
-    public EntityId getParent() {
-        return parent;
-    }
-    public boolean isCustom() {
-        return model == null;
+    public EntityId getScene() {
+        return scene;
     }
     @Override
     public String toString() {
-        return "Visual{" + "model=" + model + '}';
+        return "Visual{" + "model=" + model + " scene=" + scene + '}';
+    }
+    
+    public Visual setScene(EntityId scene) {
+        return new Visual(model, scene);
     }
     
 }

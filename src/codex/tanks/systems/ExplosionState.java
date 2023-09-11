@@ -7,8 +7,8 @@ package codex.tanks.systems;
 import codex.tanks.components.Alive;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.GameObject;
-import codex.tanks.util.ESAppState;
-import codex.tanks.util.FunctionFilter;
+import codex.tanks.es.ESAppState;
+import codex.tanks.es.FunctionFilter;
 import com.jme3.app.Application;
 import com.simsilica.es.EntitySet;
 

@@ -2,8 +2,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanks.util;
+package codex.tanks.es;
 
+import codex.tanks.es.FloatComponent;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector2f;
 
