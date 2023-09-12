@@ -5,10 +5,11 @@
 package codex.tanks.dungeon;
 
 import codex.boost.Timer;
-import codex.tanks.blueprints.SpatialFactory;
 import codex.tanks.components.OnSleep;
 import codex.tanks.components.RoomCondition;
 import codex.tanks.components.Visual;
+import codex.tanks.systems.VisualState;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -21,25 +22,26 @@ import java.util.ArrayList;
  */
 public class Room {
     
+    private EntityId entity;
     private final RoomIndex index;
     private EntitySet entities;
     private EntityId roomScene;
     private final ArrayList<Integer> adj = new ArrayList<>();
     private RoomCondition condition = new RoomCondition(RoomCondition.SLEEPING);
-    private Timer timer;
+    private Timer timer = new Timer(1f);
     
     public Room(RoomIndex index) {
         this.index = index;
     }
     
-    public void initialize(DungeonMaster master, Spatial scene) {
-        entities = master.getEntityData().getEntities(RoomIndex.filter(index), RoomIndex.class, RoomCondition.class);
-        roomScene = master.getEntityData().createEntity();
+    public void initialize(DungeonMaster master, VisualState visuals, Spatial scene) {
+        entity = master.getEntityData().createEntity();
         master.getEntityData().setComponents(
-            roomScene, index, condition,
-            new Visual(SpatialFactory.NODE),
+            entity, index, condition,
+            new Visual(),
             new OnSleep(OnSleep.DETACH_SPATIAL)
         );
+        visuals.link(entity, new Node());
         var created = master.getFactory().getEntityFactory().createFromScene(scene);
         for (EntityId id : created) {
             master.getEntityData().setComponents(id, index, condition);
@@ -50,11 +52,7 @@ public class Room {
         if (c == condition.getCondition()) {
             return;
         }
-        entities.applyChanges();
         condition = new RoomCondition(c);
-        for (var e : entities) {
-            e.set(condition);
-        }
         if (condition.isBetween()) {
             timer.start();
             if (condition.isUpper()) {
@@ -69,6 +67,9 @@ public class Room {
         timer.update(tpf);
     }
     
+    public EntityId getId() {
+        return entity;
+    }
     public RoomIndex getIndex() {
         return index;
     }

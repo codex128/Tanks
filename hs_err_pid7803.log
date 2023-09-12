@@ -1,0 +1,75 @@
+#
+# A fatal error has been detected by the Java Runtime Environment:
+#
+#  SIGSEGV (0xb) at pc=0x0000000000000000, pid=7803, tid=7852
+#
+# JRE version: OpenJDK Runtime Environment Temurin-17.0.6+10 (17.0.6+10) (build 17.0.6+10)
+# Java VM: OpenJDK 64-Bit Server VM Temurin-17.0.6+10 (17.0.6+10, mixed mode, sharing, tiered, compressed oops, compressed class ptrs, g1 gc, linux-amd64)
+# Problematic frame:
+# C  0x0000000000000000
+#
+# Core dump will be written. Default location: Core dumps may be processed with "/usr/share/apport/apport -p%p -s%s -c%c -d%d -P%P -u%u -g%g -- %E" (or dumping to /home/codex/java/prj/Tanks/core.7803)
+#
+# If you would like to submit a bug report, please visit:
+#   https://github.com/adoptium/adoptium-support/issues
+#
+
+---------------  S U M M A R Y ------------
+
+Command Line: -Dfile.encoding=UTF-8 --module-path=/home/codex/java/prj/Tanks/build/classes codex.tanks.Main
+
+Host: Intel(R) Core(TM) i7-7700K CPU @ 4.20GHz, 8 cores, 31G, Pop!_OS 22.04 LTS
+Time: Mon Sep 11 10:37:26 2023 EDT elapsed time: 6.768760 seconds (0d 0h 0m 6s)
+
+---------------  T H R E A D  ---------------
+
+Current thread is native thread
+
+Stack: [0x00007fed001ea000,0x00007fed002e9000],  sp=0x00007fed002e7c58,  free space=1015k
+
+siginfo: si_signo: 11 (SIGSEGV), si_code: 1 (SEGV_MAPERR), si_addr: 0x0000000000000000
+
+Registers:
+RAX=0x00007fed6c4577c0, RBX=0x0000000000000400, RCX=0x0000000000000000, RDX=0x00007fed087b2770
+RSP=0x00007fed002e7c58, RBP=0x00007fed0879e5e0, RSI=0x0000000000000000, RDI=0x00007fed0879e5e0
+R8 =0x00007fed087b6970, R9 =0x0000000000000000, R10=0x00007fed002e7da0, R11=0x0000000000000202
+R12=0x00007fed087a2770, R13=0x0000000000012000, R14=0x0000000000001000, R15=0x00007fed002e7e08
+RIP=0x0000000000000000, EFLAGS=0x0000000000010246, CSGSFS=0x002b000000000033, ERR=0x0000000000000014
+  TRAPNO=0x000000000000000e
+
+Top of Stack: (sp=0x00007fed002e7c58)
+0x00007fed002e7c58:   00007fed6c2204d1 00007fed2439f6b0
+0x00007fed002e7c68:   0000000057116800 00000000bb800000
+0x00007fed002e7c78:   00007fed007b93a0 00007fed00000000
+0x00007fed002e7c88:   00007fedbf714a84 00007fed002e7ce7 
+
+Instructions: (pc=0x0000000000000000)
+0xffffffffffffff00:   
+
+
+
+---------------  P R O C E S S  ---------------
+
+VM state: at safepoint (shutting down)
+
+VM Mutex/Monitor currently owned by a thread:  ([mutex/lock_event])
+[0x00007fedb8023bb0] Threads_lock - owner thread: 0x00007fedb814a290
+
+Heap address: 0x000000060c000000, size: 8000 MB, Compressed Oops mode: Zero based, Oop shift amount: 3
+
+CDS archive(s) mapped at: [0x0000000800000000-0x0000000800bd5000-0x0000000800bd5000), size 12406784, SharedBaseAddress: 0x0000000800000000, ArchiveRelocationMode: 0.
+Compressed class space mapped at: 0x0000000800c00000-0x0000000840c00000, reserved size: 1073741824
+Narrow klass base: 0x0000000800000000, Narrow klass shift: 0, Narrow klass range: 0x100000000
+
+GC Precious Log:
+<Skipped>
+
+Heap:
+ garbage-first heap   total 57344K, used 13883K [0x000000060c000000, 0x0000000800000000)
+  region size 4096K, 2 young (8192K), 1 survivors (4096K)
+ Metaspace       used 21686K, committed 21952K, reserved 1073152K
+  class space    used 2276K, committed 2432K, reserved 1048576K
+
+Heap Regions: E=young(eden), S=young(survivor), O=old, HS=humongous(starts), HC=humongous(continues), CS=collection set, F=free, OA=open archive, CA=closed archive, TAMS=top-at-mark-start (previous, next)
+|   0|0x000000060c000000, 0x000000060c174958, 0x000000060c400000| 36%| O|  |TAMS 0x000000060c000000, 0x000000060c000000| Untracked 
+|   1|0x000000060c400000, 0x000000060c7c6a08, 0x000000060c800000| 94%| O|  

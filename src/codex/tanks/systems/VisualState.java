@@ -117,7 +117,7 @@ public class VisualState extends ESAppState {
             return false;
         }
         assignId(spatial, id);
-        if (spatial.getParent() == null && attach) {
+        if (attach) {
             rootNode.attachChild(spatial);
         }
         var transform = ed.getComponent(id, EntityTransform.class);

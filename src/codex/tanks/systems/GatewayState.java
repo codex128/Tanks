@@ -4,13 +4,16 @@
  */
 package codex.tanks.systems;
 
-import codex.tanks.components.BorderMember;
+import codex.tanks.components.Activated;
+import codex.tanks.components.Door;
 import codex.tanks.components.Gateway;
+import codex.tanks.components.Lock;
 import codex.tanks.components.Player;
 import codex.tanks.components.Visual;
 import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
 import com.jme3.bounding.BoundingBox;
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;
 
 /**
@@ -25,7 +28,7 @@ public class GatewayState extends ESAppState {
     @Override
     protected void init(Application app) {
         super.init(app);
-        entities = ed.getEntities(Visual.class, BorderMember.class, Gateway.class);
+        entities = ed.getEntities(Visual.class, Gateway.class, Lock.class);
         players = ed.getEntities(Visual.class, Player.class);
     }
     @Override
@@ -41,7 +44,7 @@ public class GatewayState extends ESAppState {
         entities.applyChanges();
         players.applyChanges();
         for (var e : entities) {
-            if (isEntityRoomActive(e.getId())) {
+            if (e.get(Lock.class).isLocked() || isEntityRoomActive(e.getId())) {
                 continue;
             }
             // this method is flawed: it relies on the scene graph
@@ -56,14 +59,21 @@ public class GatewayState extends ESAppState {
             }
             if (activated) {
                 if (e.get(Gateway.class).isReady()) {
-                    master.advance(e.get(BorderMember.class).getOther(master.getActiveRoomIndex()));
                     e.set(new Gateway(false));
+                    ed.setComponent(e.getId(), new Activated(true));
+                    openDoors(e, true);
                 }
-                break;
             }
             else if (!e.get(Gateway.class).isReady()) {
                 e.set(new Gateway(true));
+                openDoors(e, false);
             }
+        }
+    }
+    
+    private void openDoors(Entity e, boolean open) {
+        for (var d : e.get(Gateway.class).getDoors()) {
+            ed.setComponent(d, ed.getComponent(d, Door.class).open(open));
         }
     }
     

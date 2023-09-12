@@ -8,7 +8,7 @@ import codex.tanks.weapons.Tank;
 import codex.j3map.J3map;
 import codex.tanks.blueprints.ContactMethods;
 import codex.tanks.components.*;
-import codex.tanks.blueprints.SpatialFactory;
+import codex.tanks.dungeon.RoomIndex;
 import codex.tanks.systems.VisualState;
 import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
@@ -16,8 +16,6 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.light.PointLight;
 import com.jme3.math.ColorRGBA;
-import com.jme3.math.FastMath;
-import com.jme3.math.Triangle;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
@@ -38,42 +36,41 @@ public class GameState extends ESAppState {
         
         bulletapp = getState(BulletAppState.class, true);
         
-        var floor = ed.createEntity();
-        ed.setComponents(floor,
-            new Visual(SpatialFactory.FLOOR),
-            new RigidBody(0f),
-            new EntityTransform().setTranslation(0f, -1f, 0f),
-            new CollisionShape(null),
-            new ContactResponse(ContactMethods.RICOCHET)
-        );
+//        var floor = ed.createEntity();
+//        ed.setComponents(floor,
+//            new Visual(SpatialFactory.FLOOR),
+//            new RigidBody(0f),
+//            new EntityTransform().setTranslation(0f, -1f, 0f),
+//            new CollisionShape(null),
+//            new ContactResponse(ContactMethods.RICOCHET)
+//        );
         
-        J3map playerSource = (J3map)app.getAssetManager().loadAsset("Properties/player.j3map");        
         var plr = factory.getEntityFactory().createTank(new Vector3f(-7f, 0f, -7f), 0, new PropertySource("Properties/player.j3map"));
-        ed.setComponents(plr, new Player(0));
+        ed.setComponents(plr, new Player(0), new RoomIndex(0, 0), new RoomCondition(RoomCondition.ACTIVE));
         player = new PlayerAppState(plr);
         getStateManager().attach(player);
         
-        J3map enemySources = (J3map)assetManager.loadAsset("Properties/AI.j3map");
-        J3map index = enemySources.getJ3map("index");
-        for (int a = -1; a < 2; a += 2) {
-            for (int j = 0; j < 4; j++) {
-                var src = index.getString(""+FastMath.rand.nextInt(index.getOrderedPropertyList().size()));
-                for (int i = 0; i < 4; i++) {
-                    factory.getEntityFactory().createAITank(new Vector3f(-a*7f-i*3*a, 0f, 12f-j*3), 1, new PropertySource("Properties/AI.j3map", src));
-                }
-            }
-        }
+//        J3map enemySources = (J3map)assetManager.loadAsset("Properties/AI.j3map");
+//        J3map index = enemySources.getJ3map("index");
+//        for (int a = -1; a < 2; a += 2) {
+//            for (int j = 0; j < 4; j++) {
+//                var src = index.getString(""+FastMath.rand.nextInt(index.getOrderedPropertyList().size()));
+//                for (int i = 0; i < 4; i++) {
+//                    factory.getEntityFactory().createAITank(new Vector3f(-a*7f-i*3*a, 0f, 12f-j*3), 1, new PropertySource("Properties/AI.j3map", src));
+//                }
+//            }
+//        }
         
         float r = 20f;
-        createWall(new Vector3f(-r, 0f, 0f), 0f, new Vector3f(1f, 1f, r));
-        createWall(new Vector3f(r, 0f, 0f), 0f, new Vector3f(1f, 1f, r));
-        createWall(new Vector3f(0f, 0f, -r), 0f, new Vector3f(r, 1f, 1f));
-        createWall(new Vector3f(0f, 0f, r), 0f, new Vector3f(r, 1f, 1f));
-        createWall(new Vector3f(0f, 0f, 0f), FastMath.PI/4, new Vector3f(3f, 1f, 3f));        
-        createWall(new Vector3f(12f, 0f, 0f), 0f, new Vector3f(4f, 1f, 1f));   
-        createWall(new Vector3f(-12f, 0f, 0f), 0f, new Vector3f(4f, 1f, 1f));
-        createWall(new Vector3f(0f, 0f, 12f), 0f, new Vector3f(1f, 1f, 4f));
-        createWall(new Vector3f(0f, 0f, -12f), 0f, new Vector3f(1f, 1f, 4f));
+//        createWall(new Vector3f(-r, 0f, 0f), 0f, new Vector3f(1f, 1f, r));
+//        createWall(new Vector3f(r, 0f, 0f), 0f, new Vector3f(1f, 1f, r));
+//        createWall(new Vector3f(0f, 0f, -r), 0f, new Vector3f(r, 1f, 1f));
+//        createWall(new Vector3f(0f, 0f, r), 0f, new Vector3f(r, 1f, 1f));
+//        createWall(new Vector3f(0f, 0f, 0f), FastMath.PI/4, new Vector3f(3f, 1f, 3f));        
+//        createWall(new Vector3f(12f, 0f, 0f), 0f, new Vector3f(4f, 1f, 1f));   
+//        createWall(new Vector3f(-12f, 0f, 0f), 0f, new Vector3f(4f, 1f, 1f));
+//        createWall(new Vector3f(0f, 0f, 12f), 0f, new Vector3f(1f, 1f, 4f));
+//        createWall(new Vector3f(0f, 0f, -12f), 0f, new Vector3f(1f, 1f, 4f));
         //createWall(new Vector3f(0f, 0f, 0f), 0f, new Vector3f(20f, 1f, 1f));
         
         float radius = 50f;

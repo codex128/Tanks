@@ -6,12 +6,15 @@ package codex.tanks.systems;
 
 import codex.tanks.components.Copy;
 import codex.tanks.components.EntityTransform;
+import codex.tanks.components.MaxSpeed;
 import codex.tanks.components.Rotate;
 import codex.tanks.components.TransformMode;
+import codex.tanks.components.Travel;
 import codex.tanks.components.Visual;
 import codex.tanks.es.ESAppState;
 import codex.tanks.es.FunctionFilter;
 import com.jme3.app.Application;
+import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;
 
@@ -23,6 +26,7 @@ public class TransformUpdateState extends ESAppState {
     
     private EntitySet spatialUpdate;
     private EntitySet entityCopy;
+    private EntitySet travellers;
     private EntitySet rotate;
     
     @Override
@@ -34,12 +38,15 @@ public class TransformUpdateState extends ESAppState {
         entityCopy = ed.getEntities(
                 Copy.filter(Copy.TRANSFORM),
                 EntityTransform.class, TransformMode.class, Copy.class);
+        travellers = ed.getEntities(EntityTransform.class, Travel.class, MaxSpeed.class);
         rotate = ed.getEntities(EntityTransform.class, Rotate.class);
     }
     @Override
     protected void cleanup(Application app) {
         spatialUpdate.release();
         entityCopy.release();
+        travellers.release();
+        rotate.release();
         visuals = null;
     }
     @Override
@@ -51,6 +58,22 @@ public class TransformUpdateState extends ESAppState {
         rotate.applyChanges();
         for (var e : rotate) {
             updateRotation(e);
+        }
+        travellers.applyChanges();
+        var here = new Vector3f();
+        var dest = new Vector3f();
+        for (var e : travellers) {
+            here.set(e.get(EntityTransform.class).getTranslation());
+            dest.set(e.get(Travel.class).getDestination());
+            var speed = e.get(MaxSpeed.class).getSpeed()*tpf;
+            if (here.distanceSquared(dest) < speed*speed) {
+                e.set(new EntityTransform(e.get(EntityTransform.class)).setTranslation(dest));
+                ed.removeComponent(e.getId(), Travel.class);
+            }
+            else {
+                e.set(new EntityTransform(e.get(EntityTransform.class).setTranslation(
+                        here.addLocal(dest.subtractLocal(here).normalizeLocal().multLocal(speed)))));
+            }
         }
         spatialUpdate.applyChanges();
         for (var e : spatialUpdate) {

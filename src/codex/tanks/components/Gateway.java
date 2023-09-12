@@ -5,6 +5,7 @@
 package codex.tanks.components;
 
 import com.simsilica.es.EntityComponent;
+import com.simsilica.es.EntityId;
 
 /**
  * 
@@ -13,20 +14,22 @@ import com.simsilica.es.EntityComponent;
 public class Gateway implements EntityComponent {
     
     private final boolean ready;
+    private final EntityId[] doors;
     
-    public Gateway() {
-        this(true);
-    }
-    public Gateway(boolean ready) {
+    public Gateway(boolean ready, EntityId... doors) {
         this.ready = ready;
+        this.doors = doors;
     }
 
     public boolean isReady() {
         return ready;
     }
+    public EntityId[] getDoors() {
+        return doors;
+    }
     @Override
     public String toString() {
-        return "Gateway{" + "ready=" + ready + '}';
+        return "Gateway{" + "ready=" + ready + ", doors=" + doors.length + '}';
     }
     
 }

@@ -38,6 +38,7 @@ public class EntityBlueprint {
     public EntityId create(EntityComponent... variables) {
         var id = ed.createEntity();
         components.apply(ed, id);
+        ed.setComponents(id, variables);
         return id;
     }
     public void apply(EntityId id) {

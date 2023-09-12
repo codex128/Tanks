@@ -25,7 +25,6 @@ import com.jme3.scene.Spatial;
 import com.jme3.shader.VarType;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -66,7 +65,7 @@ public class EntityFactory {
         createMissileLight();
         createMuzzleflash();
         createMine();
-        createWall();
+        EntityFactory.this.createWall();
     }
     private void createTank() {
         blueprints.put(TANK, new EntityBlueprint(ed,
@@ -191,7 +190,7 @@ public class EntityFactory {
         return switch (data) {
             case TANK -> createTank(spatial);
             case AITANK -> createAITank(spatial);
-            case WALL -> createWall(spatial);
+            case WALL -> EntityFactory.this.createWall(spatial);
             default -> null;
         };
     }
@@ -212,7 +211,7 @@ public class EntityFactory {
         return createAITank(spatial.getWorldTranslation(), (team != null ? team : 1), new PropertySource(data.split(">")));
     }
     public EntityId createWall(Spatial spatial) {
-        var wall = createWall(spatial.getWorldTransform(), null);
+        var wall = createWall(spatial.getWorldTransform(), spatial);
         factory.getState(VisualState.class).link(wall, spatial);
         return wall;
     }
@@ -399,6 +398,55 @@ public class EntityFactory {
         );
         factory.getVisualState().link(wall, spatial);
         return wall;
+    }
+    public EntityId createWall(String visual, Vector3f position, float angle) {
+        var wall = ed.createEntity();
+        ed.setComponents(wall,
+            new GameObject("wall"),
+            new Visual(visual),
+            new RigidBody(0f),
+            new EntityTransform()
+                .setTranslation(position)
+                .setRotation(angle, Vector3f.UNIT_Y),
+            new TransformMode(1, 1, 0),
+            new CollisionShape(),
+            new ContactResponse(ContactMethods.RICOCHET)
+        );
+        return wall;
+    }
+    public EntityId createGateway(Vector3f position, float angle, int lockValue, EntityId... doors) {
+        var gateway = ed.createEntity();
+        ed.setComponents(gateway,
+            new GameObject("gateway"),
+            new Visual(SpatialFactory.GATEWAY),
+            new Gateway(true, doors),
+            new EntityTransform()
+                .setTranslation(position)
+                .setRotation(angle, Vector3f.UNIT_Y),
+            new TransformMode(1, 1, 0),
+            new Lock(true, lockValue),
+            new CollisionShape(),
+            new ContactResponse(ContactMethods.KILL_PROJECTILE)
+        );
+        return gateway;
+    }
+    public EntityId createSlidingDoor(String visual, Vector3f position, float angle, float openAmount, float speed) {
+        var door = ed.createEntity();
+        var rotation = new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y);
+        ed.setComponents(door,
+            new GameObject("door"),
+            new Visual(visual),
+            new RigidBody(0f),
+            new EntityTransform()
+                .setTranslation(position)
+                .setRotation(rotation),
+            new TransformMode(-3, -3, 0),
+            new Door(rotation.mult(Vector3f.UNIT_Z).multLocal(openAmount*FastMath.sign(speed))),
+            new MaxSpeed(FastMath.abs(speed)),
+            new CollisionShape(),
+            new ContactResponse(ContactMethods.RICOCHET)
+        );
+        return door;
     }
     
     public void createAfterEffect(String model, EntityId id) {

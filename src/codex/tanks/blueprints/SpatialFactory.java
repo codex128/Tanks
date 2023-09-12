@@ -54,7 +54,7 @@ public class SpatialFactory {
         BULLET = "bullet",
         MISSILE = "missile",
         FLOOR = "floor",
-        WALL = "wall",
+        WALL_REG = "wall-regular",
         BULLET_SMOKE = "bullet-smoke",
         TANK_SHARDS = "tank-shards",
         TANK_FLAME = "tank-flame",
@@ -64,7 +64,12 @@ public class SpatialFactory {
         MUZZLEFLASH = "muzzleflash",
         EXPLOSION_SPHERE = "explosion-sphere",
         DEBUG_CUBE = "debug-cube",
-        DEBUG_SPHERE = "debug-sphere";
+        DEBUG_SPHERE = "debug-sphere",
+        SLIDING_DOOR_RIGHT = "sliding-door-right",
+        SLIDING_DOOR_LEFT = "sliding-door-left",
+        GATEWAY = "gateway",
+        BORDER_WALL_SOLID = "border-wall-solid",
+        BORDER_WALL_GATE = "border-wall-gate";
     
     private final FactoryState factory;
     private final EntityData ed;
@@ -90,22 +95,27 @@ public class SpatialFactory {
     }
     private Spatial createSpatial(String model, EntityId id) {
         return switch (model) {
-            case NODE             -> new Node(""+id);
-            case TANK             -> createTank();
-            case BULLET           -> createBullet();
-            case MISSILE          -> createMissile();
-            case FLOOR            -> createWorldFloor();
-            case WALL             -> createWall(Vector3f.UNIT_XYZ);
-            case DEBUG_CUBE       -> GameUtils.createDebugCube(assetManager, ColorRGBA.Blue, 1f);
-            case DEBUG_SPHERE     -> GameUtils.createDebugSphere(assetManager, ColorRGBA.Blue, 1f);
-            case MUZZLEFLASH      -> createMuzzleflash();
-            case LASER            -> createLaser(id);
-            case MINE             -> createMine();
-            case BULLET_SMOKE     -> createBulletSmoke();
-            case EXPLOSION_SPHERE -> createExplosionSphere();
-            case TANK_SHARDS      -> createTankShards(id, .2f);
-            case TANK_FLAME       -> createTankFlame(id, .5f);
-            default               -> createNode();
+            case NODE               -> new Node(""+id);
+            case TANK               -> createTank();
+            case BULLET             -> createBullet();
+            case MISSILE            -> createMissile();
+            case FLOOR              -> createWorldFloor();
+            case WALL_REG           -> createWall(Vector3f.UNIT_XYZ);
+            case DEBUG_CUBE         -> GameUtils.createDebugCube(assetManager, ColorRGBA.Blue, 1f);
+            case DEBUG_SPHERE       -> GameUtils.createDebugSphere(assetManager, ColorRGBA.Blue, 1f);
+            case MUZZLEFLASH        -> createMuzzleflash();
+            case LASER              -> createLaser(id);
+            case MINE               -> createMine();
+            case BULLET_SMOKE       -> createBulletSmoke();
+            case EXPLOSION_SPHERE   -> createExplosionSphere();
+            case TANK_SHARDS        -> createTankShards(id, .2f);
+            case TANK_FLAME         -> createTankFlame(id, .5f);
+            case BORDER_WALL_SOLID  -> createFromModel("Models/outer-walls.j3o", "solid-wall");
+            case BORDER_WALL_GATE   -> createFromModel("Models/outer-walls.j3o", "wall");
+            case GATEWAY            -> createFromModel("Models/outer-walls.j3o", "gateway");
+            case SLIDING_DOOR_RIGHT -> createFromModel("Models/outer-walls.j3o", "door-right");
+            case SLIDING_DOOR_LEFT  -> createFromModel("Models/outer-walls.j3o", "door-left");
+            default                 -> createNode();
         };
     }
     
@@ -193,6 +203,9 @@ public class SpatialFactory {
         var sphere = GameUtils.createDebugSphere(assetManager, ColorRGBA.Blue, 1f);
         sphere.setMaterial(assetManager.loadMaterial("Materials/explosion.j3m"));
         return sphere;
+    }
+    public Spatial createFromModel(String model, String child) {
+        return GameUtils.getChild(assetManager.loadModel("Models/outer-walls.j3o"), "solid-wall");
     }
     
     public Geometry createDebug(ColorRGBA color, float size) {

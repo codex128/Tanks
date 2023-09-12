@@ -9,6 +9,7 @@ import codex.j3map.processors.IntegerProcessor;
 import codex.j3map.processors.StringProcessor;
 import codex.tanks.ai.*;
 import codex.tanks.blueprints.FactoryState;
+import codex.tanks.dungeon.DungeonMaster;
 import codex.tanks.systems.*;
 import codex.tanks.util.ColorProcessor;
 import codex.tanks.systems.GunState;
@@ -74,13 +75,15 @@ public class Main extends SimpleApplication {
             new GunState(),
             new ProjectileState(),
             new TankState(),
+            new DoorState(),
             new FaceVelocityState(),
             new DecayState(),
             new LifeState(),
             new OrphanState(),
             new OwnerState(),
             new MaterialState(),
-            new AIManager()
+            new AIManager(),
+            new DungeonMaster()
         );        
         stateManager.attach(new GameState());
         
