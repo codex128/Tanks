@@ -13,6 +13,13 @@ uniform float m_TreadOffset2;
 uniform float m_TreadCoord1;
 uniform float m_TreadCoord2;
 
+#ifdef SYNCH_FADE
+    uniform vec3 m_FadeOrigin;
+    uniform vec3 m_FadeAxis;
+    uniform vec3 m_FadeStart;
+    uniform vec3 m_FadeLength;
+#endif
+
 varying vec3 wPosition;
 varying vec3 wNormal;
 varying vec2 texCoord;
@@ -47,6 +54,17 @@ void main() {
     
     // pbr
     vec4 pbr = physicallyBasedRender(wPosition, color, 1.0, spec, 0.0, wNormal);
+    
+    // synthetic fading
+    #ifdef SYNTH_FADE
+        float fadeFactor = dot(m_FadeAxis, wPosition - m_FadeOrigin);
+        float synth = smoothstep(m_FadeStart-m_FadeLength, m_FadeStart, abs(fadeFactor));    
+        if (fadeFactor >= 0.0) {
+            synth = 1.0-synth;
+        }
+        pbr.a *= synth;
+    #endif
+    
     gl_FragColor = pbr;
     
 }

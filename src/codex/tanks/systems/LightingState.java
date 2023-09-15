@@ -4,11 +4,12 @@
  */
 package codex.tanks.systems;
 
-import codex.tanks.components.ColorScheme;
+import codex.tanks.components.Brightness;
 import codex.tanks.components.EntityLight;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.InfluenceCone;
-import codex.tanks.components.Power;
+import codex.tanks.components.LightColor;
+import codex.tanks.components.RoomStatus;
 import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
 import com.jme3.light.AmbientLight;
@@ -16,6 +17,7 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.light.Light;
 import com.jme3.light.PointLight;
 import com.jme3.light.SpotLight;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;
@@ -28,6 +30,7 @@ import java.util.HashMap;
  */
 public class LightingState extends ESAppState {
     
+    private EntitySet roomDependent;
     private final EntitySet[] lights = new EntitySet[EntityLight.AMBIENT+1];
     private final HashMap<EntityId, DirectionalLight> directionals = new HashMap<>();
     private final HashMap<EntityId, PointLight> points = new HashMap<>();
@@ -37,10 +40,11 @@ public class LightingState extends ESAppState {
     @Override
     protected void init(Application app) {
         super.init(app);
-        lights[EntityLight.DIRECTIONAL] = ed.getEntities(EntityLight.filter(EntityLight.DIRECTIONAL), EntityLight.class, EntityTransform.class, ColorScheme.class);
-        lights[EntityLight.POINT] = ed.getEntities(EntityLight.filter(EntityLight.POINT), EntityLight.class, EntityTransform.class, Power.class, ColorScheme.class);
-        lights[EntityLight.SPOT] = ed.getEntities(EntityLight.filter(EntityLight.SPOT), EntityLight.class, EntityTransform.class, Power.class, InfluenceCone.class, ColorScheme.class);
-        lights[EntityLight.AMBIENT] = ed.getEntities(EntityLight.filter(EntityLight.AMBIENT), EntityLight.class, ColorScheme.class);
+        roomDependent = ed.getEntities(EntityLight.class, RoomStatus.class);
+        lights[EntityLight.DIRECTIONAL] = ed.getEntities(EntityLight.filter(EntityLight.DIRECTIONAL), EntityLight.class, EntityTransform.class, LightColor.class);
+        lights[EntityLight.POINT] = ed.getEntities(EntityLight.filter(EntityLight.POINT), EntityLight.class, EntityTransform.class, Brightness.class, LightColor.class);
+        lights[EntityLight.SPOT] = ed.getEntities(EntityLight.filter(EntityLight.SPOT), EntityLight.class, EntityTransform.class, Brightness.class, InfluenceCone.class, LightColor.class);
+        lights[EntityLight.AMBIENT] = ed.getEntities(EntityLight.filter(EntityLight.AMBIENT), EntityLight.class, LightColor.class);
     }
     @Override
     protected void cleanup(Application app) {}
@@ -65,6 +69,10 @@ public class LightingState extends ESAppState {
                 }
             }
         }
+        if (roomDependent.applyChanges()) {
+            roomDependent.getAddedEntities().forEach(e -> editLightInScene(e));
+            roomDependent.getChangedEntities().forEach(e -> editLightInScene(e));
+        }
     }
     
     private void create(Entity e, int type) {
@@ -78,7 +86,11 @@ public class LightingState extends ESAppState {
         if (light == null) {
             throw new NullPointerException("Light cannot be null!");
         }
-        rootNode.addLight(light);
+        var c = e.get(EntityLight.class);
+        if (!c.isAdded() && ed.getComponent(e.getId(), RoomStatus.class) == null) {
+            rootNode.addLight(light);
+            e.set(c.set(true));
+        }
     }
     private DirectionalLight createDirectional(Entity e) {
         var light = new DirectionalLight();
@@ -101,6 +113,18 @@ public class LightingState extends ESAppState {
         return light;
     }
     
+    private void editLightInScene(Entity e) {
+        var c = e.get(EntityLight.class);
+        if (!c.isAdded() && e.get(RoomStatus.class).getState() == RoomStatus.ACTIVE) {
+            rootNode.addLight(getLight(e.getId(), c.getType()));
+            e.set(c.set(true));
+        }
+        else if (c.isAdded() && e.get(RoomStatus.class).getState() == RoomStatus.SLEEPING) {
+            rootNode.removeLight(getLight(e.getId(), e.get(EntityLight.class).getType()));
+            e.set(c.set(false));
+        }
+    }
+    
     private void update(Entity e, int type) {
         switch (type) {
             case EntityLight.DIRECTIONAL -> updateDirectional(e);
@@ -112,25 +136,25 @@ public class LightingState extends ESAppState {
     private void updateDirectional(Entity e) {
         var light = getDirectionalLight(e.getId());
         light.setDirection(e.get(EntityTransform.class).getRotation().mult(Vector3f.UNIT_Z));
-        light.setColor(e.get(ColorScheme.class).getPallete()[0]);
+        light.setColor(e.get(LightColor.class).getColor());
     }
     private void updatePoint(Entity e) {
         var light = getPointLight(e.getId());
         light.setPosition(e.get(EntityTransform.class).getTranslation());
-        light.setRadius(e.get(Power.class).getValue());
-        light.setColor(e.get(ColorScheme.class).getPallete()[0]);
+        light.setRadius(e.get(Brightness.class).getValue());
+        light.setColor(e.get(LightColor.class).getColor());
     }
     private void updateSpot(Entity e) {
         var light = getSpotLight(e.getId());
         var transform = e.get(EntityTransform.class);
         light.setPosition(transform.getTranslation());
         light.setDirection(transform.getRotation().mult(Vector3f.UNIT_Z));
-        light.setColor(e.get(ColorScheme.class).getPallete()[0]);     
-        light.setSpotRange(e.get(Power.class).getValue());
+        light.setColor(e.get(LightColor.class).getColor());     
+        light.setSpotRange(e.get(Brightness.class).getValue());
         e.get(InfluenceCone.class).applyToSpotLight(light);
     }
     private void updateAmbient(Entity e) {
-        getAmbientLight(e.getId()).setColor(e.get(ColorScheme.class).getPallete()[0]);
+        getAmbientLight(e.getId()).setColor(e.get(LightColor.class).getColor());
     }
     
     private void destroy(Entity e, int type) {

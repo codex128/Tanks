@@ -144,7 +144,13 @@ public class TransformUpdateState extends ESAppState {
         if (!TransformMode.isNone(enable.getTranslation())
                 || !TransformMode.isNone(enable.getRotation())
                 || !TransformMode.isNone(enable.getScale())) {
-            if (!TransformMode.isNone(enable.getTranslation())) transform.setTranslation(copy.getTranslation());
+            if (!TransformMode.isNone(enable.getTranslation())) {
+                transform.setTranslation(copy.getTranslation());
+                var offset = ed.getComponent(e.getId(), Offset.class);
+                if (offset != null) {
+                    transform.move(offset.getOffset());
+                }
+            }
             if (!TransformMode.isNone(enable.getRotation())) transform.setRotation(copy.getRotation());
             if (!TransformMode.isNone(enable.getScale())) transform.setScale(copy.getScale());
             e.set(new EntityTransform(transform));

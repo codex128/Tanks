@@ -10,11 +10,17 @@ import codex.tanks.components.BulletCapacity;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Firerate;
 import codex.tanks.components.MuzzlePointer;
+import codex.tanks.components.RemoveOnSleep;
 import codex.tanks.components.Power;
+import codex.tanks.components.RoomStatus;
 import codex.tanks.components.Team;
+import codex.tanks.components.RoomIndex;
+import codex.tanks.components.SpawnAssignment;
+import codex.tanks.dungeon.DungeonMaster;
 import codex.tanks.es.ESAppState;
 import codex.tanks.weapons.ShootEventListener;
 import com.jme3.app.Application;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;
@@ -36,7 +42,8 @@ public class GunState extends ESAppState implements Listenable<ShootEventListene
     @Override
     protected void init(Application app) {
         super.init(app);
-        entities = ed.getEntities(Power.class, Bounces.class, Team.class, MuzzlePointer.class);
+        entities = ed.getEntities(RoomIndex.class, Power.class, Bounces.class,
+                Team.class, MuzzlePointer.class, SpawnAssignment.class);
         firerate = ed.getEntities(Firerate.class);
         owners = getState(OwnerState.class, true);
         addListener(this);
@@ -66,7 +73,7 @@ public class GunState extends ESAppState implements Listenable<ShootEventListene
     @Override
     public boolean approveShootEvent(EntityId id) {
         var rate = ed.getComponent(id, Firerate.class);
-        return !isEntityRoomActive(id) && (rate == null || rate.isReady())
+        return isEntityRoomActive(id) && (rate == null || rate.isReady())
                 && owners.isBelowCapacity(id, BulletCapacity.class, "bullet");
     }
     @Override
@@ -80,6 +87,7 @@ public class GunState extends ESAppState implements Listenable<ShootEventListene
     public boolean shoot(EntityId id) {
         entities.applyChanges();
         var e = entities.getEntity(id);
+        //if (e == null) System.out.println("does not exist");
         if (e == null || !queryEventListeners(id)) {
             return false;
         }
@@ -95,12 +103,26 @@ public class GunState extends ESAppState implements Listenable<ShootEventListene
         if (transform == null) {
             throw new NullPointerException("MuzzlePointer must have transform!");
         }
-        factory.getEntityFactory().createProjectile(
+        var id = factory.getEntityFactory().createProjectile(
             e.getId(),
             transform.getTranslation(),
             transform.getRotation().mult(Vector3f.UNIT_Z),
             e.get(Power.class).getValue(),
-            e.get(Bounces.class).getRemaining());
+            e.get(Bounces.class).getRemaining()
+        );
+        var assign = e.get(SpawnAssignment.class).getAssignment();
+        RoomIndex index;
+        if (assign.equals(SpawnAssignment.TO_ACTIVE)) {
+            index = getState(DungeonMaster.class).getActiveRoomIndex();
+        }
+        else {
+            index = e.get(RoomIndex.class);
+        }
+        ed.setComponents(id,
+            index,
+            new RoomStatus(RoomStatus.ACTIVE),
+            new RemoveOnSleep()
+        );
         factory.getEntityFactory().createMuzzleflash(muzzle.getId(), .7f);
         return true;
     }

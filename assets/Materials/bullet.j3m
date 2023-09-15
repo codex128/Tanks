@@ -1,0 +1,18 @@
+Material My Material : Materials/GamePBR.j3md {
+     MaterialParameters {
+        ParallaxHeight :  0.05
+        BackfaceShadows :  false
+        Metallic :  1.0
+        Roughness :  1.0
+        BaseColor : 1.0 1.0 1.0 1.0
+        EmissivePower :  3.0
+        EmissiveIntensity :  2.0
+        NormalType :  -1.0
+        Glossiness :  1.0
+        FadeAxis :  0.0 0.0 1.0
+        FadeStart :  0.0
+        FadeLength :  10.0
+     }
+    AdditionalRenderState {
+    }
+}

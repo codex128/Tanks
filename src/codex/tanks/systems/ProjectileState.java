@@ -54,7 +54,7 @@ public class ProjectileState extends ESAppState {
         flameRefreshCycle.update(tpf);
         entities.applyChanges();
         for (var e : entities) {
-            if (isEntityRoomActive(e.getId())) {
+            if (!isEntityRoomActive(e.getId())) {
                 continue;
             }
             update(e, tpf);
@@ -87,6 +87,7 @@ public class ProjectileState extends ESAppState {
         var iterator = raytest.iterator();
         while (iterator.hasNext()) {
             // step the raytest
+            //System.out.println(FastMath.rand.nextInt(100)+"  "+getAgentId()+" is active: "+getProjectileState().isEntityRoomActive(getAgentId()));
             var closest = iterator.next();
             // fetch step results
             var id = iterator.getCollisionEntity();

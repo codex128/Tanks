@@ -8,13 +8,13 @@ import codex.boost.scene.SceneGraphIterator;
 import codex.j3map.J3map;
 import codex.tanks.ai.Algorithm;
 import codex.tanks.components.*;
-import codex.tanks.dungeon.RoomIndex;
+import codex.tanks.components.RoomIndex;
 import codex.tanks.effects.MatChange;
 import codex.tanks.systems.ProjectileState;
-import codex.tanks.systems.VisualState;
 import codex.tanks.es.ComponentRelation;
 import codex.tanks.util.Interpolator;
-import codex.tanks.es.SavedEntity;
+import codex.tanks.systems.Offset;
+import codex.tanks.util.debug.ComponentWatcher;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -25,6 +25,7 @@ import com.jme3.scene.Spatial;
 import com.jme3.shader.VarType;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.mathd.Vec3i;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -175,12 +176,14 @@ public class EntityFactory {
         var entities = new LinkedList<EntityId>();
         var iterator = new SceneGraphIterator(scene);
         for (var spatial : iterator) {
+            System.out.println("iterate");
             String data = spatial.getUserData(ENTITY_USERDATA);
             if (data != null) {
+                System.out.println("examine");
                 var entity = examineSpatial(spatial, data);
                 if (entity != null) {
                     entities.add(entity);
-                    iterator.ignoreChildren();
+                    //iterator.ignoreChildren();
                 }
             }
         }
@@ -190,7 +193,7 @@ public class EntityFactory {
         return switch (data) {
             case TANK -> createTank(spatial);
             case AITANK -> createAITank(spatial);
-            case WALL -> EntityFactory.this.createWall(spatial);
+            case WALL -> createWall(spatial);
             default -> null;
         };
     }
@@ -199,8 +202,8 @@ public class EntityFactory {
         if (data == null) {
             return null;
         }
-        Integer team = spatial.getUserData(TEAM);
-        return createTank(spatial.getWorldTranslation(), (team != null ? team : 1), new PropertySource(data.split(">")));
+        Double team = spatial.getUserData(TEAM);
+        return createAITank(spatial.getWorldTranslation(), (team != null ? team.intValue() : 1), new PropertySource(data.split(">")));
     }
     public EntityId createAITank(Spatial spatial) {
         String data = spatial.getUserData(PROPERTIES);
@@ -211,34 +214,13 @@ public class EntityFactory {
         return createAITank(spatial.getWorldTranslation(), (team != null ? team : 1), new PropertySource(data.split(">")));
     }
     public EntityId createWall(Spatial spatial) {
-        var wall = createWall(spatial.getWorldTransform(), spatial);
-        factory.getState(VisualState.class).link(wall, spatial);
-        return wall;
+        return createWall(spatial.getWorldTransform(), spatial);
     }
     
-    /**
-     * Creates an entity based on saved data.
-     * @param save
-     * @return 
-     */
-    public EntityId createFromSave(SavedEntity save) {
-        return switch (save.getSaveComponent().getRestore()) {
-            case TANK -> createTank(save);
-            case AITANK -> createAITank(save);
-            default -> null;
-        };
+    public EntityId createTank(Vector3f position, int team, float brightness, PropertySource source) {
+        return createTank(position, team, brightness, source, source.load(assetManager).getJ3map("tank"));
     }
-    public EntityId createTank(SavedEntity save) {
-        return createTank(save.get(EntityTransform.class).getTranslation(), save.get(Team.class).getTeam(), save.get(PropertySource.class));
-    }
-    public EntityId createAITank(SavedEntity save) {
-        return createAITank(save.get(EntityTransform.class).getTranslation(), save.get(Team.class).getTeam(), save.get(PropertySource.class));
-    }
-    
-    public EntityId createTank(Vector3f position, int team, PropertySource source) {
-        return createTank(position, team, source, source.load(assetManager).getJ3map("tank"));
-    }
-    public EntityId createTank(Vector3f position, int team, PropertySource source, J3map properties) {
+    public EntityId createTank(Vector3f position, int team, float brightness, PropertySource source, J3map properties) {
         //var properties = source.load(assetManager).getJ3map("tank");
         var muzzle = ed.createEntity();
         var colors = new ColorScheme(
@@ -265,12 +247,26 @@ public class EntityFactory {
             new Copy(tank, Copy.LIFE),
             new Alive(Alive.UNAFFECTED)
         );
+        var light = ed.createEntity();
+        ed.setComponents(light,
+            new GameObject("light"),
+            new EntityTransform(),
+            new TransformMode(1, 0, 0),
+            new EntityLight(EntityLight.POINT),
+            new Brightness(brightness),
+            new LightColor(ColorRGBA.DarkGray),
+            new Copy(tank, Copy.TRANSFORM, Copy.LIFE, Copy.ROOM_STATUS),
+            new RoomStatus(),
+            new Offset(new Vector3f(0f, 3f, 0f)),
+            new Alive()
+        );
         return tank;
     }
     public EntityId createAITank(Vector3f position, int team, PropertySource source) {
         var properties = source.load(assetManager);
-        var tank = createTank(position, team, source, properties.getJ3map("tank"));
+        var tank = createTank(position, team, 5f, source, properties.getJ3map("tank"));
         Algorithm.applyProperties(ed, tank, properties);
+        ed.setComponents(tank, new RoomIndex(), new RoomStatus());
         return tank;
     }    
     public EntityId createProjectile(EntityId owner, Vector3f position, Vector3f direction, float speed, int bounces) {
@@ -337,12 +333,12 @@ public class EntityFactory {
             new TransformMode(1, 1, 1),
             new Copy(missile, Copy.TRANSFORM),
             new Alive(Alive.UNAFFECTED),
-            new Power(.001f, 40f),
-            new ColorScheme(ColorRGBA.Orange),
+            new Brightness(40f),
+            new LightColor(ColorRGBA.Orange),
             new OrphanBucket(missile,
                 new Decay(.3f),
                 new Relative(
-                    new ComponentRelation(Decay.class, Power.class, Interpolator.LINEAR)
+                    new ComponentRelation(Decay.class, Brightness.class, Interpolator.LINEAR)
                 )
             )
         );
@@ -351,18 +347,27 @@ public class EntityFactory {
     public EntityId createMuzzleflash(EntityId parent, float scale) {
         var flash = ed.createEntity();
         ed.setComponents(flash,
-            new GameObject("light"),
+            new GameObject("effect"),
             new Visual(SpatialFactory.MUZZLEFLASH),
-            new EntityLight(EntityLight.POINT),
             new EntityTransform().setScale(scale),
             new TransformMode(1, 1, 0),
             new Copy(parent, Copy.TRANSFORM),
-            new Power(.001f, 50f),
-            new Decay(.03f),
+            new Decay(.04f),
+            new Alive(Alive.UNAFFECTED)
+        );
+        var light = ed.createEntity();
+        ed.setComponents(light,
+            new GameObject("light"),
+            new EntityLight(EntityLight.POINT),
+            new EntityTransform(),
+            new TransformMode(1, 0, 0),
+            new Copy(parent, Copy.TRANSFORM),
+            new Brightness(60f),
+            new Decay(0.14f),
             new Alive(Alive.UNAFFECTED),
-            new ColorScheme(ColorRGBA.Orange),
+            new LightColor(ColorRGBA.Orange),
             new Relative(
-                new ComponentRelation(Decay.class, Power.class, Interpolator.LINEAR)
+                new ComponentRelation(Decay.class, Brightness.class, Interpolator.LINEAR)
             )
         );
         return flash;
@@ -414,7 +419,8 @@ public class EntityFactory {
         );
         return wall;
     }
-    public EntityId createGateway(Vector3f position, float angle, int lockValue, EntityId... doors) {
+    public EntityId createGateway(Vec3i pos, Vec3i neg, Vector3f position, float angle, int lockValue, EntityId... doors) {
+        var rotation = new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y);
         var gateway = ed.createEntity();
         ed.setComponents(gateway,
             new GameObject("gateway"),
@@ -422,11 +428,48 @@ public class EntityFactory {
             new Gateway(true, doors),
             new EntityTransform()
                 .setTranslation(position)
-                .setRotation(angle, Vector3f.UNIT_Y),
+                .setRotation(rotation),
             new TransformMode(1, 1, 0),
             new Lock(true, lockValue),
+            new Activated(false),
             new CollisionShape(),
             new ContactResponse(ContactMethods.KILL_PROJECTILE)
+        );
+        var light1 = ed.createEntity();
+        ed.setComponents(light1,
+            new GameObject("light"),
+            new Dependency(gateway, Gateway.class),
+            new EntityTransform(),
+            new TransformMode(1, 0, 0),
+            new Copy(gateway, Copy.TRANSFORM, Copy.LOCK),
+            new RoomIndex(pos),
+            new Offset(rotation.mult(Vector3f.UNIT_Z).multLocal(1f)),
+            new Lock(true),
+            new LockStatusBucket().setUnlock(
+                new Visual(SpatialFactory.DEBUG_CUBE),
+                new EntityLight(EntityLight.POINT),
+                new Brightness(100f),
+                new LightColor(ColorRGBA.Gray)
+            )
+        );
+        var light2 = ed.createEntity();
+        ed.setComponents(light2,
+            new GameObject("light"),
+            new Dependency(gateway, Gateway.class),
+            new EntityTransform(),
+            new TransformMode(1, 0, 0),
+            new Copy(gateway, Copy.TRANSFORM, Copy.LOCK),
+            new RoomIndex(neg),
+            new RoomStatus(),
+            new Offset(rotation.mult(Vector3f.UNIT_Z).multLocal(-1f)),
+            new Lock(true),
+            new LockStatusBucket().setUnlock(
+                new Visual(SpatialFactory.DEBUG_CUBE),
+                new EntityLight(EntityLight.POINT),
+                new Brightness(100f),
+                new LightColor(ColorRGBA.Gray),
+                new ComponentWatcher(EntityTransform.class)
+            )
         );
         return gateway;
     }
@@ -441,7 +484,7 @@ public class EntityFactory {
                 .setTranslation(position)
                 .setRotation(rotation),
             new TransformMode(-3, -3, 0),
-            new Door(rotation.mult(Vector3f.UNIT_Z).multLocal(openAmount*FastMath.sign(speed))),
+            new Door(rotation.mult(Vector3f.UNIT_X).multLocal(openAmount*FastMath.sign(speed))),
             new MaxSpeed(FastMath.abs(speed)),
             new CollisionShape(),
             new ContactResponse(ContactMethods.RICOCHET)
@@ -459,6 +502,8 @@ public class EntityFactory {
     public void createTankDeathExplosion(EntityId id) {
         var position = ed.getComponent(id, EntityTransform.class).getTranslation().clone();
         position.addLocal(0f, 1f, 0f);
+        //position.set(0f, 1f, 18f);
+        //var position = new Vector3f(0f, 1f, 15f);
         var color = ed.getComponent(id, ColorScheme.class).getPallete()[0];
         createTankShards(position, color);
         createTankExplosion(position, new ColorRGBA(1f, .2f, 0f, 1f));
@@ -468,12 +513,12 @@ public class EntityFactory {
             new EntityLight(EntityLight.POINT),
             new EntityTransform().setTranslation(position),
             new TransformMode(1, 0, 0),
-            new Power(1000f),
-            new ColorScheme(new ColorRGBA(1f, .25f, 0f, 1f)),
-            new Decay(.3f),
+            new Brightness(1000f),
+            new LightColor(new ColorRGBA(1f, .25f, 0f, 1f)),
+            new Decay(.6f),
             new Alive(Alive.UNAFFECTED),
             new Relative(
-                new ComponentRelation(Decay.class, Power.class, Interpolator.LINEAR)
+                new ComponentRelation(Decay.class, Brightness.class, Interpolator.LINEAR)
             )
         );
     }
@@ -488,6 +533,7 @@ public class EntityFactory {
             new ColorScheme(color),
             new Decay(5f),
             new Alive(Alive.UNAFFECTED)
+            //new ComponentWatcher(Alive.class, Decay.class)
         );
         return shards;
     }
@@ -502,6 +548,7 @@ public class EntityFactory {
             new ColorScheme(color),
             new Decay(5f),
             new Alive(Alive.UNAFFECTED)
+            //new ComponentWatcher(Visual.class, EntityTransform.class, Alive.class, Decay.class)
         );
         return explosion;
     }
@@ -529,6 +576,10 @@ public class EntityFactory {
             new Alive(Alive.UNAFFECTED)
         );
         return ex;
+    }
+    
+    public void makeDungeonCompatible(EntityId id, RoomIndex index) {
+        ed.setComponents(id, index, new RoomStatus());
     }
     
 }

@@ -47,15 +47,14 @@ public class MaterialState extends ESAppState {
     }
     
     private void updateMaterial(Entity e) {
-        if (isEntityRoomActive(e.getId())) {
-            return;
-        }
         var update = e.get(MaterialUpdate.class);
         for (var param : update.getUpdates()) {
             var mat = locateMaterial(e.getId(), update, param);
-            if (mat == null) continue;
-            mat.setParam(param.getParamName(), param.getType(), param.getValue());
+            if (mat != null && mat.getParamValue(param.getParamName()) != null) {
+                mat.setParam(param.getParamName(), param.getType(), param.getValue());
+            }
         }
+        //e.set(new MaterialUpdate());
         ed.removeComponent(e.getId(), MaterialUpdate.class);
     }
     private Material locateMaterial(EntityId id, MaterialUpdate update, MatChange param) {

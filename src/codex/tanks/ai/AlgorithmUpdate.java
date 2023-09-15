@@ -11,6 +11,7 @@ import codex.tanks.systems.ProjectileState;
 import codex.tanks.collision.*;
 import codex.tanks.components.*;
 import codex.tanks.systems.GunState;
+import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
@@ -90,17 +91,13 @@ public class AlgorithmUpdate {
     }
     public boolean checkIsEndangeringTeam() {
         var e = createRaycastEntity(getAimRay());
-        var margin = ShapeFilter.and(ShapeFilter.none(ShapeFilter.byTeam(getComponent(Team.class).getTeam())), ShapeFilter.byGameObject("tank"));
         SegmentedRaytest raytest = new SegmentedRaytest(getCollisionState());
         raytest.setRay(e.get(EntityTransform.class).toRay());
         raytest.setDistance(-1f);
-        raytest.setFirstCastFilter(ShapeFilter.notId(getAgentId()));
+        raytest.setFirstCastFilter(ShapeFilter.notId(getAgentId())); // setFirstCastFilter
         raytest.setOriginEntity(getAgentId());
         var iterator = getProjectileState().raytest(e, raytest);
         getEntityData().removeEntity(e.getId());
-//        if (iterator.getMarginTestResults().size() > 0) {
-//            return true;
-//        }
         if (iterator.getCollisionEntity() != null) {
             var team = getEntityData().getComponent(iterator.getCollisionEntity(), Team.class);
             if (team != null && team.getTeam() == getComponent(Team.class).getTeam()) {

@@ -4,9 +4,9 @@
  */
 package codex.tanks.systems;
 
-import codex.tanks.components.OnSleep;
+import codex.tanks.components.RemoveOnSleep;
 import codex.tanks.components.EntityTransform;
-import codex.tanks.components.RoomCondition;
+import codex.tanks.components.RoomStatus;
 import codex.tanks.components.Visual;
 import codex.tanks.es.ESAppState;
 import codex.tanks.util.GameUtils;
@@ -35,8 +35,7 @@ public class VisualState extends ESAppState {
     protected void init(Application app) {
         super.init(app);
         entities = ed.getEntities(Visual.class);
-        sleepDetach = ed.getEntities(OnSleep.filter(OnSleep.DETACH_SPATIAL),
-                Visual.class, RoomCondition.class, OnSleep.class);
+        sleepDetach = ed.getEntities(Visual.class, RoomStatus.class);
     }
     @Override
     protected void cleanup(Application app) {
@@ -85,7 +84,7 @@ public class VisualState extends ESAppState {
     private void updateCondition(Entity e, boolean force) {
         var spatial = getSpatial(e.getId());
         if (spatial == null) return;
-        if (e.get(RoomCondition.class).getCondition() == RoomCondition.SLEEPING) {
+        if (e.get(RoomStatus.class).getState() == RoomStatus.SLEEPING) {
             spatial.removeFromParent();
         }
         else if (force || spatial.getParent() == null) {

@@ -100,7 +100,8 @@ purple: {
     }
     Wander: {
         aggressiveFactor: 1f;
-        distanceFactory: 2f;
+        distanceFactor: 1f;
+        directionFactor: 200f;
     }
     AimSkew: {
     }

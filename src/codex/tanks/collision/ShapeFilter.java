@@ -42,7 +42,20 @@ public interface ShapeFilter {
     public static ShapeFilter notId(EntityId id) {
         return none(byId(id));
     }
+    public static ShapeFilter nullProtection(ShapeFilter filter) {
+        return new NullProtector(filter);
+    }
     
+    public static class NullProtector implements ShapeFilter {
+        private final ShapeFilter filter;        
+        public NullProtector(ShapeFilter filter) {
+            this.filter = filter;
+        }        
+        @Override
+        public boolean filter(EntityAccess access, CollisionShape shape) {
+            return filter == null || filter.filter(access, shape);
+        }        
+    }
     public static class GameObjectFilter implements ShapeFilter {
         private final String type;
         private GameObjectFilter(String type) {
@@ -82,7 +95,7 @@ public interface ShapeFilter {
         }
         @Override
         public boolean filter(EntityAccess access, CollisionShape shape) {
-            return id.equals(access.id);
+            return id == null || id.equals(access.id);
         }        
     }
     public static class AndFilter implements ShapeFilter {

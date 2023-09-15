@@ -4,7 +4,9 @@
  */
 package codex.tanks.systems;
 
+import codex.tanks.components.Alive;
 import codex.tanks.components.EmissionsPerSecond;
+import codex.tanks.components.RemoveOnSleep;
 import codex.tanks.components.Particles;
 import codex.tanks.components.SingleEmission;
 import codex.tanks.components.Visual;
@@ -51,7 +53,6 @@ public class EmitterState extends ESAppState {
     }
     
     private void emitOnce(Entity e) {
-        System.out.println(visuals.getSpatial(e.getId()));
         var emitter = visuals.getSpatial(e.getId(), Emitter.class);
         emitter.setEmissionsPerSecond(0f);
         emitter.emitAllParticles();

@@ -14,30 +14,30 @@ import com.simsilica.es.EntityId;
  * <p>This implementation differs from {@code ShapeFilter.byId()} because {@link LaserRaytest}
  * uses it to specifically filter out the entity in which a single raytest begins.
  * 
- * <p>This filter has no unique effects if it is not the root filter of a given raytest.
+ * <p>This filter has no unique effects if it is not the origin filter of a given raytest.
  * 
  * @author codex
  */
 public class OriginFilter implements ShapeFilter {
     
-    private EntityId root;
+    private EntityId origin;
     private final ShapeFilter child;
     
     public OriginFilter(EntityId id, ShapeFilter child) {
-        this.root = id;
+        this.origin = id;
         this.child = child;
     }
     
     @Override
     public boolean filter(EntityAccess access, CollisionShape shape) {
-        return !access.id.equals(root) && (child == null || child.filter(access, shape));
+        return !access.id.equals(origin) && (child == null || child.filter(access, shape));
     }
     
-    public void setRoot(EntityId id) {
-        this.root = id;
+    public void setOrigin(EntityId id) {
+        this.origin = id;
     }
-    public EntityId getRoot() {
-        return root;
+    public EntityId getOrigin() {
+        return origin;
     }
     public ShapeFilter getChildFilter() {
         return child;

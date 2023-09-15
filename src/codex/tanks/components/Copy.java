@@ -17,7 +17,9 @@ public class Copy implements EntityComponent {
     
     public static final String
         LIFE = "copy:life", 
-        TRANSFORM = "copy:transform";
+        TRANSFORM = "copy:transform",
+        ROOM_STATUS = "copy:room-status",
+        LOCK = "copy:lock";
     
     private final EntityId copy;
     private final String[] modes;

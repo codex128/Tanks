@@ -69,9 +69,8 @@ public class GameUtils {
     
     public static Geometry createDebugCube(AssetManager assetManager, ColorRGBA color, Vector3f size) {
         Geometry g = new Geometry("debug-cube", new Box(size.x, size.y, size.z));
-        Material m = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        m.setBoolean("UseMaterialColors", true);
-        m.setColor("Diffuse", color);
+        Material m = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        m.setColor("Color", color);
         g.setMaterial(m);
         return g;
     }
@@ -81,9 +80,8 @@ public class GameUtils {
     public static Geometry createDebugSphere(AssetManager assetManager, ColorRGBA color, float radius) {
         var sphere = new Sphere(8, 10, radius);
         var geometry = new Geometry("debug-sphere", sphere);
-        Material m = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        m.setBoolean("UseMaterialColors", true);
-        m.setColor("Diffuse", color);
+        Material m = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        m.setColor("Color", color);
         geometry.setMaterial(m);
         return geometry;
     }
@@ -140,6 +138,19 @@ public class GameUtils {
         for (T e : in) {
             apply.accept(out, e);
         }
+    }
+    public static <T> T[] merge(T[] array1, T[] array2, T[] result) {
+        if (result.length != array1.length+array2.length) {
+            throw new IllegalArgumentException("Result array length must be the sum of the two merging array lengths!");
+        }
+        int j = 0;
+        for (int i = 0; i < array1.length; i++) {
+            result[j++] = array1[i];
+        }
+        for (int i = 0; i < array2.length; i++) {
+            result[j++] = array2[i];
+        }
+        return result;
     }
     
     public static void removeAllComponents(EntityData ed, EntityId id) {

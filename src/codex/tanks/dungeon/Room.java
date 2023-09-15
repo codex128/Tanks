@@ -4,12 +4,14 @@
  */
 package codex.tanks.dungeon;
 
+import codex.tanks.components.RoomIndex;
 import codex.boost.Timer;
-import codex.tanks.components.OnSleep;
-import codex.tanks.components.RoomCondition;
-import codex.tanks.components.Visual;
+import codex.tanks.components.EntityTransform;
+import codex.tanks.components.RemoveOnSleep;
+import codex.tanks.components.RoomStatus;
+import codex.tanks.components.SpawnAssignment;
 import codex.tanks.systems.VisualState;
-import com.jme3.scene.Node;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -22,37 +24,34 @@ import java.util.ArrayList;
  */
 public class Room {
     
-    private EntityId entity;
     private final RoomIndex index;
+    private final Vector3f position;
     private EntitySet entities;
     private EntityId roomScene;
     private final ArrayList<Integer> adj = new ArrayList<>();
-    private RoomCondition condition = new RoomCondition(RoomCondition.SLEEPING);
+    private RoomStatus condition = new RoomStatus(RoomStatus.SLEEPING);
     private Timer timer = new Timer(1f);
     
-    public Room(RoomIndex index) {
+    public Room(RoomIndex index, Vector3f position) {
         this.index = index;
+        this.position = position;
     }
     
     public void initialize(DungeonMaster master, VisualState visuals, Spatial scene) {
-        entity = master.getEntityData().createEntity();
-        master.getEntityData().setComponents(
-            entity, index, condition,
-            new Visual(),
-            new OnSleep(OnSleep.DETACH_SPATIAL)
-        );
-        visuals.link(entity, new Node());
         var created = master.getFactory().getEntityFactory().createFromScene(scene);
         for (EntityId id : created) {
-            master.getEntityData().setComponents(id, index, condition);
+            master.getEntityData().setComponents(id,
+                master.getEntityData().getComponent(id, EntityTransform.class).move(position),
+                index, condition, new SpawnAssignment(SpawnAssignment.TO_OWN)
+            );
         }
     }
     
     public void setCondition(int c) {
-        if (c == condition.getCondition()) {
+        if (c == condition.getState()) {
             return;
         }
-        condition = new RoomCondition(c);
+        condition = new RoomStatus(c);
         if (condition.isBetween()) {
             timer.start();
             if (condition.isUpper()) {
@@ -67,13 +66,13 @@ public class Room {
         timer.update(tpf);
     }
     
-    public EntityId getId() {
-        return entity;
-    }
     public RoomIndex getIndex() {
         return index;
     }
-    public RoomCondition getCondition() {
+    public Vector3f getPosition() {
+        return position;
+    }
+    public RoomStatus getStatus() {
         return condition;
     }
     public ArrayList<Integer> getAdjacencies() {

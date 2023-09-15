@@ -27,6 +27,7 @@ public class SegmentedRaytest implements Iterable<CollisionResult> {
     private ShapeFilter firstCastFilter;
     private float distance;
     private int maxConsecutiveBounces = 10;
+    private boolean debug = false;
     
     public SegmentedRaytest(ContactState collisionState) {
         this.collisionState = collisionState;
@@ -51,6 +52,9 @@ public class SegmentedRaytest implements Iterable<CollisionResult> {
     public void setMaxConsecutiveBounces(int maxConsecutiveBounces) {
         this.maxConsecutiveBounces = maxConsecutiveBounces;
     }
+    public void enableDebug() {
+        debug = true;
+    }
     
     @Override
     public SegmentIterator iterator() {
@@ -62,8 +66,8 @@ public class SegmentedRaytest implements Iterable<CollisionResult> {
         private final Ray ray = new Ray();
         private EntityId origin;
         private float distance;
-        private CollisionResults results = new CollisionResults();
-        private LinkedList<CollisionResult> path = new LinkedList<>();
+        private final CollisionResults results = new CollisionResults();
+        private final LinkedList<CollisionResult> path = new LinkedList<>();
         private int hits = 0;
         
         private SegmentIterator(SegmentedRaytest parent) {
@@ -79,11 +83,9 @@ public class SegmentedRaytest implements Iterable<CollisionResult> {
         @Override
         public CollisionResult next() {
             results.clear();
-            ShapeFilter f = new OriginFilter(origin, filter);
-            if (hits == 0 && firstCastFilter != null) {
-                f = ShapeFilter.and(f, firstCastFilter);
-            }
-            Raytest.raycast(collisionState, ray, f, results);
+            var f = ShapeFilter.and(ShapeFilter.nullProtection(filter), ShapeFilter.nullProtection(firstCastFilter), ShapeFilter.notId(origin));
+            Raytest.raycast(collisionState, ray, f, results, debug);
+            if (debug) System.out.println("collisions: "+results.size());
             if (results.size() > 0) {
                 var closest = results.getClosestCollision();
                 if (distance > 0 && closest.getDistance() > distance) {
@@ -96,11 +98,13 @@ public class SegmentedRaytest implements Iterable<CollisionResult> {
                     if (distance > 0) {
                         distance = Math.max(distance-closest.getDistance(), 0f);
                     }
+                    if (debug) System.out.println("distance travelled: "+closest.getDistance());
                     hits++;
                     return closest;
                 }
             }
             ray.origin.addLocal(ray.direction.mult(distance));
+            origin = null;
             distance = 0;
             return null;
         }

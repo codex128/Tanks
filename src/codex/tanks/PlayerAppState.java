@@ -15,6 +15,7 @@ import codex.tanks.es.ESAppState;
 import codex.tanks.util.GameUtils;
 import codex.tanks.systems.GunState;
 import com.jme3.app.Application;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityId;
 import com.simsilica.lemur.GuiGlobals;
@@ -78,8 +79,12 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
             ed.setComponent(player, new MoveVelocity(inputdirection.normalizeLocal().multLocal(ed.getComponent(player, MaxSpeed.class).getSpeed())));
         }
         final float n = 35;
-        cam.setLocation(new Vector3f(0f, n, -n));
-        cam.lookAt(new Vector3f(), Vector3f.UNIT_Y);
+        var p1 = ed.getComponent(player, EntityTransform.class).getTranslation();
+        var p2 = pointer.getGlobalPointer();
+        cam.setLocation(p1.add(0f, n, -n));
+        cam.lookAt(FastMath.interpolateLinear(.1f, p1, p2), Vector3f.UNIT_Y);
+        //cam.setLocation(new Vector3f(0f, n, -n));
+        //cam.lookAt(new Vector3f(), Vector3f.UNIT_Y);
         ed.setComponent(player, new AimDirection(pointer.getRelativePointer().normalizeLocal()));
         inputdirection.set(0f, 0f, 0f);
     }

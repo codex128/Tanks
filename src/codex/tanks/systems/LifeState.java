@@ -7,6 +7,9 @@ package codex.tanks.systems;
 import codex.tanks.components.Alive;
 import codex.tanks.components.Copy;
 import codex.tanks.components.CreateOnDeath;
+import codex.tanks.components.Dependency;
+import codex.tanks.components.RemoveOnSleep;
+import codex.tanks.components.RoomStatus;
 import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;
 import com.simsilica.es.Entity;
@@ -19,15 +22,17 @@ import com.simsilica.es.EntitySet;
 public class LifeState extends ESAppState {
     
     private EntitySet alive;
+    private EntitySet roomDependent;
+    private EntitySet entityDependent;
     private EntitySet copy;
     
     @Override
     protected void init(Application app) {
         super.init(app);
         alive = ed.getEntities(Alive.class);
-        copy = ed.getEntities(
-                Copy.filter(Copy.LIFE),
-                Alive.class, Copy.class);
+        roomDependent = ed.getEntities(Alive.class, RoomStatus.class, RemoveOnSleep.class);
+        entityDependent = ed.getEntities(Dependency.class);
+        copy = ed.getEntities(Copy.filter(Copy.LIFE), Alive.class, Copy.class);
     }
     @Override
     protected void cleanup(Application app) {
@@ -39,6 +44,10 @@ public class LifeState extends ESAppState {
     protected void onDisable() {}
     @Override
     public void update(float tpf) {
+        if (roomDependent.applyChanges()) {
+            roomDependent.getAddedEntities().forEach(e -> updateRoomDependent(e));
+            roomDependent.getChangedEntities().forEach(e -> updateRoomDependent(e));
+        }
         copy.applyChanges();
         for (var e : copy) {
             var a = ed.getComponent(e.get(Copy.class).getCopy(), Alive.class);
@@ -50,8 +59,20 @@ public class LifeState extends ESAppState {
             alive.getAddedEntities().forEach(e -> update(e));
             alive.getChangedEntities().forEach(e -> update(e));
         }
+        entityDependent.applyChanges();
+        for (var e : entityDependent) {
+            var d = e.get(Dependency.class);
+            if (ed.getComponent(d.getId(), d.getLocator()) == null) {
+                ed.removeEntity(e.getId());
+            }
+        }
     }
     
+    private void updateRoomDependent(Entity e) {
+        if (e.get(RoomStatus.class).getState() == RoomStatus.SLEEPING) {
+            e.set(new Alive(false));
+        }
+    }
     private void update(Entity e) {
         if (!e.get(Alive.class).isAlive()) {
             var cod = ed.getComponent(e.getId(), CreateOnDeath.class);

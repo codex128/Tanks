@@ -70,12 +70,16 @@ public class ContactState extends ESAppState implements Iterable<Spatial> {
     private class ShapeIterator implements Iterator<Spatial> {
         
         ShapeFilter filter;
-        Iterator<Entity> delegate = shapes.iterator();
+        Iterator<Entity> delegate;
         EntityAccess access = new EntityAccess(ed, null);
         Spatial next;
         
-        ShapeIterator() {}
+        ShapeIterator() {
+            shapes.applyChanges();
+            delegate = shapes.iterator();
+        }
         ShapeIterator(ShapeFilter filter) {
+            this();
             this.filter = filter;
         }
         
@@ -84,7 +88,7 @@ public class ContactState extends ESAppState implements Iterable<Spatial> {
             if (next != null) return true;
             while (delegate.hasNext()) {
                 var e = delegate.next();
-                if (isEntityRoomActive(e.getId())) {
+                if (!isEntityRoomActive(e.getId())) {
                     continue;
                 }
                 access.setEntityId(e.getId());

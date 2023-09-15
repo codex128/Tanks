@@ -6,7 +6,7 @@ package codex.tanks.es;
 
 import codex.boost.GameAppState;
 import codex.tanks.blueprints.FactoryState;
-import codex.tanks.components.RoomCondition;
+import codex.tanks.components.RoomStatus;
 import codex.tanks.dungeon.DungeonMaster;
 import codex.tanks.systems.EntityState;
 import codex.tanks.systems.VisualState;
@@ -45,8 +45,8 @@ public abstract class ESAppState extends GameAppState {
     }
     
     public boolean isEntityRoomActive(EntityId id) {
-        var asleep = ed.getComponent(id, RoomCondition.class);
-        return asleep != null && asleep.getCondition() == RoomCondition.ACTIVE;
+        var c = ed.getComponent(id, RoomStatus.class);
+        return c == null || c.getState() == RoomStatus.ACTIVE;
     }
     
 }

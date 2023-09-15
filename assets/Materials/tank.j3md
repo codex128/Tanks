@@ -10,6 +10,10 @@ MaterialDef Tank {
         Float TreadOffset2 : 0.0
         Float TreadCoord1  : 0.1
         Float TreadCoord2  : 0.2
+        Vector3 FadeOrigin
+        Vector3 FadeAxis
+        Vector3 FadeStart
+        Vector3 FadeLength
     }
     Technique {
         LightMode SinglePassAndImageBased
@@ -22,6 +26,9 @@ MaterialDef Tank {
             WorldNormalMatrix
             ViewProjectionMatrix
             ViewMatrix
+        }
+        Defines {
+            SYNTH_FADE : FadeOrigin
         }
     }
 }

@@ -5,12 +5,12 @@
 package codex.tanks;
 
 import codex.tanks.weapons.Tank;
-import codex.j3map.J3map;
 import codex.tanks.blueprints.ContactMethods;
 import codex.tanks.components.*;
-import codex.tanks.dungeon.RoomIndex;
+import codex.tanks.components.RoomIndex;
 import codex.tanks.systems.VisualState;
 import codex.tanks.es.ESAppState;
+import codex.tanks.systems.Offset;
 import com.jme3.app.Application;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
@@ -45,10 +45,29 @@ public class GameState extends ESAppState {
 //            new ContactResponse(ContactMethods.RICOCHET)
 //        );
         
-        var plr = factory.getEntityFactory().createTank(new Vector3f(-7f, 0f, -7f), 0, new PropertySource("Properties/player.j3map"));
-        ed.setComponents(plr, new Player(0), new RoomIndex(0, 0), new RoomCondition(RoomCondition.ACTIVE));
+        var plr = factory.getEntityFactory().createTank(new Vector3f(-7f, 0f, -7f), 0, 10f, new PropertySource("Properties/player.j3map"));
+        ed.setComponents(plr,
+            new Player(0),
+            new RoomIndex(),
+            new RoomStatus(RoomStatus.ACTIVE),
+            new SpawnAssignment(SpawnAssignment.TO_ACTIVE)
+            //new ContactResponse(ContactMethods.KILL_PROJECTILE)
+        );
         player = new PlayerAppState(plr);
         getStateManager().attach(player);
+        
+        // light
+//        var pLight = ed.createEntity();
+//        ed.setComponents(pLight,
+//            new EntityLight(EntityLight.POINT),
+//            new EntityTransform(),
+//            new TransformMode(1, 0, 0),
+//            new Copy(plr, Copy.TRANSFORM),
+//            new Brightness(8f),
+//            new LightColor(ColorRGBA.Gray),
+//            new Offset(new Vector3f(0f, 3f, 0f))
+//            //new Alive()
+//        );
         
 //        J3map enemySources = (J3map)assetManager.loadAsset("Properties/AI.j3map");
 //        J3map index = enemySources.getJ3map("index");
@@ -74,11 +93,17 @@ public class GameState extends ESAppState {
         //createWall(new Vector3f(0f, 0f, 0f), 0f, new Vector3f(20f, 1f, 1f));
         
         float radius = 50f;
-        addLight(new Vector3f(r-2, 2f, r-2), ColorRGBA.White, radius);
-        addLight(new Vector3f(-r+2, 2f, r-2), ColorRGBA.White, radius);
-        addLight(new Vector3f(r+2, 2f, -r+2), ColorRGBA.White, radius);
-        addLight(new Vector3f(-r+2, 2f, -r+2), ColorRGBA.White, radius);
-        addLight(new Vector3f(0f, 2f, 0f), ColorRGBA.White, radius);
+//        addLight(new Vector3f(r-2, 5f, r-2), ColorRGBA.White, radius);
+//        addLight(new Vector3f(-r+2, 5f, r-2), ColorRGBA.White, radius);
+//        addLight(new Vector3f(r+2, 5f, -r+2), ColorRGBA.White, radius);
+//        addLight(new Vector3f(-r+2, 5f, -r+2), ColorRGBA.White, radius);
+//        addLight(new Vector3f(0f, 5f, 0f), ColorRGBA.White, radius);
+        
+//        var sun = ed.createEntity();
+//        ed.setComponents(sun,
+//                new EntityLight(EntityLight.DIRECTIONAL),
+//                new EntityTransform().setRotation(Vector3f.UNIT_Y.negate(), Vector3f.UNIT_Z),
+//                new ColorScheme(ColorRGBA.Gray));
         
         var fpp = new FilterPostProcessor(app.getAssetManager());
         var ssao = new SSAOFilter();
@@ -110,6 +135,8 @@ public class GameState extends ESAppState {
     protected void onEnable() {}
     @Override
     protected void onDisable() {}
+    @Override
+    public void update(float tpf) {}
     
     private void createWall(Vector3f location, float angle, Vector3f size) {
         var wall = ed.createEntity();

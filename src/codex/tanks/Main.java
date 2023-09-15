@@ -13,6 +13,7 @@ import codex.tanks.dungeon.DungeonMaster;
 import codex.tanks.systems.*;
 import codex.tanks.util.ColorProcessor;
 import codex.tanks.systems.GunState;
+import codex.tanks.util.debug.DebugState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.renderer.RenderManager;
@@ -75,9 +76,13 @@ public class Main extends SimpleApplication {
             new GunState(),
             new ProjectileState(),
             new TankState(),
+            new GatewayState(),
             new DoorState(),
+            new LockState(),
             new FaceVelocityState(),
+            new FadeState(),
             new DecayState(),
+            new DebugState(),
             new LifeState(),
             new OrphanState(),
             new OwnerState(),

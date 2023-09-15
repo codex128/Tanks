@@ -205,7 +205,7 @@ public class SpatialFactory {
         return sphere;
     }
     public Spatial createFromModel(String model, String child) {
-        return GameUtils.getChild(assetManager.loadModel("Models/outer-walls.j3o"), "solid-wall");
+        return GameUtils.getChild(assetManager.loadModel(model), child);
     }
     
     public Geometry createDebug(ColorRGBA color, float size) {
@@ -219,6 +219,7 @@ public class SpatialFactory {
         mat.setTransparent(true);
         mat.setTexture("Texture", assetManager.loadTexture("Effects/Smoke.png"));
         var smoke = new Emitter("bullet-smoke", mat, 100);
+        smoke.setCullHint(Spatial.CullHint.Never);
         //smoke.setShape(new PointEmissionShape());
         smoke.setShape(new EmitterSphere(.3f));
         smoke.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -248,21 +249,21 @@ public class SpatialFactory {
         mat.setTransparent(true);
         mat.setTexture("Texture", assetManager.loadTexture("Effects/Shards.png"));
         var shards = new Emitter("tank-shards", mat, 30);
+        //shards.setCullHint(Spatial.CullHint.Never);
         //smoke.setShape(new PointEmissionShape());
         shards.setShape(new EmitterSphere(radius));
         shards.setQueueBucket(RenderQueue.Bucket.Transparent);
-        shards.setStartSpeed(new ValueType(15f));
+        shards.setStartSpeed(new ValueType(13f));
         shards.setStartSize(new ValueType(.4f));
         shards.setStartColor(new ColorValueType(ColorRGBA.DarkGray));
         shards.setLifeFixedDuration(2.0f);
         shards.setEmissionsPerSecond(0);
         //shards.setParticlesPerEmission(5);
-        final ValueType life = new ValueType(5f);
+        final ValueType life = new ValueType(.7f);
         shards.setLifeMinMax(life, life);
-        shards.setParticlesFollowEmitter(false);
         var coloring = new ColorInfluencer();
         var color = ed.getComponent(id, ColorScheme.class).getPallete()[0];
-        coloring.setStartEndColor(color, color.clone().setAlpha(1f));
+        coloring.setStartEndColor(color, color.clone().setAlpha(0f));
         shards.addInfluencer(coloring);
         var gravity = new GravityInfluencer();
         gravity.setGravity(0f, 30f, 0f);
@@ -287,6 +288,7 @@ public class SpatialFactory {
         mat.setTransparent(true);
         mat.setTexture("Texture", assetManager.loadTexture("Effects/flame-burst.png"));
         var flame = new Emitter("tank-flame", mat, 100);
+        //flame.setCullHint(Spatial.CullHint.Never);
         //smoke.setShape(new PointEmissionShape());
         flame.setShape(new EmitterSphere(.01f));
         flame.setQueueBucket(RenderQueue.Bucket.Transparent);
@@ -298,7 +300,6 @@ public class SpatialFactory {
         //flame.setParticlesPerEmission(40);
         final ValueType life = new ValueType(.7f);
         flame.setLifeMinMax(life, life);
-        flame.setParticlesFollowEmitter(false);
         var coloring = new ColorInfluencer();
         var color = ed.getComponent(id, ColorScheme.class).getPallete()[0];
         coloring.setStartEndColor(color, color.clone().setAlpha(0f));

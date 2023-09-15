@@ -35,5 +35,13 @@ public interface Raytest {
             i.next().collideWith(ray, results);
         }
     }
+    public static void raycast(ContactState state, Ray ray, ShapeFilter filter, CollisionResults results, boolean debug) {
+        int shapes = 0;
+        for (var i = state.iterator(filter); i.hasNext();) {
+            shapes++;
+            i.next().collideWith(ray, results);
+        }
+        if (debug) System.out.println("shapes tested: "+shapes);
+    }
     
 }

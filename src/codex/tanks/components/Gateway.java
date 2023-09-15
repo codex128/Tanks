@@ -15,10 +15,15 @@ public class Gateway implements EntityComponent {
     
     private final boolean ready;
     private final EntityId[] doors;
+    private final float distance;
     
     public Gateway(boolean ready, EntityId... doors) {
+        this(ready, 5f, doors);
+    }
+    public Gateway(boolean ready, float distance, EntityId... doors) {
         this.ready = ready;
         this.doors = doors;
+        this.distance = distance;
     }
 
     public boolean isReady() {
@@ -27,9 +32,16 @@ public class Gateway implements EntityComponent {
     public EntityId[] getDoors() {
         return doors;
     }
+    public float getDistance() {
+        return distance;
+    }
     @Override
     public String toString() {
         return "Gateway{" + "ready=" + ready + ", doors=" + doors.length + '}';
+    }
+    
+    public Gateway setIsReady(boolean ready) {
+        return new Gateway(ready, distance, doors);
     }
     
 }

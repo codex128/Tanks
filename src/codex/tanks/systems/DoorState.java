@@ -43,7 +43,7 @@ public class DoorState extends ESAppState {
     
     private void update(Entity e) {
         var d = e.get(Door.class);
-        if (d.isOpen() != d.getNextState()) {
+        if (d.isOpen() != d.getNextState() && ed.getComponent(e.getId(), Travel.class) == null) {
             open(e, d.getNextState());
         }
     }

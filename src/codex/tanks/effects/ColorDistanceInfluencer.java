@@ -25,7 +25,15 @@ public class ColorDistanceInfluencer extends ParticleInfluencer {
     
     @Override
     public void update(ParticleData p, float tpf) {
-        gradient.getValueColor(calculateDistanceValue(p.position.distance(p.emitter.getWorldTranslation())), p.color);
+        // use p.emitter.getParticlesFollowEmitter() to detect global versus local positioning
+        float distance;
+        if (p.emitter.getParticlesFollowEmitter()) {
+            distance = p.position.length();
+        }
+        else {
+            distance = p.position.distance(p.emitter.getWorldTranslation());
+        }
+        gradient.getValueColor(calculateDistanceValue(distance), p.color);
         p.color.a *= 1f-p.percentLife;
     }
     @Override

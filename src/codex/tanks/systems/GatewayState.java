@@ -6,6 +6,7 @@ package codex.tanks.systems;
 
 import codex.tanks.components.Activated;
 import codex.tanks.components.Door;
+import codex.tanks.components.EntityTransform;
 import codex.tanks.components.Gateway;
 import codex.tanks.components.Lock;
 import codex.tanks.components.Player;
@@ -28,8 +29,8 @@ public class GatewayState extends ESAppState {
     @Override
     protected void init(Application app) {
         super.init(app);
-        entities = ed.getEntities(Visual.class, Gateway.class, Lock.class);
-        players = ed.getEntities(Visual.class, Player.class);
+        entities = ed.getEntities(Visual.class, EntityTransform.class, Gateway.class, Lock.class);
+        players = ed.getEntities(Visual.class, EntityTransform.class, Player.class);
     }
     @Override
     protected void cleanup(Application app) {}
@@ -44,30 +45,31 @@ public class GatewayState extends ESAppState {
         entities.applyChanges();
         players.applyChanges();
         for (var e : entities) {
-            if (e.get(Lock.class).isLocked() || isEntityRoomActive(e.getId())) {
+            if (e.get(Lock.class).isLocked() || !isEntityRoomActive(e.getId())) {
                 continue;
             }
-            // this method is flawed: it relies on the scene graph
-            boolean activated = true;
-            var gateBound = (BoundingBox)visuals.getSpatial(e.getId()).getWorldBound();
+            boolean activated = !players.isEmpty();
+            boolean open = false;
+            var gateBound = visuals.getSpatial(e.getId()).getWorldBound();
             for (var p : players) {
-                var playerBound = (BoundingBox)visuals.getSpatial(p.getId()).getWorldBound();
-                if (!gateBound.intersectsBoundingBox(playerBound)) {
+                if (activated && !gateBound.contains(p.get(EntityTransform.class).getTranslation())) {
                     activated = false;
-                    break;
+                }
+                var d = e.get(Gateway.class).getDistance();
+                if (!open && e.get(EntityTransform.class).getTranslation().distanceSquared(p.get(EntityTransform.class).getTranslation()) < d*d) {
+                    open = true;
                 }
             }
             if (activated) {
-                if (e.get(Gateway.class).isReady()) {
-                    e.set(new Gateway(false));
+                if (!e.get(Gateway.class).isReady()) {
+                    e.set(e.get(Gateway.class).setIsReady(true));
                     ed.setComponent(e.getId(), new Activated(true));
-                    openDoors(e, true);
                 }
             }
-            else if (!e.get(Gateway.class).isReady()) {
-                e.set(new Gateway(true));
-                openDoors(e, false);
+            else if (e.get(Gateway.class).isReady()) {
+                e.set(e.get(Gateway.class).setIsReady(false));
             }
+            openDoors(e, open);
         }
     }
     

@@ -52,7 +52,7 @@ public class AIManager extends ESAppState {
             }
         }
         for (var e : entities) {
-            if (isEntityRoomActive(e.getId())) {
+            if (!isEntityRoomActive(e.getId())) {
                 continue;
             }
             update(e, tpf);

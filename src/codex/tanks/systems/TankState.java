@@ -49,7 +49,7 @@ public class TankState extends ESAppState {
             entities.getRemovedEntities().forEach(e -> destroyTank(e));
         }
         for (var e : entities) {
-            if (isEntityRoomActive(e.getId())) {
+            if (!isEntityRoomActive(e.getId())) {
                 continue;
             }
             var t = tanks.get(e.getId());

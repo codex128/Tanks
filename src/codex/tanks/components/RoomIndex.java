@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanks.dungeon;
+package codex.tanks.components;
 
 import codex.tanks.es.FunctionFilter;
 import com.simsilica.es.ComponentFilter;
@@ -18,20 +18,12 @@ public class RoomIndex implements EntityComponent {
     
     public static final int NONE = -1, UP = 0, RIGHT = 1, DOWN = 2, LEFT = 3;
     
-    public Vec3i[] indices = new Vec3i[0];
-    private boolean matchActive = false;
+    private Vec3i[] indices = new Vec3i[0];
     
     public RoomIndex(int x, int y) {
-        this(false, new Vec3i(x, y, 0));
-    }
-    public RoomIndex(boolean matchActive) {
-        this(matchActive, new Vec3i[0]);
+        this(new Vec3i(x, y, 0));
     }
     public RoomIndex(Vec3i... indices) {
-        this(false, indices);
-    }
-    private RoomIndex(boolean matchActive, Vec3i... indices) {
-        this.matchActive = matchActive;
         this.indices = indices;
     }
 
@@ -42,10 +34,16 @@ public class RoomIndex implements EntityComponent {
         if (indices.length == 0) return null;
         else return indices[0];
     }
-    
-    public boolean isMatchActive() {
-        return matchActive;
+    public Vec3i getIndexAt(int i) {
+        return indices[i];
     }
+    public Vec3i getDifferentIndex(Vec3i index) {
+        for (var i : indices) {
+            if (!i.equals(index)) return i;
+        }
+        return index;
+    }
+    
     public boolean contains(Vec3i index) {
         for (var i : indices) {
             if (index.equals(i)) return true;
@@ -53,9 +51,6 @@ public class RoomIndex implements EntityComponent {
         return false;
     }
     
-    public RoomIndex set(RoomIndex index) {
-        return new RoomIndex(matchActive, index.indices);
-    }
     public RoomIndex add(int direction) {
         if (indices.length == 0) {
             return null;
@@ -83,7 +78,7 @@ public class RoomIndex implements EntityComponent {
         };
     }
     public static ComponentFilter<RoomIndex> filter(RoomIndex index) {
-        return new FunctionFilter<>(RoomIndex.class, c -> c.matchActive == index.matchActive || Arrays.equals(c.indices, index.indices));
+        return new FunctionFilter<>(RoomIndex.class, c -> Arrays.equals(c.indices, index.indices));
     }
     
 }

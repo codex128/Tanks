@@ -5,6 +5,7 @@
 package codex.tanks.components;
 
 import codex.tanks.effects.MatChange;
+import codex.tanks.util.GameUtils;
 import com.simsilica.es.EntityComponent;
 
 /**
@@ -33,6 +34,10 @@ public class MaterialUpdate implements EntityComponent {
     @Override
     public String toString() {
         return "MaterialUpdate{" + "updates=" + updates.length + '}';
+    }
+    
+    public MaterialUpdate add(MatChange... updates) {
+        return new MaterialUpdate(rootSpatial, GameUtils.merge(this.updates, updates, new MatChange[this.updates.length+updates.length]));
     }
     
 }

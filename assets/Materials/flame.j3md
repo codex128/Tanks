@@ -2,6 +2,10 @@ MaterialDef Flame {
     MaterialParameters {
         Texture2D ColorMap
         Float Seed : 102.34
+        Vector3 FadeOrigin
+        Vector3 FadeAxis
+        Vector3 FadeStart
+        Vector3 FadeLength
     }
     Technique {
         VertexShader GLSL120: Materials/basicVert.vert
@@ -13,6 +17,9 @@ MaterialDef Flame {
             WorldNormalMatrix
             ViewProjectionMatrix
             ViewMatrix
+        }
+        Defines {
+            SYNTH_FADE : FadeOrigin
         }
     }
     Technique Glow {
