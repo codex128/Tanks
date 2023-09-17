@@ -23,7 +23,8 @@ public class Functions {
             F_VERTICAL = new FunctionId(MAIN_GROUP, "vertical"),
             F_HORIZONTAL = new FunctionId(MAIN_GROUP, "horizontal"),
             F_SHOOT = new FunctionId(MAIN_GROUP, "shoot"),
-            F_MINE = new FunctionId(MAIN_GROUP, "mine");
+            F_MINE = new FunctionId(MAIN_GROUP, "mine"),
+            F_DEBUG = new FunctionId(MAIN_GROUP, "debug");
     
     public static void initialize(InputMapper im) {
         im.map(F_VERTICAL, InputState.Positive, KeyInput.KEY_W);
@@ -32,6 +33,7 @@ public class Functions {
         im.map(F_HORIZONTAL, InputState.Positive, KeyInput.KEY_A);
         im.map(F_SHOOT, Button.MOUSE_BUTTON1);
         im.map(F_MINE, KeyInput.KEY_SPACE);
+        im.map(F_DEBUG, KeyInput.KEY_END);
     }
     
 }

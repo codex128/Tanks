@@ -4,26 +4,19 @@
  */
 package codex.tanks;
 
+import codex.boost.scene.SceneGraphIterator;
 import codex.tanks.components.AimDirection;
 import codex.tanks.components.Alive;
-import codex.tanks.components.Brightness;
-import codex.tanks.components.Copy;
-import codex.tanks.components.EntityLight;
 import codex.tanks.components.EntityTransform;
-import codex.tanks.components.InfluenceCone;
-import codex.tanks.components.LightColor;
 import codex.tanks.components.MaxSpeed;
 import codex.tanks.components.MoveVelocity;
-import codex.tanks.components.MuzzlePointer;
-import codex.tanks.components.TransformMode;
 import codex.tanks.es.ESAppState;
 import codex.tanks.util.GameUtils;
 import codex.tanks.systems.GunState;
-import codex.tanks.systems.Offset;
 import com.jme3.app.Application;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.ViewPort;
 import com.simsilica.es.EntityId;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.AnalogFunctionListener;
@@ -74,14 +67,14 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
     protected void onEnable() {
         InputMapper im = GuiGlobals.getInstance().getInputMapper();
         im.addAnalogListener(this, Functions.F_VERTICAL, Functions.F_HORIZONTAL, Functions.F_SHOOT);
-        im.addStateListener(this, Functions.F_MINE);
+        im.addStateListener(this, Functions.F_MINE, Functions.F_DEBUG);
         im.activateGroup(Functions.MAIN_GROUP);
     }
     @Override
     protected void onDisable() {
         InputMapper im = GuiGlobals.getInstance().getInputMapper();
         im.removeAnalogListener(this, Functions.F_VERTICAL, Functions.F_HORIZONTAL, Functions.F_SHOOT);
-        im.removeStateListener(this, Functions.F_MINE);
+        im.removeStateListener(this, Functions.F_MINE, Functions.F_DEBUG);
         im.deactivateGroup(Functions.MAIN_GROUP);
     }
     @Override
@@ -121,6 +114,31 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
         if (func == Functions.F_MINE && value != InputState.Off) {
             // quick'n'dirty
             factory.getEntityFactory().createMine(player, ed.getComponent(player, EntityTransform.class).getTranslation());
+        }
+        else if (func == Functions.F_DEBUG && value != InputState.Off) {
+            long i = 0;
+            for (var vp : renderManager.getPreViews()) {
+                for (var scene : vp.getScenes()) {
+                    for (var spatial : new SceneGraphIterator(scene)) {
+                        System.out.println((++i)+": "+spatial.getName());
+                    }
+                }
+            }
+            for (var vp : renderManager.getMainViews()) {
+                for (var scene : vp.getScenes()) {
+                    for (var spatial : new SceneGraphIterator(scene)) {
+                        System.out.println((++i)+": "+spatial.getName());
+                    }
+                }
+            }
+            for (var vp : renderManager.getPostViews()) {
+                for (var scene : vp.getScenes()) {
+                    for (var spatial : new SceneGraphIterator(scene)) {
+                        System.out.println((++i)+": "+spatial.getName());
+                    }
+                }
+            }
+            throw new NullPointerException();
         }
     }
     
