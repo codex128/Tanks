@@ -4,13 +4,11 @@
  */
 package codex.tanks;
 
-import codex.tanks.weapons.Tank;
 import codex.tanks.blueprints.ContactMethods;
 import codex.tanks.components.*;
 import codex.tanks.components.RoomIndex;
 import codex.tanks.systems.VisualState;
 import codex.tanks.es.ESAppState;
-import codex.tanks.systems.Offset;
 import com.jme3.app.Application;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.PhysicsSpace;
@@ -45,7 +43,7 @@ public class GameState extends ESAppState {
 //            new ContactResponse(ContactMethods.RICOCHET)
 //        );
         
-        var plr = factory.getEntityFactory().createTank(new Vector3f(-7f, 0f, -7f), 0, 10f, new PropertySource("Properties/player.j3map"));
+        var plr = factory.getEntityFactory().createTank(new Vector3f(-7f, 0f, -7f), 0, 8f, new PropertySource("Properties/player.j3map"));
         ed.setComponents(plr,
             new Player(0),
             new RoomIndex(),
@@ -163,10 +161,6 @@ public class GameState extends ESAppState {
     }
     public PhysicsSpace getPhysicsSpace() {
         return bulletapp.getPhysicsSpace();
-    }
-    
-    public boolean isPlayerTank(Tank t) {
-        return player.getTank() == t;
     }
     
 }

@@ -14,7 +14,7 @@ import codex.tanks.systems.ProjectileState;
 import codex.tanks.es.ComponentRelation;
 import codex.tanks.util.Interpolator;
 import codex.tanks.systems.Offset;
-import codex.tanks.util.debug.ComponentWatcher;
+import codex.tanks.util.GameUtils;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -43,6 +43,7 @@ public class EntityFactory {
             TANK = "tank",
             AITANK = "ai-tank",
             WALL = "wall",
+            LIGHT = "light",
             TANK_DEATH_EXPLOSION = "tank-death-explosion",
             WEAPON_EXPLOSION = "weapon-explosion";
     
@@ -76,10 +77,10 @@ public class EntityFactory {
             new TransformMode(-3, -3, 0),
             new MoveVelocity(Vector3f.ZERO),
             new CollisionShape("hitbox"),
-            new ContactResponse(ContactMethods.DIE, ContactMethods.KILL_PROJECTILE),
+            new ContactResponse(ContactMethods.DIE_UNFRIENDLY, ContactMethods.KILL_PROJECTILE),
             new Alive(),
             new AimDirection(Vector3f.UNIT_Z),
-            new TurnSpeed(0.1f),
+            new TurnSpeed(6f),
             new Forward(),
             new LinearVelocity(Vector3f.ZERO),
             new ProbeLocation(Vector3f.ZERO),
@@ -94,7 +95,7 @@ public class EntityFactory {
             new FaceVelocity(),
             new Damage(1f),
             new CollisionShape("hitbox"),
-            new ContactResponse(ContactMethods.DIE, ContactMethods.KILL_PROJECTILE),
+            new ContactResponse(ContactMethods.DIE_UNFRIENDLY, ContactMethods.KILL_PROJECTILE),
             new Alive()
         ));
     }
@@ -115,7 +116,7 @@ public class EntityFactory {
             new FaceVelocity(),
             new Damage(1f),
             new CollisionShape("hitbox"),
-            new ContactResponse(ContactMethods.DIE, ContactMethods.KILL_PROJECTILE),
+            new ContactResponse(ContactMethods.DIE_UNFRIENDLY, ContactMethods.KILL_PROJECTILE),
             new Alive()
         ));
     }
@@ -151,7 +152,7 @@ public class EntityFactory {
             new Visual(SpatialFactory.MINE),
             new Explosive(6f, .3f),
             new CollisionShape("hitbox"),
-            new ContactResponse(ContactMethods.DIE, ContactMethods.KILL_PROJECTILE),
+            new ContactResponse(ContactMethods.DIE_UNFRIENDLY, ContactMethods.KILL_PROJECTILE),
             new CreateOnDeath(EntityFactory.WEAPON_EXPLOSION),
             new Decay(10f),
             new Alive()
@@ -176,10 +177,8 @@ public class EntityFactory {
         var entities = new LinkedList<EntityId>();
         var iterator = new SceneGraphIterator(scene);
         for (var spatial : iterator) {
-            System.out.println("iterate");
             String data = spatial.getUserData(ENTITY_USERDATA);
             if (data != null) {
-                System.out.println("examine");
                 var entity = examineSpatial(spatial, data);
                 if (entity != null) {
                     entities.add(entity);
@@ -191,9 +190,10 @@ public class EntityFactory {
     }
     public EntityId examineSpatial(Spatial spatial, String data) {
         return switch (data) {
-            case TANK -> createTank(spatial);
+            case TANK   -> createTank(spatial);
             case AITANK -> createAITank(spatial);
-            case WALL -> createWall(spatial);
+            case WALL   -> createWall(spatial);
+            case LIGHT  -> createLight(spatial);
             default -> null;
         };
     }
@@ -215,6 +215,18 @@ public class EntityFactory {
     }
     public EntityId createWall(Spatial spatial) {
         return createWall(spatial.getWorldTransform(), spatial);
+    }
+    public EntityId createLight(Spatial spatial) {
+        var light = ed.createEntity();
+        ed.setComponents(light,
+            new GameObject("light"),
+            new EntityLight(GameUtils.getUserData(spatial, "Type", (double)EntityLight.POINT).intValue()),
+            new EntityTransform()
+                .setTranslation(spatial.getWorldTranslation()),
+            new Brightness(GameUtils.getUserData(spatial, "Brightness", 20.0).floatValue()),
+            new LightColor(GameUtils.getUserDataColor(spatial, "Color", ColorRGBA.Gray))
+        );
+        return light;
     }
     
     public EntityId createTank(Vector3f position, int team, float brightness, PropertySource source) {
@@ -291,7 +303,7 @@ public class EntityFactory {
             new Bounces(bounces),
             new Damage(1f),
             new CollisionShape("hitbox"),
-            new ContactResponse(ContactMethods.DIE, ContactMethods.KILL_PROJECTILE),
+            new ContactResponse(ContactMethods.DIE_UNFRIENDLY, ContactMethods.KILL_PROJECTILE),
             new Owner(owner, "bullet"),
             new Alive()
         );
@@ -302,7 +314,7 @@ public class EntityFactory {
             new EntityTransform(),
             new TransformMode(1, 0, 0),
             new Copy(bullet, Copy.TRANSFORM),
-            new OrphanBucket(bullet, new Decay(1f), new EmissionsPerSecond(0)),
+            new OrphanBucket(bullet, new Decay(1f), new Alive(Alive.UNAFFECTED), new EmissionsPerSecond(0)),
             new Alive()
         );
         return bullet;
@@ -321,7 +333,7 @@ public class EntityFactory {
             new Bounces(bounces),
             new Damage(1f),
             new CollisionShape("hitbox"),
-            new ContactResponse(ContactMethods.DIE, ContactMethods.KILL_PROJECTILE),
+            new ContactResponse(ContactMethods.DIE_UNFRIENDLY, ContactMethods.KILL_PROJECTILE),
             new Owner(owner, "bullet"),
             new Alive()
         );
@@ -383,7 +395,7 @@ public class EntityFactory {
                 .setScale(.7f),
             new Explosive(6f, .3f),
             new CollisionShape("hitbox"),
-            new ContactResponse(ContactMethods.DIE, ContactMethods.KILL_PROJECTILE),
+            new ContactResponse(ContactMethods.DIE_UNFRIENDLY, ContactMethods.KILL_PROJECTILE),
             new CreateOnDeath(EntityFactory.WEAPON_EXPLOSION),
             new Decay(10f),
             new Alive()
@@ -435,6 +447,8 @@ public class EntityFactory {
             new CollisionShape(),
             new ContactResponse(ContactMethods.KILL_PROJECTILE)
         );
+        final float d = 3f;
+        final float h = 4f;
         var light1 = ed.createEntity();
         ed.setComponents(light1,
             new GameObject("light"),
@@ -443,13 +457,19 @@ public class EntityFactory {
             new TransformMode(1, 0, 0),
             new Copy(gateway, Copy.TRANSFORM, Copy.LOCK),
             new RoomIndex(pos),
-            new Offset(rotation.mult(Vector3f.UNIT_Z).multLocal(1f)),
+            new RoomStatus(),
+            new Offset(rotation.mult(Vector3f.UNIT_Z).multLocal(d).addLocal(0f, h, 0f)),
             new Lock(true),
             new LockStatusBucket().setUnlock(
-                new Visual(SpatialFactory.DEBUG_CUBE),
                 new EntityLight(EntityLight.POINT),
-                new Brightness(100f),
-                new LightColor(ColorRGBA.Gray)
+                new Brightness(12f),
+                new LightColor(ColorRGBA.Gray),
+                new Decay(5f),
+                new Relative(
+                    new ComponentRelation(Decay.class, Brightness.class, (float in) -> {
+                        return 1f-FastMath.abs(FastMath.sin(in*FastMath.PI*4))*0.3f;
+                    })
+                )
             )
         );
         var light2 = ed.createEntity();
@@ -461,14 +481,18 @@ public class EntityFactory {
             new Copy(gateway, Copy.TRANSFORM, Copy.LOCK),
             new RoomIndex(neg),
             new RoomStatus(),
-            new Offset(rotation.mult(Vector3f.UNIT_Z).multLocal(-1f)),
+            new Offset(rotation.mult(Vector3f.UNIT_Z).multLocal(-d).addLocal(0f, h, 0f)),
             new Lock(true),
             new LockStatusBucket().setUnlock(
-                new Visual(SpatialFactory.DEBUG_CUBE),
                 new EntityLight(EntityLight.POINT),
-                new Brightness(100f),
+                new Brightness(15f),
                 new LightColor(ColorRGBA.Gray),
-                new ComponentWatcher(EntityTransform.class)
+                new Decay(5f),
+                new Relative(
+                    new ComponentRelation(Decay.class, Brightness.class, (float in) -> {
+                        return 1f-FastMath.abs(FastMath.sin(in*FastMath.PI*4))*0.2f;
+                    })
+                )
             )
         );
         return gateway;

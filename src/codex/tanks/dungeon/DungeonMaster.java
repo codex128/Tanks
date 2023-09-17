@@ -55,7 +55,7 @@ public class DungeonMaster extends ESAppState implements SceneProcessor {
                 Team.class, RoomStatus.class);
         copy = ed.getEntities(Copy.filter(Copy.ROOM_STATUS), Copy.class, RoomStatus.class);
         
-        createDungeon(2, 2, new RoomIndex(0, 1));
+        createDungeon(1, 1, new RoomIndex(0, 0));
         
 //        var e1 = factory.getEntityFactory().createAITank(new Vector3f(7f, 0f, 7f), 1, new PropertySource("Properties/AI.j3map", "grey"));
 //        factory.getEntityFactory().makeDungeonCompatible(e1, new RoomIndex(0, 1));
@@ -140,10 +140,10 @@ public class DungeonMaster extends ESAppState implements SceneProcessor {
         var p = position.add(ROOM_SIZE.x/2, 0f, 0f);
         var i = new Vec3i(x, y, 0);
         if (x == rooms[y].length-1) {
-            createBorderWallSolid(p, new RoomIndex(i), FastMath.HALF_PI);
+            createBorderWallSolid(p, new RoomIndex(i), -FastMath.HALF_PI);
         }
         else {
-            createBorderWallGate(p, new RoomIndex(i, new Vec3i(x+1, y, 0)), FastMath.HALF_PI);
+            createBorderWallGate(p, new RoomIndex(i, new Vec3i(x+1, y, 0)), -FastMath.HALF_PI);
         }
     }
     private void createWallDown(Vector3f position, int x, int y) {
@@ -158,7 +158,7 @@ public class DungeonMaster extends ESAppState implements SceneProcessor {
     }
     private void createWallLeft(Vector3f position, int x, int y) {
         if (x == 0) {
-            createBorderWallSolid(position.subtract(ROOM_SIZE.x/2, 0f, 0f), new RoomIndex(x, y), FastMath.HALF_PI);
+            createBorderWallSolid(position.subtract(ROOM_SIZE.x/2, 0f, 0f), new RoomIndex(x, y), -FastMath.HALF_PI);
         }
     }
     private void createBorderWallSolid(Vector3f p, RoomIndex index, float angle) {
@@ -173,7 +173,7 @@ public class DungeonMaster extends ESAppState implements SceneProcessor {
         ed.setComponents(leftDoor, c, index);
         var rightDoor = factory.getEntityFactory().createSlidingDoor(SpatialFactory.SLIDING_DOOR_RIGHT, p, angle, 2.1f, -10f);
         ed.setComponents(rightDoor, c, index);
-        var gate = factory.getEntityFactory().createGateway(index.getIndexAt(1), index.getIndexAt(0), p.add(0f, 2f, 0f), angle, gateKey.getKey(), leftDoor, rightDoor);
+        var gate = factory.getEntityFactory().createGateway(index.getIndexAt(0), index.getIndexAt(1), p.add(0f, 2f, 0f), angle, gateKey.getKey(), leftDoor, rightDoor);
         ed.setComponents(gate, c, index);
     }
     

@@ -40,7 +40,9 @@ public class DecayState extends ESAppState {
         decay.applyChanges();
         life.applyChanges();
         for (var e : decay) {
-            e.set(e.get(Decay.class).increment(tpf));
+            if (!e.get(Decay.class).isExhausted()) {
+                e.set(e.get(Decay.class).increment(tpf));
+            }
         }
         for (var e : life) {
             if (e.get(Decay.class).isExhausted()) {

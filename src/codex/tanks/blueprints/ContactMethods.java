@@ -9,6 +9,8 @@ import codex.tanks.components.Alive;
 import codex.tanks.components.Bounces;
 import codex.tanks.components.ContactResponse;
 import codex.tanks.components.Damage;
+import codex.tanks.components.Owner;
+import codex.tanks.components.Team;
 import codex.tanks.components.Velocity;
 import codex.tanks.util.GameUtils;
 import com.simsilica.es.EntityData;
@@ -21,9 +23,10 @@ import com.simsilica.es.EntityData;
 public class ContactMethods {
     
     /**
-     * Kills the target entity.
+     * Kills the target entity if the bullet entity does not belong
+     * to the target entities team.
      */
-    public static final String DIE = "contact:die";    
+    public static final String DIE_UNFRIENDLY = "contact:die-unfriendly";    
     /**
      * Kills the projectile.
      */
@@ -52,16 +55,20 @@ public class ContactMethods {
     }
     private void respond(String response, ContactEvent event) {
         switch (response) {
-            case DIE             -> killTarget(event);
+            case DIE_UNFRIENDLY             -> killTargetIfUnfriendly(event);
             case KILL_PROJECTILE -> killProjectile(event);
             case RICOCHET        -> ricochetProjectile(event);
             case FORCE_RICOCHET  -> forceRicochetProjectile(event);
         }
     }
     
-    public void killTarget(ContactEvent event) {
+    public void killTargetIfUnfriendly(ContactEvent event) {
         if (event.projectile.get(Damage.class).getDamage() > 0) {
-            ed.setComponent(event.target, new Alive(false));
+            var t1 = ed.getComponent(event.target, Team.class);
+            var t2 = ed.getComponent(event.projectile.get(Owner.class).getId(), Team.class);
+            if (t1 == null || t2 == null || t2.getTeam() != t1.getTeam()) {
+                ed.setComponent(event.target, new Alive(false));
+            }
         }
     }
     public void killProjectile(ContactEvent event) {

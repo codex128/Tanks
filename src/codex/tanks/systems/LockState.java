@@ -44,9 +44,8 @@ public class LockState extends ESAppState {
         }
         copies.applyChanges();
         for (var e : copies) {
-            var lock = ed.getComponent(e.getId(), Lock.class);
+            var lock = ed.getComponent(e.get(Copy.class).getCopy(), Lock.class);
             if (lock != null) {
-                System.out.println("lock = "+lock);
                 e.set(new Lock(lock.isLocked()));
             }
         }
@@ -55,14 +54,13 @@ public class LockState extends ESAppState {
     private void update(Entity e) {
         var bucket = e.get(LockStatusBucket.class);
         if (bucket.getStatus() >= 0 && e.get(Lock.class).isLocked()) {
-            //LockStatusBucket.add(ed, e.getId(), bucket.getLock());
-            //LockStatusBucket.remove(ed, e.getId(), bucket.getUnlock());
+            LockStatusBucket.add(ed, e.getId(), bucket.getLock());
+            LockStatusBucket.remove(ed, e.getId(), bucket.getUnlock());
             e.set(bucket.setStatus(-1));
         }
         else if (bucket.getStatus() <= 0 && !e.get(Lock.class).isLocked()) {
-            System.out.println("add unlock bucket");
-            //LockStatusBucket.add(ed, e.getId(), bucket.getUnlock());
-            //LockStatusBucket.remove(ed, e.getId(), bucket.getLock());
+            LockStatusBucket.add(ed, e.getId(), bucket.getUnlock());
+            LockStatusBucket.remove(ed, e.getId(), bucket.getLock());
             e.set(bucket.setStatus(1));
         }
     }

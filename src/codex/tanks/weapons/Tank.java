@@ -61,13 +61,14 @@ public class Tank {
         wheels[3] = GameUtils.getChild(spatial, "wheel.BR");
         physics = new RigidBodyControl(CollisionShapeFactory.createMergedHullShape(hitbox), 2000f);
         physics.setAngularFactor(0f);
+        physics.setFriction(0f);
         spatial.addControl(physics);
     }
     
     public void update(float tpf) {
         //if ((reload -= tpf) < 0f) reload = 0f;
         //bullets.applyChanges();
-        drive(entity.get(MoveVelocity.class).getMove());
+        drive(entity.get(MoveVelocity.class).getMove(), tpf);
         aimAtDirection(entity.get(AimDirection.class).getAim());
         entity.set(new Forward(getDriveDirection()));
         //entity.set(new MuzzlePosition(muzzle.getWorldTranslation()));
@@ -80,12 +81,12 @@ public class Tank {
         }
     }
     
-    private void drive(Vector3f move) {
+    private void drive(Vector3f move, float tpf) {
         if (move.equals(Vector3f.ZERO)) {
             setLinearVelocity(move);
             return;
         }
-        if (rotateTo(move.clone())) {
+        if (rotateTo(move.clone(), tpf)) {
             //var s = entity.get(MaxSpeed.class).getSpeed();
             setLinearVelocity(move);
             final float treadMovement = move.length()*drive*treadSpeed;
@@ -98,7 +99,7 @@ public class Tank {
     private void setLinearVelocity(Vector3f velocity) {
         entity.set(new LinearVelocity(GameUtils.merge(velocity, entity.get(LinearVelocity.class).getVelocity(), 1, -1, 1)));
     }
-    private boolean rotateTo(Vector3f direction) {
+    private boolean rotateTo(Vector3f direction, float tpf) {
         final float threshold = .6f;
         direction.setY(0f).normalizeLocal().multLocal(drive);
         var move = base.getLocalRotation().mult(Vector3f.UNIT_Z);
@@ -106,7 +107,7 @@ public class Tank {
         var factor = move.dot(direction);
         if (factor >= 0f) {
             // rotate current drive direction to match direction
-            float turn = entity.get(TurnSpeed.class).getSpeed();
+            float turn = entity.get(TurnSpeed.class).getSpeed()*tpf;
             if (move.angleBetween(direction) > turn) {
                 rotate(-turn*FastMath.sign(move.dot(q.getRotationColumn(0))));
             }

@@ -14,9 +14,12 @@ import codex.tanks.systems.*;
 import codex.tanks.util.ColorProcessor;
 import codex.tanks.systems.GunState;
 import codex.tanks.util.debug.DebugState;
+import com.jme3.app.DetailedProfilerState;
+import com.jme3.app.LostFocusBehavior;
 import com.jme3.app.SimpleApplication;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.renderer.RenderManager;
+import com.jme3.system.AppSettings;
 import com.simsilica.lemur.GuiGlobals;
 
 /**
@@ -27,9 +30,16 @@ import com.simsilica.lemur.GuiGlobals;
 public class Main extends SimpleApplication {
 
     public static void main(String[] args) {
+        var settings = new AppSettings(true);
+        settings.setWidth(1024);
+        settings.setHeight(768);
+        settings.setFrameRate(120);
+        settings.setVSync(false);
         Main app = new Main();
+        app.setSettings(settings);
+        app.setLostFocusBehavior(LostFocusBehavior.Disabled);
         //app.setDisplayFps(false);
-        app.setDisplayStatView(false);
+        //app.setDisplayStatView(false);
         app.start();
     }
 
@@ -91,6 +101,10 @@ public class Main extends SimpleApplication {
             new DungeonMaster()
         );        
         stateManager.attach(new GameState());
+        
+        DetailedProfilerState dps = new DetailedProfilerState();
+        dps.setEnabled(false);
+        getStateManager().attach(dps);
         
     }
     @Override

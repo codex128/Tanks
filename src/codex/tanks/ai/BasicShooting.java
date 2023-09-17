@@ -5,9 +5,7 @@
 package codex.tanks.ai;
 
 import codex.j3map.J3map;
-import codex.tanks.collision.SegmentedRaytest;
-import codex.tanks.collision.ShapeFilter;
-import codex.tanks.components.Team;
+import com.jme3.math.FastMath;
 
 /**
  *
@@ -62,7 +60,8 @@ public class BasicShooting implements Algorithm {
     }
     @Override
     public boolean shoot(AlgorithmUpdate update) {
-        if (update.isTargetInView() && exposure > minExposure-0.01f && update.getDirectionToTarget().dot(update.getMuzzleDirection()) >= 1f-maxBarrelOffset) {
+        if ((update.isTargetInView() && exposure > minExposure-0.01f && update.getDirectionToTarget().dot(update.getMuzzleDirection()) >= 1f-maxBarrelOffset)
+                || FastMath.rand.nextFloat() <= 0.03f) {
             if (update.checkIsEndangeringTeam()) {
                 return false;
             }

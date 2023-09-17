@@ -27,7 +27,7 @@ public class ProjectileState extends ESAppState {
     
     public static final float MISSILE_QUALIFIER = 20f;
     public static final Class[] COMPONENT_TYPES = {
-        EntityTransform.class, Velocity.class, Damage.class, Bounces.class, Alive.class};
+        EntityTransform.class, Velocity.class, Owner.class, Damage.class, Bounces.class, Alive.class};
     
     private EntitySet entities;
     private final Timer flameRefreshCycle = new Timer(0.03f);

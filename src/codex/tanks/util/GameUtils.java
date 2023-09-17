@@ -20,6 +20,7 @@ import com.jme3.scene.shape.Sphere;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.lemur.Axis;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.BiConsumer;
 
@@ -121,6 +122,18 @@ public class GameUtils {
         for (var s : new SceneGraphIterator(spatial)) {
             System.out.println("   "+s);
         }
+    }
+    
+    public static <T> T getUserData(Spatial spatial, String name, T defaultvalue) {
+        T v = spatial.getUserData(name);
+        return v != null ? v : defaultvalue;
+    }
+    public static ColorRGBA getUserDataColor(Spatial spatial, String name, ColorRGBA defaultColor) {
+        ArrayList<String> values = spatial.getUserData(name);
+        if (values != null && values.size() >= 3 && values.size() <= 4) {
+            return new ColorRGBA(Float.parseFloat(values.get(0)), Float.parseFloat(values.get(1)), Float.parseFloat(values.get(2)), values.size() == 4 ? Float.parseFloat(values.get(3)) : 1f);
+        }
+        return defaultColor;
     }
     
     public static float distance2D(Vector3f a, Vector3f b, Axis omit) {

@@ -14,6 +14,7 @@ import codex.tanks.components.Visual;
 import codex.tanks.es.ESAppState;
 import codex.tanks.es.FunctionFilter;
 import com.jme3.app.Application;
+import com.jme3.font.BitmapText;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;
@@ -33,13 +34,14 @@ public class TransformUpdateState extends ESAppState {
     protected void init(Application app) {
         super.init(app);
         spatialUpdate = ed.getEntities(
-                new FunctionFilter<>(TransformMode.class, c -> c.anyMatch(m -> !TransformMode.isPhysics(m))),
+                new FunctionFilter<>(TransformMode.class, c -> c.anyMatch(m -> !TransformMode.isNone(m) && !TransformMode.isPhysics(m))),
                 Visual.class, EntityTransform.class, TransformMode.class);
         entityCopy = ed.getEntities(
                 Copy.filter(Copy.TRANSFORM),
                 EntityTransform.class, TransformMode.class, Copy.class);
         travellers = ed.getEntities(EntityTransform.class, Travel.class, MaxSpeed.class);
         rotate = ed.getEntities(EntityTransform.class, Rotate.class);
+ 
     }
     @Override
     protected void cleanup(Application app) {

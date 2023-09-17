@@ -45,6 +45,7 @@ public class Room {
                 index, condition, new SpawnAssignment(SpawnAssignment.TO_OWN)
             );
         }
+        
     }
     
     public void setCondition(int c) {

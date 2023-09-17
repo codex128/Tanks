@@ -254,7 +254,7 @@ public class SpatialFactory {
         shards.setShape(new EmitterSphere(radius));
         shards.setQueueBucket(RenderQueue.Bucket.Transparent);
         shards.setStartSpeed(new ValueType(13f));
-        shards.setStartSize(new ValueType(.4f));
+        shards.setStartSize(new ValueType(.6f));
         shards.setStartColor(new ColorValueType(ColorRGBA.DarkGray));
         shards.setLifeFixedDuration(2.0f);
         shards.setEmissionsPerSecond(0);

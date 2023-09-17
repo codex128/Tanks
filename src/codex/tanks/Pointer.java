@@ -15,12 +15,12 @@ import com.simsilica.lemur.event.CursorMotionEvent;
  *
  * @author gary
  */
-public class PointerManager implements CursorListener {
+public class Pointer implements CursorListener {
 
     private Spatial collider;
     private Vector3f pointerLocation = new Vector3f();
     
-    public PointerManager(Spatial collider) {
+    public Pointer(Spatial collider) {
         this.collider = collider;
         this.collider.addControl(new CursorEventControl(this));
     }

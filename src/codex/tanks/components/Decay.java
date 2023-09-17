@@ -5,7 +5,6 @@
 package codex.tanks.components;
 
 import codex.tanks.es.AbstractFloatComponent;
-import com.jme3.math.FastMath;
 
 /**
  *
@@ -26,7 +25,7 @@ public class Decay extends AbstractFloatComponent {
         return value <= 0;
     }
     public Decay increment(float tpf) {
-        return new Decay(value-tpf, range.y);
+        return new Decay(Math.max(value-tpf, range.x), range.y);
     }
     @Override
     public Decay setPercent(float percent) {

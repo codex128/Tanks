@@ -4,12 +4,12 @@
  */
 package codex.tanks.systems;
 
-import codex.tanks.components.RemoveOnSleep;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.RoomStatus;
 import codex.tanks.components.Visual;
 import codex.tanks.es.ESAppState;
 import codex.tanks.util.GameUtils;
+import codex.tanks.util.debug.DebugState;
 import com.jme3.app.Application;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Node;
@@ -54,6 +54,7 @@ public class VisualState extends ESAppState {
             entities.getAddedEntities().forEach(e -> createModel(e));
             entities.getRemovedEntities().forEach(e -> destroyModel(e));
         }
+        getState(DebugState.class).print(this, "entities="+entities.size()+", spatials="+spatials.size());
         if (sleepDetach.applyChanges()) {
             sleepDetach.getAddedEntities().forEach(e -> updateCondition(e, true));
             sleepDetach.getChangedEntities().forEach(e -> updateCondition(e, false));

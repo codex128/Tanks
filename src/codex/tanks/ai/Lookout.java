@@ -15,7 +15,7 @@ import com.jme3.math.FastMath;
  */
 public class Lookout implements Algorithm {
     
-    private float speed = 0.01f;
+    private float speed = 0.6f;
     private float distance = 0f;
     
     public Lookout() {
@@ -33,10 +33,10 @@ public class Lookout implements Algorithm {
     }
     @Override
     public boolean aim(AlgorithmUpdate update) {
-        if (FastMath.abs(distance) < speed) {
+        if (FastMath.abs(distance) < speed*update.getTpf()) {
             distance = GameUtils.random(-FastMath.TWO_PI, FastMath.TWO_PI);
         }
-        float angle = speed*FastMath.sign(distance);
+        float angle = speed*update.getTpf()*FastMath.sign(distance);
         update.setComponent(new AimDirection(update.rotateAim(angle)));
         distance -= angle;
         return true;

@@ -11,7 +11,6 @@ import codex.tanks.systems.ProjectileState;
 import codex.tanks.collision.*;
 import codex.tanks.components.*;
 import codex.tanks.systems.GunState;
-import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
@@ -76,8 +75,9 @@ public class AlgorithmUpdate {
     public Entity createRaycastEntity(Ray ray) {
         var tester = getEntityData().createEntity();
         getEntityData().setComponents(tester,
-            new EntityTransform(),
+            new EntityTransform().setTranslation(ray.origin),
             new Velocity(ray.direction, -1f),
+            new Owner(tester),
             new Damage(0f),
             new Bounces(entity.get(Bounces.class)),
             new Alive()
@@ -94,7 +94,6 @@ public class AlgorithmUpdate {
         SegmentedRaytest raytest = new SegmentedRaytest(getCollisionState());
         raytest.setRay(e.get(EntityTransform.class).toRay());
         raytest.setDistance(-1f);
-        raytest.setFirstCastFilter(ShapeFilter.notId(getAgentId())); // setFirstCastFilter
         raytest.setOriginEntity(getAgentId());
         var iterator = getProjectileState().raytest(e, raytest);
         getEntityData().removeEntity(e.getId());

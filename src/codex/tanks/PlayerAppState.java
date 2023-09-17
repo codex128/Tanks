@@ -5,16 +5,23 @@
 package codex.tanks;
 
 import codex.tanks.components.AimDirection;
-import codex.tanks.weapons.Tank;
 import codex.tanks.components.Alive;
+import codex.tanks.components.Brightness;
+import codex.tanks.components.Copy;
+import codex.tanks.components.EntityLight;
 import codex.tanks.components.EntityTransform;
+import codex.tanks.components.InfluenceCone;
+import codex.tanks.components.LightColor;
 import codex.tanks.components.MaxSpeed;
 import codex.tanks.components.MoveVelocity;
-import codex.tanks.systems.TankState;
+import codex.tanks.components.MuzzlePointer;
+import codex.tanks.components.TransformMode;
 import codex.tanks.es.ESAppState;
 import codex.tanks.util.GameUtils;
 import codex.tanks.systems.GunState;
+import codex.tanks.systems.Offset;
 import com.jme3.app.Application;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityId;
@@ -32,8 +39,7 @@ import com.simsilica.lemur.input.StateFunctionListener;
 public class PlayerAppState extends ESAppState implements AnalogFunctionListener, StateFunctionListener {
     
     private final EntityId player;
-    private Tank tank;
-    private PointerManager pointer;
+    private Pointer pointer;
     private final Vector3f inputdirection = new Vector3f();
     
     public PlayerAppState(EntityId player) {
@@ -44,10 +50,20 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
     protected void init(Application app) {
         super.init(app);
         
-        tank = getState(TankState.class).getTank(player);
-        
         cam = app.getCamera();
-        pointer = new PointerManager(GameUtils.getChild(visuals.getSpatial(player), "pointer"));
+        pointer = new Pointer(GameUtils.getChild(visuals.getSpatial(player), "pointer"));
+        
+//        var flashlight = ed.createEntity();
+//        ed.setComponents(flashlight,
+//            new EntityLight(EntityLight.SPOT),
+//            new EntityTransform(),
+//            new TransformMode(1, 1, 0),
+//            new Copy(ed.getComponent(player, MuzzlePointer.class).getId(), Copy.TRANSFORM),
+//            new Offset(new Vector3f(0f, -.5f, 0f)),
+//            new Brightness(100f),
+//            new InfluenceCone(FastMath.PI*0.1f, FastMath.PI*0.3f),
+//            new LightColor(new ColorRGBA(0.2f, 0.2f, 0.2f, 1f))
+//        );
         
     }
     @Override
@@ -78,7 +94,7 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
         if (!inputdirection.equals(Vector3f.ZERO)) {
             ed.setComponent(player, new MoveVelocity(inputdirection.normalizeLocal().multLocal(ed.getComponent(player, MaxSpeed.class).getSpeed())));
         }
-        final float n = 35;
+        final float n = 45;
         var p1 = ed.getComponent(player, EntityTransform.class).getTranslation();
         var p2 = pointer.getGlobalPointer();
         cam.setLocation(p1.add(0f, n, -n));
@@ -106,10 +122,6 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
             // quick'n'dirty
             factory.getEntityFactory().createMine(player, ed.getComponent(player, EntityTransform.class).getTranslation());
         }
-    }
-    
-    public Tank getTank() {
-        return tank;
     }
     
 }

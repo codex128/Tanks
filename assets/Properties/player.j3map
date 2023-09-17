@@ -1,5 +1,6 @@
 tank: {
-    speed: 7f;
+    // 7
+    speed: 9.5f;
     rps: 7f;
     maxBullets: 10;
     maxBounces: 1;
