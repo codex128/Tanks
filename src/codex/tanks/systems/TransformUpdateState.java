@@ -14,7 +14,6 @@ import codex.tanks.components.Visual;
 import codex.tanks.es.ESAppState;
 import codex.tanks.es.FunctionFilter;
 import com.jme3.app.Application;
-import com.jme3.font.BitmapText;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;
@@ -140,9 +139,8 @@ public class TransformUpdateState extends ESAppState {
         var component = e.get(Copy.class);
         var copy = ed.getComponent(component.getCopy(), EntityTransform.class);
         if (copy == null) return;
-        var transform = e.get(EntityTransform.class);
+        var transform = e.get(EntityTransform.class).toJmeTransform();
         var enable = e.get(TransformMode.class);
-        // so. messy.
         if (!TransformMode.isNone(enable.getTranslation())
                 || !TransformMode.isNone(enable.getRotation())
                 || !TransformMode.isNone(enable.getScale())) {
@@ -150,7 +148,7 @@ public class TransformUpdateState extends ESAppState {
                 transform.setTranslation(copy.getTranslation());
                 var offset = ed.getComponent(e.getId(), Offset.class);
                 if (offset != null) {
-                    transform.move(offset.getOffset());
+                    transform.getTranslation().addLocal(offset.getOffset());
                 }
             }
             if (!TransformMode.isNone(enable.getRotation())) transform.setRotation(copy.getRotation());

@@ -8,7 +8,7 @@ import codex.j3map.processors.FloatProcessor;
 import codex.j3map.processors.IntegerProcessor;
 import codex.j3map.processors.StringProcessor;
 import codex.tanks.ai.*;
-import codex.tanks.blueprints.FactoryState;
+import codex.tanks.factories.FactoryState;
 import codex.tanks.dungeon.DungeonMaster;
 import codex.tanks.systems.*;
 import codex.tanks.util.ColorProcessor;

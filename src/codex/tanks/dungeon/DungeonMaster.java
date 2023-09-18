@@ -4,16 +4,12 @@
  */
 package codex.tanks.dungeon;
 
-import codex.boost.Timer;
 import codex.tanks.components.RoomIndex;
-import codex.tanks.blueprints.SpatialFactory;
+import codex.tanks.factories.SpatialFactory;
 import codex.tanks.components.*;
-import codex.tanks.effects.MatChange;
-import codex.tanks.effects.MaterialChangeBucket;
 import codex.tanks.es.ESAppState;
 import codex.tanks.es.FunctionFilter;
 import com.jme3.app.Application;
-import com.jme3.material.Material;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.post.SceneProcessor;
@@ -21,7 +17,6 @@ import com.jme3.profile.AppProfiler;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.renderer.queue.RenderQueue;
-import com.jme3.shader.VarType;
 import com.jme3.texture.FrameBuffer;
 import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3i;
@@ -113,7 +108,7 @@ public class DungeonMaster extends ESAppState implements SceneProcessor {
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 var r = new Room(new RoomIndex(j, i), new Vector3f(j, 0f, height-1-i).multLocal(ROOM_SIZE));
-                r.initialize(this, visuals, assetManager.loadModel("Scenes/dungeons/dungeon1.j3o"));
+                r.initialize(this, visuals, assetManager.loadModel("Scenes/dungeons/blank.j3o"));
                 rooms[i][j] = r;
             }
         }

@@ -4,7 +4,7 @@
  */
 package codex.tanks.systems;
 
-import codex.tanks.blueprints.EntityFactory;
+import codex.tanks.factories.EntityFactory;
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.simsilica.es.EntityData;

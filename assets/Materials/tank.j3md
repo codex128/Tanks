@@ -10,10 +10,12 @@ MaterialDef Tank {
         Float TreadOffset2 : 0.0
         Float TreadCoord1  : 0.1
         Float TreadCoord2  : 0.2
-        Vector3 FadeOrigin
-        Vector3 FadeAxis
-        Vector3 FadeStart
-        Vector3 FadeLength
+        Boolean UseInstancing : false
+        Int NumberOfBones
+        Matrix4Array BoneMatrices
+        FloatArray MorphWeights
+        Int NumberOfMorphTargets
+        Int NumberOfTargetsBuffers
     }
     Technique {
         LightMode SinglePassAndImageBased
@@ -28,7 +30,10 @@ MaterialDef Tank {
             ViewMatrix
         }
         Defines {
-            SYNTH_FADE : FadeOrigin
+            USE_INSTANCING      : UseInstancing
+            NUM_BONES            : NumberOfBones
+            NUM_MORPH_TARGETS   : NumberOfMorphTargets
+            NUM_TARGETS_BUFFERS : NumberOfTargetsBuffers
         }
     }
 }

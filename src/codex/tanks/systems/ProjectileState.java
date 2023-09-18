@@ -9,7 +9,7 @@ import codex.tanks.collision.SegmentedRaytest;
 import codex.tanks.collision.ShapeFilter;
 import codex.tanks.components.*;
 import codex.tanks.effects.MatChange;
-import codex.tanks.blueprints.SpatialFactory;
+import codex.tanks.factories.SpatialFactory;
 import codex.tanks.collision.ContactEvent;
 import codex.tanks.es.ESAppState;
 import com.jme3.app.Application;

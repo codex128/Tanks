@@ -57,12 +57,15 @@ public class VisualState extends ESAppState {
             entities.getRemovedEntities().forEach(e -> destroyModel(e));
         }
         long i = 0;
+        long v = 0;
         for (var spatial : new SceneGraphIterator(rootNode)) {
+            i++;
             if (spatial instanceof Geometry) {
-                i++;
+                //i++;
+                v += ((Geometry)spatial).getVertexCount();
             }
         }
-        getState(DebugState.class).print(this, "entities="+entities.size()+", registered-spatials="+spatials.size()+", total-geometries="+i);
+        getState(DebugState.class).print(this, "entities="+entities.size()+", registered-spatials="+spatials.size()+", total-geometries="+i+", total-vertices="+v);
         if (sleepDetach.applyChanges()) {
             sleepDetach.getAddedEntities().forEach(e -> updateCondition(e, true));
             sleepDetach.getChangedEntities().forEach(e -> updateCondition(e, false));

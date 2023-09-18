@@ -20,7 +20,6 @@ import codex.tanks.dungeon.DungeonMaster;
 import codex.tanks.es.ESAppState;
 import codex.tanks.weapons.ShootEventListener;
 import com.jme3.app.Application;
-import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityId;

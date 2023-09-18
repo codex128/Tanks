@@ -5,7 +5,7 @@
 package codex.tanks.es;
 
 import codex.boost.GameAppState;
-import codex.tanks.blueprints.FactoryState;
+import codex.tanks.factories.FactoryState;
 import codex.tanks.components.RoomStatus;
 import codex.tanks.dungeon.DungeonMaster;
 import codex.tanks.systems.EntityState;
@@ -27,7 +27,7 @@ public abstract class ESAppState extends GameAppState {
     @Override
     protected void init(Application app) {
         ed = getState(EntityState.class, true).getEntityData();
-        factory = getState(FactoryState.class, true);
+        factory = getState(FactoryState.class);
         visuals = getState(VisualState.class);
     }
     

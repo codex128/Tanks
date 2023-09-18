@@ -4,7 +4,7 @@
  */
 package codex.tanks;
 
-import codex.tanks.blueprints.ContactMethods;
+import codex.tanks.factories.ContactMethods;
 import codex.tanks.components.*;
 import codex.tanks.components.RoomIndex;
 import codex.tanks.systems.VisualState;
@@ -48,8 +48,8 @@ public class GameState extends ESAppState {
             new Player(0),
             new RoomIndex(),
             new RoomStatus(RoomStatus.ACTIVE),
-            new SpawnAssignment(SpawnAssignment.TO_ACTIVE)
-            //new ContactResponse(ContactMethods.KILL_PROJECTILE)
+            new SpawnAssignment(SpawnAssignment.TO_ACTIVE),
+            new ContactResponse(ContactMethods.KILL_PROJECTILE)
         );
         player = new PlayerAppState(plr);
         getStateManager().attach(player);

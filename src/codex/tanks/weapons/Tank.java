@@ -9,6 +9,8 @@ import codex.tanks.components.*;
 import codex.tanks.effects.MatChange;
 import codex.tanks.effects.MaterialChangeBucket;
 import codex.tanks.util.GameUtils;
+import com.jme3.anim.Joint;
+import com.jme3.anim.SkinningControl;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.math.ColorRGBA;
@@ -31,9 +33,10 @@ public class Tank {
 
     private final Spatial spatial;
     private final Entity entity;
-    private Spatial base, turret, probe, muzzle;
+    private Spatial probe, muzzle;
+    private Joint base, turret;
     private final MaterialChangeBucket matBucket = new MaterialChangeBucket();
-    private final Spatial[] wheels = new Spatial[4];
+    private final Joint[] wheels = new Joint[4];
     private RigidBodyControl physics;
     private final Vector2f treadOffset = new Vector2f();
     private final Vector2f nextTreadMove = new Vector2f();
@@ -50,21 +53,28 @@ public class Tank {
     }
     
     private void initialize() {
-        base = GameUtils.getChild(spatial, "base");
-        turret = GameUtils.getChild(spatial, "turret");
-        muzzle = GameUtils.getChild(spatial, "muzzle");
+        var skin = spatial.getControl(SkinningControl.class);
+        //base = GameUtils.getChild(spatial, "base");
+        //turret = GameUtils.getChild(spatial, "turret");
+        //muzzle = GameUtils.getChild(spatial, "muzzle");
+        base = skin.getArmature().getJoint("base");
+        turret = skin.getArmature().getJoint("turret");
+        muzzle = skin.getAttachmentsNode("muzzle");
         probe = GameUtils.getChild(spatial, "probe");
         Spatial hitbox = GameUtils.getChild(spatial, "hitbox");
-        wheels[0] = GameUtils.getChild(spatial, "wheel.FL");
-        wheels[1] = GameUtils.getChild(spatial, "wheel.BL");
-        wheels[2] = GameUtils.getChild(spatial, "wheel.FR");
-        wheels[3] = GameUtils.getChild(spatial, "wheel.BR");
+        //wheels[0] = GameUtils.getChild(spatial, "wheel.FL");
+        //wheels[1] = GameUtils.getChild(spatial, "wheel.BL");
+        //wheels[2] = GameUtils.getChild(spatial, "wheel.FR");
+        //wheels[3] = GameUtils.getChild(spatial, "wheel.BR");
+        wheels[0] = skin.getArmature().getJoint("wheel.FL");
+        wheels[1] = skin.getArmature().getJoint("wheel.BL");
+        wheels[2] = skin.getArmature().getJoint("wheel.FR");
+        wheels[3] = skin.getArmature().getJoint("wheel.BR");
         physics = new RigidBodyControl(CollisionShapeFactory.createMergedHullShape(hitbox), 2000f);
         physics.setAngularFactor(0f);
         physics.setFriction(0f);
         spatial.addControl(physics);
-    }
-    
+    }    
     public void update(float tpf) {
         //if ((reload -= tpf) < 0f) reload = 0f;
         //bullets.applyChanges();
@@ -124,7 +134,7 @@ public class Tank {
     private void rotate(float angle) {
         final float treadMoveMovement = angle*treadSpeed;
         final float isRight = FastMath.sign(angle);
-        base.rotate(0f, angle, 0f);
+        base.getLocalTransform().getRotation().multLocal(new Quaternion().fromAngleAxis(angle, Vector3f.UNIT_Y));
         nextTreadMove.addLocal(treadMoveMovement*isRight, -treadMoveMovement*isRight);
     }
     private void aimAtDirection(Vector3f direction) {
@@ -133,16 +143,16 @@ public class Tank {
     private void moveRightTread(float amount) {
         treadOffset.y += amount;
         matBucket.add(new MatChange("TreadOffset2", VarType.Float, treadOffset.y));
-        Quaternion q = new Quaternion().fromAngleAxis(amount*wheelSpeedRatio, Vector3f.UNIT_X);
-        wheels[2].rotate(q);
-        wheels[3].rotate(q);
+        Quaternion q = new Quaternion().fromAngleAxis(amount*wheelSpeedRatio, Vector3f.UNIT_Y);
+        wheels[2].getLocalTransform().getRotation().multLocal(q);
+        wheels[3].getLocalTransform().getRotation().multLocal(q);
     }
     private void moveLeftTread(float amount) {
         treadOffset.x += amount;
-        matBucket.add(new MatChange("TreadOffset1", VarType.Float, treadOffset.y));
-        Quaternion q = new Quaternion().fromAngleAxis(amount*wheelSpeedRatio, Vector3f.UNIT_X);
-        wheels[0].rotate(q);
-        wheels[1].rotate(q);
+        matBucket.add(new MatChange("TreadOffset1", VarType.Float, treadOffset.x));
+        Quaternion q = new Quaternion().fromAngleAxis(amount*wheelSpeedRatio, Vector3f.UNIT_Y);
+        wheels[0].getLocalTransform().getRotation().multLocal(q);
+        wheels[1].getLocalTransform().getRotation().multLocal(q);
     }
     
     public Ray getAimRay() {
