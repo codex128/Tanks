@@ -16,7 +16,7 @@ import codex.tanks.systems.GunState;
 import com.jme3.app.Application;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.ViewPort;
+import com.jme3.scene.Geometry;
 import com.simsilica.es.EntityId;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.AnalogFunctionListener;
@@ -115,31 +115,7 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
             // quick'n'dirty
             factory.getEntityFactory().createMine(player, ed.getComponent(player, EntityTransform.class).getTranslation());
         }
-        else if (func == Functions.F_DEBUG && value != InputState.Off) {
-            long i = 0;
-            for (var vp : renderManager.getPreViews()) {
-                for (var scene : vp.getScenes()) {
-                    for (var spatial : new SceneGraphIterator(scene)) {
-                        System.out.println((++i)+": "+spatial.getName());
-                    }
-                }
-            }
-            for (var vp : renderManager.getMainViews()) {
-                for (var scene : vp.getScenes()) {
-                    for (var spatial : new SceneGraphIterator(scene)) {
-                        System.out.println((++i)+": "+spatial.getName());
-                    }
-                }
-            }
-            for (var vp : renderManager.getPostViews()) {
-                for (var scene : vp.getScenes()) {
-                    for (var spatial : new SceneGraphIterator(scene)) {
-                        System.out.println((++i)+": "+spatial.getName());
-                    }
-                }
-            }
-            throw new NullPointerException();
-        }
+        else if (func == Functions.F_DEBUG && value != InputState.Off) {}
     }
     
 }

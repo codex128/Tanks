@@ -4,6 +4,7 @@
  */
 package codex.tanks.systems;
 
+import codex.boost.scene.SceneGraphIterator;
 import codex.tanks.components.EntityTransform;
 import codex.tanks.components.RoomStatus;
 import codex.tanks.components.Visual;
@@ -12,6 +13,7 @@ import codex.tanks.util.GameUtils;
 import codex.tanks.util.debug.DebugState;
 import com.jme3.app.Application;
 import com.jme3.math.ColorRGBA;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.Entity;
@@ -54,7 +56,13 @@ public class VisualState extends ESAppState {
             entities.getAddedEntities().forEach(e -> createModel(e));
             entities.getRemovedEntities().forEach(e -> destroyModel(e));
         }
-        getState(DebugState.class).print(this, "entities="+entities.size()+", spatials="+spatials.size());
+        long i = 0;
+        for (var spatial : new SceneGraphIterator(rootNode)) {
+            if (spatial instanceof Geometry) {
+                i++;
+            }
+        }
+        getState(DebugState.class).print(this, "entities="+entities.size()+", registered-spatials="+spatials.size()+", total-geometries="+i);
         if (sleepDetach.applyChanges()) {
             sleepDetach.getAddedEntities().forEach(e -> updateCondition(e, true));
             sleepDetach.getChangedEntities().forEach(e -> updateCondition(e, false));
