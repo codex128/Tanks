@@ -53,23 +53,9 @@ public interface Algorithm {
         }
     }
     public static void applyProperties(EntityData ed, EntityId id, J3map source) {
-        var brains = new ArrayList<Algorithm>();
-        for (var p : source.getOrderedPropertyList()) { 
-            if (!(p.property instanceof J3map)) {
-                continue;
-            }
-            var clazz = classes.get(p.key);
-            if (clazz != null) {
-                var a = applyToClass((J3map)p.property, clazz);
-                if (a != null) {
-                    //a.initialize(app);
-                    brains.add(a);
-                }
-            }
-        }
-        ed.setComponent(id, new Brain(brains.toArray(Algorithm[]::new)));
+        ed.setComponent(id, new Brain(source.getInteger("size", 0)));
     }
-    private static Algorithm applyToClass(J3map source, Class<? extends Algorithm> clazz) {
+    public static Algorithm createFromClass(J3map source, Class<? extends Algorithm> clazz) {
         try {
             return clazz.getConstructor(J3map.class).newInstance(source);
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException

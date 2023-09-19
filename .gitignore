@@ -10,6 +10,7 @@
 *.xcf
 *.blend1
 *.j3odata
+*.log
 /Tanks/nbproject/private/
 /School/nbproject/private/
 /School/build/

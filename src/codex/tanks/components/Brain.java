@@ -4,7 +4,6 @@
  */
 package codex.tanks.components;
 
-import codex.tanks.ai.Algorithm;
 import com.simsilica.es.EntityComponent;
 
 /**
@@ -13,20 +12,18 @@ import com.simsilica.es.EntityComponent;
  */
 public class Brain implements EntityComponent {
     
-    private final Algorithm[] algorithms;
+    private final int n;
 
-    public Brain(Algorithm... algorithms) {
-        this.algorithms = algorithms;
-    }
-    
-    public Algorithm[] getAlgorithms() {
-        return algorithms;
+    public Brain(int n) {
+        this.n = n;
     }
 
+    public int getNumAlgorithmTypes() {
+        return n;
+    }
     @Override
     public String toString() {
-        return "Brain{" + "algorithms=" + algorithms.length + '}';
+        return "Brain{" + "n=" + n + '}';
     }
-    
     
 }

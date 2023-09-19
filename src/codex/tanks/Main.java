@@ -33,7 +33,7 @@ public class Main extends SimpleApplication {
         var settings = new AppSettings(true);
         settings.setWidth(1024);
         settings.setHeight(768);
-        settings.setFrameRate(120);
+        settings.setFrameRate(-1);
         settings.setVSync(false);
         Main app = new Main();
         app.setSettings(settings);
@@ -103,7 +103,7 @@ public class Main extends SimpleApplication {
         stateManager.attach(new GameState());
         
         DetailedProfilerState dps = new DetailedProfilerState();
-        dps.setEnabled(false);
+        //dps.setEnabled(false);
         getStateManager().attach(dps);
         
     }

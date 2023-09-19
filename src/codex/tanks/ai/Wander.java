@@ -6,14 +6,20 @@ package codex.tanks.ai;
 
 import codex.j3map.J3map;
 import codex.tanks.collision.PaddedRaytest;
+import codex.tanks.collision.Raytest;
 import codex.tanks.collision.ShapeFilter;
+import codex.tanks.components.Bounces;
+import codex.tanks.components.EntityRaytest;
 import codex.tanks.components.Forward;
 import codex.tanks.components.ProbeLocation;
+import codex.tanks.systems.EntityState;
+import com.jme3.app.Application;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.simsilica.es.EntityId;
 
 /**
  *
@@ -26,13 +32,13 @@ public class Wander implements Algorithm {
      */
     private static final Vector3f[] RAYCAST_DIRECTIONS = {
         Vector3f.UNIT_Z,
-        new Vector3f(1f, 0f, -1f).normalizeLocal(),
+        //new Vector3f(1f, 0f, -1f).normalizeLocal(),
         Vector3f.UNIT_X.negate(),
-        new Vector3f(-1f, 0f, -1f).normalizeLocal(),
+        //new Vector3f(-1f, 0f, -1f).normalizeLocal(),
         Vector3f.UNIT_Z.negate(),
-        new Vector3f(-1f, 0f, 1f).normalizeLocal(),
+        //new Vector3f(-1f, 0f, 1f).normalizeLocal(),
         Vector3f.UNIT_X,
-        new Vector3f(1f, 0f, 1f).normalizeLocal(),
+        //new Vector3f(1f, 0f, 1f).normalizeLocal(),
     };
     
     private float turnSpeed = 0.1f;
@@ -42,6 +48,7 @@ public class Wander implements Algorithm {
     private float aggressiveFactor = 1f;
     private float decisive = .8f;
     private float wallAversion = 3f;
+    private EntityId[] raytestEntities = new EntityId[RAYCAST_DIRECTIONS.length];
     
     private float turnDir = 0f;
     private float regulatedTurn = 0f;
@@ -83,37 +90,46 @@ public class Wander implements Algorithm {
     }
     
     @Override
+    public void initialize(Application app) {
+        var ed = app.getStateManager().getState(EntityState.class).getEntityData();
+        for (int i = 0; i < raytestEntities.length; i++) {
+            var id = ed.createEntity();
+            ed.setComponent(id, new Bounces(0));
+            raytestEntities[i] = id;
+        }
+    }
+    @Override
     public void update(AlgorithmUpdate update) {}
     @Override
     public boolean move(AlgorithmUpdate update) {
         Vector3f current = update.getComponent(Forward.class).getForward();
         Vector3f decision = new Vector3f();
-        var collisions = new Direction[RAYCAST_DIRECTIONS.length];
-        for (int i = 0; i < collisions.length; i++) {
-            collisions[i] = new Direction(update, i);
-            collisions[i].weight = 0f;
+        var dirs = new Direction[RAYCAST_DIRECTIONS.length];
+        var tests = new Raytest[RAYCAST_DIRECTIONS.length];
+        for (int i = 0; i < raytestEntities.length; i++) {
+            update.getEntityData().setComponent(raytestEntities[i], new EntityRaytest(new Ray(update.getComponent(ProbeLocation.class).getLocation(), RAYCAST_DIRECTIONS[i]), -1f));
         }
-        for (int i = 0; i < collisions.length; i++) {
-            var direction = collisions[i];
+        for (int i = 0; i < dirs.length; i++) {
+            var direction = dirs[i];
             if (direction.collision == null) continue;
             direction.weight += (current.dot(direction.vector)+1)*(directionFactor/2);
             direction.weight += FastMath.nextRandomFloat()*randomFactor;
             direction.weight += direction.collision.getDistance()*distanceFactor;
             direction.weight += (direction.vector.dot(update.getDirectionToTarget())+1)/2*aggressiveFactor;
             if (direction.collision.getDistance() < wallAversion) {
-                var opposite = collisions[getOppositeDirectionIndex(i)];
+                var opposite = dirs[getOppositeDirectionIndex(i)];
                 if (opposite.weight >= 0f) opposite.weight += (1f/direction.collision.getDistance())*100;
                 direction.weight = -1f;
             }
         }
         Direction strongest = null;
-        for (int i = 0; i < collisions.length; i++) {
-            var direction = collisions[i];
+        for (int i = 0; i < dirs.length; i++) {
+            var direction = dirs[i];
             if (direction.weight >= 0f) {
                 decision.addLocal(direction.vector.mult(direction.weight));
             }
-            if (strongest == null || collisions[i].weight > strongest.weight) {
-                strongest = collisions[i];
+            if (strongest == null || dirs[i].weight > strongest.weight) {
+                strongest = dirs[i];
             }
         }
         decision.normalizeLocal();
@@ -139,6 +155,13 @@ public class Wander implements Algorithm {
     }
     @Override
     public void endUpdate(AlgorithmUpdate update) {}
+    @Override
+    public void cleanup(Application app) {
+        var ed = app.getStateManager().getState(EntityState.class).getEntityData();
+        for (int i = 0; i < raytestEntities.length; i++) {
+            ed.removeEntity(raytestEntities[i]);
+        }
+    }
     
     private static int getOppositeDirectionIndex(int dir) {
         if (dir < Wander.RAYCAST_DIRECTIONS.length/2) {
@@ -162,7 +185,7 @@ public class Wander implements Algorithm {
             var filter = ShapeFilter.notId(update.getAgentId());
             var test = new PaddedRaytest(new Ray(update.getComponent(ProbeLocation.class).getLocation(), vector), filter, 1f, filter, new CollisionResults());
             test.setResultMergingEnabled(true);
-            test.cast(update.getCollisionState());
+            //test.cast(update.getCollisionState());
             collision = test.getCollision();
         }
     }

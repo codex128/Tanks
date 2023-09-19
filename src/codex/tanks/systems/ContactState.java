@@ -5,6 +5,7 @@
 package codex.tanks.systems;
 
 import codex.tanks.collision.ContactEvent;
+import codex.tanks.collision.RaytestSystem;
 import codex.tanks.collision.ShapeFilter;
 import codex.tanks.components.Bounces;
 import codex.tanks.components.CollisionShape;
@@ -27,15 +28,19 @@ import java.util.Iterator;
 public class ContactState extends ESAppState implements Iterable<Spatial> {
     
     private EntitySet shapes;
+    private RaytestSystem raytester;
     
     @Override
     protected void init(Application app) {
         super.init(app);
         shapes = ed.getEntities(Visual.class, CollisionShape.class);
+        raytester = new RaytestSystem(this);
+        raytester.start();
     }
     @Override
     protected void cleanup(Application app) {
         shapes.release();
+        raytester.stopThread();
     }
     @Override
     protected void onEnable() {}
@@ -52,6 +57,10 @@ public class ContactState extends ESAppState implements Iterable<Spatial> {
     }
     public Iterator<Spatial> iterator(ShapeFilter filter) {
         return new ShapeIterator(filter);
+    }
+    
+    public RaytestSystem getRaytester() {
+        return raytester;
     }
     
     public void triggerContactEvent(ContactEvent event) {

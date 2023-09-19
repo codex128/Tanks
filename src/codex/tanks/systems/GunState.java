@@ -72,7 +72,7 @@ public class GunState extends ESAppState implements Listenable<ShootEventListene
     @Override
     public boolean approveShootEvent(EntityId id) {
         var rate = ed.getComponent(id, Firerate.class);
-        return isEntityRoomActive(id) && (rate == null || rate.isReady())
+        return false && isEntityRoomActive(id) && (rate == null || rate.isReady())
                 && owners.isBelowCapacity(id, BulletCapacity.class, "bullet");
     }
     @Override

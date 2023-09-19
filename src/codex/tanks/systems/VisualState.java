@@ -61,7 +61,6 @@ public class VisualState extends ESAppState {
         for (var spatial : new SceneGraphIterator(rootNode)) {
             i++;
             if (spatial instanceof Geometry) {
-                //i++;
                 v += ((Geometry)spatial).getVertexCount();
             }
         }

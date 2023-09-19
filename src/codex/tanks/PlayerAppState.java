@@ -32,7 +32,7 @@ import com.simsilica.lemur.input.StateFunctionListener;
 public class PlayerAppState extends ESAppState implements AnalogFunctionListener, StateFunctionListener {
     
     private final EntityId player;
-    private Pointer pointer;
+    private Pointer3D pointer;
     private final Vector3f inputdirection = new Vector3f();
     
     public PlayerAppState(EntityId player) {
@@ -44,7 +44,7 @@ public class PlayerAppState extends ESAppState implements AnalogFunctionListener
         super.init(app);
         
         cam = app.getCamera();
-        pointer = new Pointer(GameUtils.getChild(visuals.getSpatial(player), "pointer"));
+        pointer = new Pointer3D(GameUtils.getChild(visuals.getSpatial(player), "pointer"));
         
 //        var flashlight = ed.createEntity();
 //        ed.setComponents(flashlight,

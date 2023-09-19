@@ -41,7 +41,7 @@ public class Tank {
     private final Vector2f treadOffset = new Vector2f();
     private final Vector2f nextTreadMove = new Vector2f();
     private final float treadSpeed = -0.002f;
-    private final float wheelSpeedRatio = -15f;
+    private final float wheelSpeedRatio = 15f;
     
     //private float reload = 0f;
     private int drive = 1;
@@ -99,7 +99,7 @@ public class Tank {
         if (rotateTo(move.clone(), tpf)) {
             //var s = entity.get(MaxSpeed.class).getSpeed();
             setLinearVelocity(move);
-            final float treadMovement = move.length()*drive*treadSpeed;
+            final float treadMovement = move.length()*drive*treadSpeed*tpf*30;
             nextTreadMove.addLocal(treadMovement, treadMovement);
         }
         else {

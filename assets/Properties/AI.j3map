@@ -16,6 +16,7 @@ black: {
         bulletSpeed: 27f;
         color1: ColorRGBA(0.0, 0.0, 0.0, 1.0);
     }
+    size: 6;
     PlayerFinder: {
     }
     AvoidBullets: {
@@ -43,6 +44,7 @@ grey: {
         bulletSpeed: 10f;
         color1: ColorRGBA(0.2, 0.2, 0.2, 1.0);
     }
+    size: 5;
     PlayerFinder: {
     }
     AvoidBullets: {
@@ -72,6 +74,7 @@ light-green: {
         bulletSpeed: 35f;
         color1: ColorRGBA(0.0, 1.0, 0.0, 1.0);
     }
+    size: 3;
     PlayerFinder: {
     }
     Lookout: {
@@ -91,6 +94,7 @@ purple: {
         bulletSpeed: 12f;
         color1: ColorRGBA(0.3, 0.0, 0.6, 1.0);
     }
+    size: 6;
     PlayerFinder: {
     }
     AvoidBullets: {
