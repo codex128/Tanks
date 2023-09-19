@@ -87,7 +87,6 @@ public class ProjectileState extends ESAppState {
         var iterator = raytest.iterator();
         while (iterator.hasNext()) {
             // step the raytest
-            //System.out.println(FastMath.rand.nextInt(100)+"  "+getAgentId()+" is active: "+getProjectileState().isEntityRoomActive(getAgentId()));
             var closest = iterator.next();
             // fetch step results
             var id = iterator.getCollisionEntity();
@@ -99,7 +98,7 @@ public class ProjectileState extends ESAppState {
                 break;
             }
             // Set the next raytest direction.
-            // Changes to the direction in the collision reaction are propagated through the entity.
+            // Changes to the direction in the contact response are propagated through the entity.
             iterator.setNextDirection(e.get(Velocity.class).getDirection());
         }
         // set projectile translation

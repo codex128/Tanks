@@ -108,7 +108,7 @@ public class DungeonMaster extends ESAppState implements SceneProcessor {
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 var r = new Room(new RoomIndex(j, i), new Vector3f(j, 0f, height-1-i).multLocal(ROOM_SIZE));
-                r.initialize(this, visuals, assetManager.loadModel("Scenes/dungeons/blank.j3o"));
+                r.initialize(this, visuals, assetManager.loadModel("Scenes/dungeons/dungeon1.j3o"));
                 rooms[i][j] = r;
             }
         }

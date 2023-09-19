@@ -25,13 +25,14 @@ import java.util.LinkedList;
  */
 public class SegmentedRaytest implements Iterable<CollisionResult> {
     
-    private ContactState contactState;
+    private final ContactState contactState;
     private Ray ray;
     private EntityId origin;
     private ShapeFilter filter;
     private ShapeFilter firstCastFilter;
     private float distance;
     private int maxConsecutiveBounces = 10;
+    private boolean debug = false;
     
     public SegmentedRaytest(ContactState contactState) {
         this.contactState = contactState;
@@ -55,6 +56,9 @@ public class SegmentedRaytest implements Iterable<CollisionResult> {
     }
     public void setMaxConsecutiveBounces(int maxConsecutiveBounces) {
         this.maxConsecutiveBounces = maxConsecutiveBounces;
+    }
+    public void setDebugEnabled(boolean debug) {
+        this.debug = debug;
     }
     
     @Override
@@ -85,7 +89,7 @@ public class SegmentedRaytest implements Iterable<CollisionResult> {
         public CollisionResult next() {
             results.clear();
             var f = ShapeFilter.and(ShapeFilter.nullProtection(filter), ShapeFilter.nullProtection(firstCastFilter), ShapeFilter.notId(origin));
-            Raytest.raycast(contactState, ray, f, results);
+            Raytest.raycast(contactState, ray, f, results, debug);
             if (results.size() > 0) {
                 var closest = results.getClosestCollision();
                 if (distance > 0 && closest.getDistance() > distance) {

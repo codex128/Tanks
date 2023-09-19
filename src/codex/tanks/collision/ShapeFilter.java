@@ -137,5 +137,20 @@ public interface ShapeFilter {
             return true;
         }
     }
+    public static abstract class DebugSocket implements ShapeFilter {
+        private ShapeFilter filter;
+        public DebugSocket() {
+            this(null);
+        }
+        public DebugSocket(ShapeFilter filter) {
+            this.filter = filter;
+        }
+        @Override
+        public boolean filter(EntityAccess access, CollisionShape shape) {
+            boolean decision = filter == null || filter.filter(access, shape);
+            return decision;
+        }
+        protected abstract void listenToFilter(EntityAccess access, CollisionShape shape, boolean decision);
+    }
     
 }

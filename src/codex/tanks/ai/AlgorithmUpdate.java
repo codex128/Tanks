@@ -31,7 +31,7 @@ public class AlgorithmUpdate {
     private final float tpf;
     private final boolean satisfied;
     private Entity target;
-    private ContactState collision;
+    private ContactState contactState;
     private ProjectileState projectileState;
     
     public AlgorithmUpdate(AIManager manager, Entity entity, float tpf) {
@@ -43,7 +43,7 @@ public class AlgorithmUpdate {
     }
     
     private boolean initialize() {
-        collision = manager.getState(ContactState.class);
+        contactState = manager.getState(ContactState.class);
         projectileState = manager.getState(ProjectileState.class);
         return true;
     }
@@ -72,6 +72,9 @@ public class AlgorithmUpdate {
         return location.subtractLocal(here);
     }
     
+    public SegmentedRaytest.SegmentIterator getRaytestResult(EntityId id) {
+        return contactState.getRaytester().get(id);
+    }
     public Entity createRaycastEntity(Ray ray) {
         var tester = getEntityData().createEntity();
         getEntityData().setComponents(tester,
@@ -86,7 +89,7 @@ public class AlgorithmUpdate {
     }
     public boolean isTargetInView() {
         var raytest = new BasicRaytest(new Ray(entity.get(ProbeLocation.class).getLocation(), getDirectionToTarget()), ShapeFilter.none(ShapeFilter.byId(getAgentId())));
-        raytest.cast(collision);
+        raytest.cast(contactState);
         return target.getId().equals(raytest.getCollisionEntity());
     }
     public boolean checkIsEndangeringTeam() {
@@ -149,7 +152,7 @@ public class AlgorithmUpdate {
         return manager.getEntityData();
     }
     public ContactState getCollisionState() {
-        return collision;
+        return contactState;
     }
     public ProjectileState getProjectileState() {
         return projectileState;
