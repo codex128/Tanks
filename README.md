@@ -1,6 +1,8 @@
 # Tanks
 Tanks game inspired by the WiiPlay Tanks "minigame" built with JMonkeyEngine.
 
+This project is no longer maintained! Development of this project has been moved [here](https://github.com/codex128/TanksMk2).
+
 ## Dependencies
 * [JMonkeyEngine3](https://jmonkeyengine.org/)
 * [Minie 7.6](https://github.com/stephengold/Minie)
